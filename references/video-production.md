@@ -17,15 +17,13 @@
 
 ## 2. 配音
 
-- **音色唯一标准：项目资产 `We-Media/声音模版.mp3`**（作者指定）。配音前先从资产下载该模板并 `ffprobe` 核验，试听确定音色基线（性别/年龄感/语速/语调）。
-- 据此选择匹配的 TTS 音色（例：edge-tts，`edge-tts --voice <音色> --file script.txt --write-media voiceover.mp3 --write-subtitles subs.vtt`），生成后**与模板并排试听对比**，听感不一致必须更换音色重跑。
-- **音色匹配客观验证（不能只凭感觉）**：用 `scripts/analyze_voice.py` 并排分析模板与候选配音，对比性别、F0 中位（偏差 ≤ ±20Hz）、语速（偏差 ≤ ±10 字/分）：
+- **固定音色（强制）**：所有视频统一使用固定音色 `zh-CN-YunxiNeural`（Azure 神经网络语音），不随训练营/项目变化，不依赖任何外部声音模版文件；每次生成视频都使用这一固定音色，禁止自行随意更换（见 SKILL.md 固定规范第 10 条）。
+- 用 edge-tts 以该固定音色生成配音（注意多音字避坑，见 `scripts/gen_sync_subs.py` 说明）：
   ```bash
-  python3 scripts/analyze_voice.py "assets/We-Media/声音模版.mp3" build/voiceover.mp3
+  edge-tts --voice zh-CN-YunxiNeural --file script.txt --write-media voiceover.mp3 --write-subtitles subs.vtt
   ```
-  客观指标通过 + 试听听感一致才算匹配。模板可能是带 BGM 的样音：F0 分析先排除音乐低频段（60-80Hz 大量帧），以语音段为准；转写可能混入音乐内容，语速对比以语音为主。
-- 模板缺失/损坏时询问作者提供地址（本地路径/资产/下载链接）；**禁止自行随意选音色**。
 - 语速基线 240–280 字/分钟；拿到配音后用 `ffprobe -show_entries format=duration voiceover.mp3` 取实际时长。
+- （`scripts/analyze_voice.py` 仅作音色诊断/调参使用，固定音色下不再是强制门禁。）
 
 **环境坑（踩过，务必注意）：**
 
@@ -38,8 +36,8 @@
 2. **edge-tts 装在受控 venv 里**，用 `python -m edge_tts` 调用（无独立可执行文件的环境）：
    ```bash
    python3 -m venv <venv_dir> && <venv_dir>/bin/pip install edge-tts numpy faster-whisper
-   <venv_dir>/bin/python -m edge_tts --voice zh-CN-YunyangNeural --rate=-10% --file script.txt \
-     --write-media voiceover.mp3 --write-subtitles subs.vtt
+  <venv_dir>/bin/python -m edge_tts --voice zh-CN-YunxiNeural --rate=-10% --file script.txt \
+    --write-media voiceover.mp3 --write-subtitles subs.vtt
    ```
 3. **TTS 长文本**：`--file` 读脚本文件（首行若为标题则不朗读，需跳过）；`--write-subtitles` 与配音同步产出 VTT，是字幕逐字一致的唯一可靠来源。
 
@@ -65,7 +63,7 @@ x=36:y=28" -c:a copy out.mp4
 
 ```bash
 # edge-tts：配音 + 逐字字幕一次性产出
-edge-tts --voice <音色> --file script.txt \
+edge-tts --voice zh-CN-YunxiNeural --file script.txt \
   --write-media voiceover.mp3 --write-subtitles subs.vtt
 ```
 
