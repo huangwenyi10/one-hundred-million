@@ -65,8 +65,11 @@
 
 按工作区 `目录/<file>.md` → tdrive `短视频目录/<file>.md`：
 
-1. **查同名**：`tdrive.search_file(dir_id=TDRIVE_DIR_ID, keywords=[<file_basename>])`
-   看目标目录是否已有同名 md。**记录目标 file_id**（若存在）。
+1. **查同名**：`tdrive.dir_list(dir_id=TDRIVE_DIR_ID)` 枚举目录下全部子项（文件+子目录），
+   按返回的 `name`（**无扩展名**，如 `00_总览`、`02_大数据训练营`）匹配目标
+   file_basename（去掉 `.md`）。命中则**记录目标 file_id**。⚠️ **不要用 `search_file`
+   查同名**——它有索引延迟（刚上传的文件搜不到）且返回的 hits 语义与 dir_list 不一致，
+   会误判「不存在」导致重复上传。
 2. **对比内容**（若存在）：
    - `tdrive.file_download(file_id=<existing>)` 拿 `download_url`
    - `curl -sSL <download_url>` 下载旧内容到 `/tmp/catalog_compare_<file>.md`
@@ -93,9 +96,13 @@
 - **Project Drive mutating 必须经作者确认**（project-file-rules）——首次建 `短视频目录/`
   与每次覆盖写入均属 mutating；首次建目录明确告知作者并取得 dir_id；后续覆盖在「经作者
   批准的 Step 8 流程内」或「作者明确说『同步到项目资产』」时执行，不在 cron 自动化里自动跑。
-- **tdrive.search_file 关键词 ≤20 字符**：文件名如 `02_大数据训练营.md` 超过 20 字符
-  （`.md` 算上），按 basename 搜可能截断；建议搜 `keywords=["<类前缀编号>"]`（如 `["02_"]`）
-  或拆词（如 `["大数据"]`）。
+- **查同名必须用 `dir_list`，不用 `search_file`**（2026-09-02 实测踩坑）：`search_file`
+  有索引延迟——刚通过 `file_upload`+`file_upload_complete` 落库的文件，立刻 `search_file`
+  （无论 `keywords=["大数据"]` / `["00_总览"]` / 带 `.md` 全名）都返回 `hits:[]`，会误判
+  「不存在」→ 重复上传。`dir_list` 实时枚举、无延迟，是可靠的查同名手段。
+- **`dir_list` 返回的 `name` 不含扩展名**：`file_upload(file_name="02_大数据训练营.md")`
+  落库后 `dir_list` 返回 `name="02_大数据训练营"`、`ext="md"`（扩展名单独字段）。匹配
+  本地 file_basename 时要去掉 `.md` 再比。
 - **file_upload 必须用 `-T`（curl）**：`--data-binary` 不带 `@` 会把路径字符串当 body 上传，
   网盘里存的是路径文本。
 - **content_type 与 confirm_key 来自 file_upload 返回**：返回 headers 的每对 key/value 都
