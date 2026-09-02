@@ -7,26 +7,26 @@ sync_catalog_tdrive.py — 短视频目录 → tdrive 项目资产 同步辅助�
 **不直接执行 tdrive 写入**（Project Drive 的 mutating 操作由 AI 按 SOP §3
 用 tdrive MCP 工具按序执行，受 project-file-rules 约束）。本脚本提供：
   1. 读取 tdrive 目标目录 id（TDRIVE_DIR_ID 常量或环境变量 ONE_HUNDRED_MILLION_CATALOG_DIR_ID）
-  2. --check    检查配置 + 列本地 10 个待同步 md
-  3. --list     列出待同步文件（路径 / 字节数 / sha1）
-  4. --sync     打印 SOP §3 步骤与 AI 应调用的 tdrive MCP 工具序列，不直接上传
+  2. check    检查配置 + 列本地 10 个待同步 md
+  3. list     列出待同步文件（路径 / 字节数 / sha1）
+  4. sync     打印 SOP §3 步骤与 AI 应调用的 tdrive MCP 工具序列，不直接上传
 
 用法：
-  python3 scripts/sync_catalog_tdrive.py --check           # 校验 + 列待同步文件
-  python3 scripts/sync_catalog_tdrive.py --list            # 仅列待同步文件（含 hash）
-  python3 scripts/sync_catalog_tdrive.py --sync            # 打印 AI 应执行的同步步骤
-  python3 scripts/sync_catalog_tdrive.py --set-dir-id <id>  # 把 dir_id 写到 .tdrive_dir_id 配置（首次启用）
+  python3 scripts/sync_catalog_tdrive.py check           # 校验 + 列待同步文件
+  python3 scripts/sync_catalog_tdrive.py list            # 仅列待同步文件（含 hash）
+  python3 scripts/sync_catalog_tdrive.py sync            # 打印 AI 应执行的同步步骤
+  python3 scripts/sync_catalog_tdrive.py set-dir-id <id>  # 把 dir_id 写到 .tdrive_dir_id 配置（首次启用）
 
 首次启用：
   1. 在 tdrive 项目资产根目录（cmUdIiamIZso）下建子目录 `短视频目录/`
      （属 Project Drive mutating，须经作者确认；用 mcp__netdrive__tdrive.dir_create）
   2. 把返回的 dir_id 写到本脚本顶部 TDRIVE_DIR_ID 常量，或环境变量
-     ONE_HUNDRED_MILLION_CATALOG_DIR_ID，或运行 `python3 sync_catalog_tdrive.py --set-dir-id <id>`
+     ONE_HUNDRED_MILLION_CATALOG_DIR_ID，或运行 `python3 sync_catalog_tdrive.py set-dir-id <id>`
 """
 import argparse, datetime, hashlib, os, sys
 
 # === tdrive 短视频目录 dir_id 配置（首次启用后填入，留 None 表示未配置） ===
-TDRIVE_DIR_ID = None  # 例：'cXXXXXXXXXXXXXXXX'；留 None 则脚本以"未配置"状态运行
+TDRIVE_DIR_ID = "cDDhGWjfNMso"  # 项目资产根级「短视频目录/」，2026-09-02 首次启用时创建
 ENV_KEY = "ONE_HUNDRED_MILLION_CATALOG_DIR_ID"
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".tdrive_dir_id")
 
@@ -77,7 +77,7 @@ def cmd_check(args):
     did, src = resolve_dir_id()
     print(f"[配置] dir_id={did or '⚠️ 未配置'}  来源={src}")
     if not did:
-        print("  请先在 tdrive 建 `短视频目录/`，把 dir_id 写入脚本常量或运行 --set-dir-id")
+        print("  请先在 tdrive 建 `短视频目录/`，把 dir_id 写入脚本常量或运行 set-dir-id")
     files = catalog_files(args.workspace)
     print(f"[本地] 目录={os.path.join(args.workspace, '目录')}")
     print(f"[本地] 待同步 {len([f for f in files if not f.get('missing')])} / {len(files)} 个文件")
@@ -98,7 +98,7 @@ def cmd_list(args):
 def cmd_sync(args):
     did, src = resolve_dir_id()
     if not did:
-        sys.stderr.write("未配置 dir_id；请先 --set-dir-id 或填脚本常量\n")
+        sys.stderr.write("未配置 dir_id；请先 set-dir-id 或填脚本常量\n")
         sys.exit(2)
     files = [f for f in catalog_files(args.workspace) if not f.get("missing")]
     print(f"[sync] dir_id={did}（{src}） 共 {len(files)} 个文件")
