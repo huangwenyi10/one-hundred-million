@@ -458,8 +458,19 @@ def main():
     spec = importlib.util.spec_from_file_location("pages_data", os.path.join(build_dir, "pages_data.py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    global DIAGRAMS
+    global DIAGRAMS, BG_TOP, BG_BOT, PANEL, ACCENT, HILITE, TEXT, SUBTLE, WHITE
     DIAGRAMS = getattr(mod, "DIAGRAMS", {})
+    # 主题色：pages_data.THEME 提供则覆盖（非破坏，缺省保持书墨棕）
+    th = getattr(mod, "THEME", None)
+    if isinstance(th, dict):
+        BG_TOP = tuple(th.get("BG_TOP", BG_TOP))
+        BG_BOT = tuple(th.get("BG_BOT", BG_BOT))
+        PANEL = tuple(th.get("PANEL", PANEL))
+        ACCENT = tuple(th.get("ACCENT", ACCENT))
+        HILITE = tuple(th.get("HILITE", HILITE))
+        TEXT = tuple(th.get("TEXT", TEXT))
+        SUBTLE = tuple(th.get("SUBTLE", SUBTLE))
+        WHITE = tuple(th.get("WHITE", WHITE))
     pages = mod.PAGES
     frames_dir = os.path.join(build_dir, "frames")
     os.makedirs(frames_dir, exist_ok=True)
