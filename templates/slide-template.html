@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh">
+<!--
+  ============================================================
+  one-hundred-million · HTML 幻灯片模板（专业视觉 · 组件库 · 内置动画）
+  ============================================================
+  用法（Step 2 生成画面，套模板而非手写）：
+    1. 复制本文件为 `<视频标题>PPT.html`；
+    2. 在 :root 里把 --accent / --hilite / --bg / --bg2 换成该训练营主题色
+       （见 SKILL.md「训练营主题色」表，封面渐变 深底→主色）；
+    3. 每页一个 <section class="slide">，从下方「版式组件」选一个骨架，
+       替换占位文字与数据即可；有数据/对比/流程的页必须用图表组件，禁止纯文字；
+    4. 关键页加 1~2 处 CSS 动画类（.anim-*），让画面有揭示动效；
+    5. 导出：静态帧走 Chrome headless ?page=N 单帧截图；要 CSS 动画进视频
+       走 scripts/render_animated.py 逐帧截屏（关键页可选）。
+
+  硬约束（排版必须遵守，否则被 check_sync / 水印校验打回）：
+    - 左上角水印安全区：x 0~25% × y 0~15%（.watermark-zone 提示块，交稿前删掉）；
+    - 底部字幕带：y 88%~95%（.subtitle-zone 提示块，交稿前删掉）；
+      内容主体必须收在顶部 85% 以内，绝不侵入字幕带；
+    - 画面不得出现训练营名称/期号/「第 N 期」等标识；
+    - 每页 = 一个版式，一屏只突出 1 结论 + ≤3 支撑点 + 1 视觉焦点。
+  ============================================================
+-->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>幻灯片</title>
+<style>
+  /* ============ ① 主题变量（按训练营替换，封面渐变 = --bg2 → --accent） ============ */
+  :root{
+    --bg:#0B1026;          /* 页面深底 */
+    --bg2:#0A2A6B;         /* 渐变深端（封面主色） */
+    --accent:#0A5CFF;      /* 主色（亮端） */
+    --hilite:#4D8DFF;      /* 高亮/强调色 */
+    --text:#F5F8FF;        /* 主文字 */
+    --muted:#8A97B5;       /* 中性低饱和（衬托） */
+    --panel:#141B33;       /* 卡片/面板底 */
+    --line:#24304F;        /* 分隔线/描边 */
+    --good:#4ADE80;        /* 优/涨（正向） */
+    --bad:#FF6B6B;         /* 劣/降（负向，仅作中性语义色） */
+  }
+
+  /* ============ ② 基础画布 ============ */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:var(--text);-webkit-font-smoothing:antialiased;
+  }
+  /* 每页一屏 16:9，交稿按 ?page=N 逐页导出；演示时键盘翻页 */
+  .slide{
+    position:relative;width:1920px;height:1080px;overflow:hidden;
+    background:
+      radial-gradient(1200px 700px at 78% -10%, color-mix(in srgb,var(--accent) 22%,transparent), transparent 60%),
+      radial-gradient(900px 600px at -5% 108%, color-mix(in srgb,var(--bg2) 55%,transparent), transparent 62%),
+      var(--bg);
+    display:none;
+  }
+  .slide.active{display:block}
+  /* 页头：标题区，整体避开左上角水印区 */
+  .slide-head{position:absolute;left:120px;top:72px;right:120px}
+  .kicker{font-size:26px;letter-spacing:.14em;color:var(--hilite);margin-bottom:14px;font-weight:600}
+  .title{font-size:64px;font-weight:700;line-height:1.18;color:var(--text)}
+  .subtitle{margin-top:18px;font-size:30px;color:var(--muted);line-height:1.5}
+  /* 页脚：仅页码/留空，禁训练营名与期号 */
+  .page-num{position:absolute;right:48px;bottom:34px;font-size:22px;color:var(--muted);opacity:.6}
+
+  /* 安全区提示块（交稿前必须删除，仅排版时参考） */
+  .watermark-zone{position:absolute;left:0;top:0;width:25%;height:15%;
+    border:2px dashed rgba(255,255,255,.25);border-radius:0 0 20px 0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;color:rgba(255,255,255,.35);pointer-events:none;z-index:50}
+  .subtitle-zone{position:absolute;left:0;right:0;bottom:0;height:12%;
+    border-top:2px dashed rgba(255,255,255,.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;color:rgba(255,255,255,.35);pointer-events:none;z-index:50}
+
+  /* ============ ③ 版式 1：卡片式（要点并列 / 多方案对比） ============ */
+  .card-grid{position:absolute;left:120px;right:120px;top:280px;bottom:150px;
+    display:flex;gap:36px;align-items:stretch}
+  .card{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:24px;
+    padding:44px 40px;display:flex;flex-direction:column;gap:22px;position:relative;overflow:hidden}
+  .card .ic{width:64px;height:64px;border-radius:16px;background:color-mix(in srgb,var(--accent) 20%,transparent);
+    display:flex;align-items:center;justify-content:center;font-size:32px}
+  .card h3{font-size:40px;font-weight:700;color:var(--text)}
+  .card p{font-size:28px;color:var(--muted);line-height:1.55}
+  .card b{color:var(--hilite);font-weight:700}
+  .card.hot{border-color:var(--hilite);background:color-mix(in srgb,var(--accent) 14%,var(--panel));
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--hilite) 35%,transparent)}
+  .card .seq{position:absolute;top:26px;right:30px;font-size:26px;color:var(--muted);font-weight:600}
+
+  /* ============ ④ 版式 2：双栏 / 三栏（对比 / 因果 / 演进） ============ */
+  .split{position:absolute;left:120px;right:120px;top:280px;bottom:150px;display:flex;gap:40px}
+  .split .col{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:24px;
+    padding:44px 40px;display:flex;flex-direction:column;gap:24px}
+  .split .col h3{font-size:40px;font-weight:700}
+  .col-head{display:flex;align-items:center;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+  .col-head .dot{width:18px;height:18px;border-radius:50%;background:var(--hilite)}
+  .col-head.gray .dot{background:var(--muted)}
+  .split .row{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:28px;line-height:1.5}
+  .split .row .k{color:var(--muted)}
+  .split .row .v{color:var(--text);font-weight:600;text-align:right}
+  .vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:76px;height:76px;border-radius:50%;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;z-index:5}
+
+  /* ============ ⑤ 版式 3：主视觉（封面 / 单结论页） ============ */
+  .hero{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:0 180px}
+  .hero .lead{font-size:88px;font-weight:800;line-height:1.22;letter-spacing:.01em}
+  .hero .lead em{font-style:normal;color:var(--hilite)}
+  .hero .sub{margin-top:34px;font-size:36px;color:var(--muted);line-height:1.6}
+
+  /* ============ ⑥ 版式 4：图示页（架构 / 流程，占 55%~75%） ============ */
+  .diagram-stage{position:absolute;left:120px;right:120px;top:250px;bottom:170px;
+    background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:40px;
+    display:flex;flex-direction:column;gap:24px}
+  .node{background:color-mix(in srgb,var(--accent) 12%,var(--panel));
+    border:2px solid var(--accent);border-radius:18px;padding:20px 28px;
+    font-size:30px;font-weight:600;text-align:center;white-space:nowrap}
+  .node.dim{border-color:var(--line);background:var(--panel);color:var(--muted)}
+  .node.cyl{border-radius:50%/50% 50% 0 0;padding-top:28px}
+  .edge{stroke:var(--hilite);stroke-width:3;fill:none;marker-end:url(#arrow)}
+  .legend{margin-top:auto;font-size:22px;color:var(--muted)}
+
+  /* ============ ⑦ 版式 5：数字聚焦页（单点强冲击） ============ */
+  .stat{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:0 160px}
+  .stat .num{font-size:200px;font-weight:800;line-height:1;
+    background:linear-gradient(180deg,var(--hilite),var(--accent));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    -webkit-text-stroke:2px color-mix(in srgb,var(--text) 45%,transparent)}
+  .stat .unit{font-size:72px;font-weight:700;color:var(--text);margin-left:12px}
+  .stat .cap{margin-top:30px;font-size:36px;color:var(--muted)}
+  .stat .delta{margin-top:18px;font-size:34px;font-weight:700}
+  .stat .delta .old{color:var(--muted);text-decoration:line-through;margin-right:20px}
+
+  /* ============ ⑧ 图表：柱状 / 条形 ============ */
+  .bars{display:flex;align-items:flex-end;gap:28px;height:100%;padding-top:20px}
+  .bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:14px;height:100%}
+  .bar .val{font-size:30px;font-weight:700;color:var(--hilite)}
+  .bar .col{width:100%;max-width:120px;border-radius:12px 12px 0 0;
+    background:linear-gradient(180deg,var(--hilite),var(--accent));transform-origin:bottom}
+  .bar .col.muted{background:linear-gradient(180deg,var(--line),var(--panel))}
+  .bar .lab{font-size:24px;color:var(--muted);text-align:center}
+
+  /* ============ ⑨ 图表：对比表 ============ */
+  table.cmp{width:100%;border-collapse:collapse;font-size:28px}
+  table.cmp th,table.cmp td{padding:20px 24px;text-align:left;border-bottom:1px solid var(--line)}
+  table.cmp th{color:var(--muted);font-weight:600;font-size:26px}
+  table.cmp td.k{color:var(--muted)}
+  table.cmp td .ok{color:var(--good);font-weight:700}
+  table.cmp td .no{color:var(--bad)}
+  table.cmp tr.hl td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  table.cmp tr.hl td:first-child{color:var(--hilite);font-weight:700}
+
+  /* ============ ⑩ 图表：时间线 ============ */
+  .timeline{display:flex;align-items:flex-start;gap:0;position:relative;padding-top:30px}
+  .timeline::before{content:"";position:absolute;left:0;right:0;top:52px;height:3px;background:var(--line)}
+  .tl{flex:1;text-align:center;position:relative;padding:0 12px}
+  .tl .node{width:26px;height:26px;border-radius:50%;background:var(--panel);border:3px solid var(--muted);margin:0 auto 20px;position:relative;z-index:2}
+  .tl.now .node{background:var(--hilite);border-color:var(--hilite);box-shadow:0 0 0 8px color-mix(in srgb,var(--hilite) 25%,transparent)}
+  .tl .t{font-size:28px;font-weight:700}
+  .tl .d{font-size:22px;color:var(--muted);margin-top:8px;line-height:1.4}
+  .tl.future .node{border-style:dashed}
+
+  /* ============ ⑪ CSS 动画类（关键页 1~2 处，克制） ============ */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{opacity:0;transform:scale(.82)}70%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+  @keyframes highlight{from{border-color:var(--line)}to{border-color:var(--hilite)}}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes fillBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+  @keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 26px color-mix(in srgb,var(--hilite) 65%,transparent))}}
+
+  .anim-fade-up{opacity:0;animation:fadeUp .6s ease-out forwards}
+  .anim-pop{opacity:0;animation:pop .55s cubic-bezier(.2,.7,.3,1.2) forwards}
+  .anim-highlight{animation:highlight .5s ease-out forwards}
+  .anim-draw{stroke-dasharray:1200;stroke-dashoffset:1200;animation:draw 1.2s ease-out forwards}
+  .anim-fill{transform:scaleY(0);animation:fillBar .9s cubic-bezier(.2,.7,.3,1) forwards}
+  .anim-pulse{animation:pulse 2.2s ease-in-out infinite}
+  /* stagger：要点逐条渐入，依次 +150ms */
+  .d1{animation-delay:.15s}.d2{animation-delay:.3s}.d3{animation-delay:.45s}.d4{animation-delay:.6s}
+
+  /* 数字滚数（JS 可选增强：给 .num 加 data-count 终值即可） */
+  .js-count{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<!-- 骨架示例页（复制后替换内容；下列示例仅供结构参考） -->
+<section class="slide active">
+  <div class="watermark-zone">水印安全区（交稿删除）</div>
+  <div class="subtitle-zone">字幕带（交稿删除）</div>
+
+  <div class="slide-head">
+    <div class="kicker">大数据 · 查询加速</div>
+    <div class="title">一条 SQL 的<b style="color:var(--hilite)">加速</b>之旅</div>
+  </div>
+
+  <!-- 版式 4：图示页（架构/流程），节点用 .node + SVG .edge 连线 -->
+  <div class="diagram-stage">
+    <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 1680 660" preserveAspectRatio="none">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#4D8DFF"/>
+        </marker>
+      </defs>
+      <path class="edge anim-draw" d="M170 200 H500"/>
+      <path class="edge anim-draw" d="M760 200 H1090"/>
+      <path class="edge anim-draw" d="M1350 200 H1520"/>
+    </svg>
+    <div style="position:absolute;left:60px;top:170px" class="node">查询请求</div>
+    <div style="position:absolute;left:430px;top:170px" class="node">物化视图</div>
+    <div style="position:absolute;left:690px;top:170px" class="node dim">原表扫描</div>
+    <div style="position:absolute;left:1020px;top:170px" class="node">结果返回</div>
+    <div class="legend">数据流：左→右 · 物化视图命中即跳过全表扫描</div>
+  </div>
+
+  <div class="page-num">01</div>
+</section>
+
+<!-- ===== 版式 1：卡片式（要点并列） ===== -->
+<section class="slide">
+  <div class="slide-head"><div class="kicker">架构师 · 高并发</div>
+    <div class="title">三大<span style="color:var(--hilite)">削峰</span>手段</div></div>
+  <div class="card-grid">
+    <div class="card hot anim-fade-up d1"><div class="ic">⚡</div><h3>缓存</h3>
+      <p>热点数据前置，<b>命中率 95%+</b>，DB 压力降一个量级</p><span class="seq">01</span></div>
+    <div class="card anim-fade-up d2"><div class="ic">🧵</div><h3>异步</h3>
+      <p>写操作走消息队列，<b>削峰填谷</b>，接口 RT 不再抖动</p><span class="seq">02</span></div>
+    <div class="card anim-fade-up d3"><div class="ic">🛡️</div><h3>限流</h3>
+      <p>入口令牌桶兜底，<b>系统永远不被打死</b></p><span class="seq">03</span></div>
+  </div>
+  <div class="page-num">02</div>
+</section>
+
+<!-- ===== 版式 2：双栏对比 ===== -->
+<section class="slide">
+  <div class="slide-head"><div class="kicker">大数据 · 性能对比</div>
+    <div class="title">物化视图 vs 原表扫描</div></div>
+  <div class="split">
+    <div class="col">
+      <div class="col-head gray"><span class="dot"></span><h3>优化前</h3></div>
+      <div class="row"><span class="k">查询耗时</span><span class="v">74 秒</span></div>
+      <div class="row"><span class="k">扫描行数</span><span class="v">1.2 亿</span></div>
+      <div class="row"><span class="k">CPU 占用</span><span class="v">98%</span></div>
+    </div>
+    <div class="vs">VS</div>
+    <div class="col">
+      <div class="col-head"><span class="dot"></span><h3>优化后</h3></div>
+      <div class="row"><span class="k">查询耗时</span><span class="v" style="color:var(--hilite)">2.3 秒</span></div>
+      <div class="row"><span class="k">扫描行数</span><span class="v" style="color:var(--hilite)">3 万</span></div>
+      <div class="row"><span class="k">CPU 占用</span><span class="v" style="color:var(--hilite)">12%</span></div>
+    </div>
+  </div>
+  <div class="page-num">03</div>
+</section>
+
+<!-- ===== 版式 5：数字聚焦页 ===== -->
+<section class="slide">
+  <div class="stat">
+    <div class="anim-pop"><span class="num js-count" data-count="2.3">2.3</span><span class="unit">秒</span></div>
+    <div class="delta"><span class="old">74 秒</span><span style="color:var(--hilite)">查询提速 32 倍</span></div>
+    <div class="cap">数据仓库物化视图 · 从全表扫描到增量预计算</div>
+  </div>
+  <div class="page-num">04</div>
+</section>
+
+<script>
+  // ① 键盘翻页（演示用）；② ?page=N 直达（导出帧用）；③ 数字滚数（可选）
+  const slides=[...document.querySelectorAll('.slide')];
+  const q=new URLSearchParams(location.search).get('page');
+  let i=0;
+  function show(n){i=(n+slides.length)%slides.length;
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));}
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown')show(i+1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp')show(i-1);});
+  if(q){show(parseInt(q)-1);}else{show(0);}
+  // 数字滚数：把 .js-count 的 data-count 作为终值滚入（静态导出无碍，终点即终值）
+  document.querySelectorAll('.js-count').forEach(el=>{
+    const target=parseFloat(el.dataset.count)||0;
+    const dec=(el.dataset.count.split('.')[1]||'').length;
+    const t0=performance.now(),dur=900;
+    function step(t){let p=Math.min(1,(t-t0)/dur);p=1-Math.pow(1-p,3);
+      el.textContent=(target*p).toFixed(dec);if(p<1)requestAnimationFrame(step);}
+    requestAnimationFrame(step);
+  });
+</script>
+</body>
+</html>
