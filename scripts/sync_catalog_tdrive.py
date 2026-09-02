@@ -106,7 +106,7 @@ def cmd_sync(args):
     for f in files:
         print(f"  · {f['name']:24s}  {f['size']:>6}B  sha1={f['sha1']}")
     print("\n每个文件的步骤：")
-    print("  1) mcp__netdrive__tdrive.search_file(dir_id=<dir_id>, keywords=[<name 前缀或关键词>]) → 拿 file_id")
+    print("  1) mcp__netdrive__tdrive.dir_list(dir_id=<dir_id>) 枚举子项，按 name（无扩展名）匹配 → 拿 file_id（勿用 search_file，有索引延迟）")
     print("  2) 若存在：mcp__netdrive__tdrive.file_download(file_id) → curl 下载 → diff 本地；相同则 skip")
     print("  3) 若不同/不存在：mcp__netdrive__tdrive.file_upload(dir_id=<dir_id>, file_name=<name>, file_size=<bytes>, conflict_strategy='overwrite')")
     print("     → curl -sSL -X PUT -H '<返回的 headers>' -T <abs path> 'https://<domain><path>'")
