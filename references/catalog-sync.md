@@ -34,6 +34,10 @@
 （或环境变量 `ONE_HUNDRED_MILLION_CATALOG_DIR_ID`）。建目录是 Project Drive 的 mutating
 操作，**首次执行前须经作者确认**（见 project-file-rules）。
 
+**当前状态（2026-09-02）**：✅ 已启用——`短视频目录/` 已在 tdrive 建好，dir_id 已写入
+`scripts/sync_catalog_tdrive.py` 顶部常量 `TDRIVE_DIR_ID`（跑 `sync_catalog_tdrive.py check`
+可校验配置）。后续同步直接用本 SOP §3。
+
 ---
 
 ## 2. 同步触发点
