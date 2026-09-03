@@ -159,6 +159,15 @@ disable-model-invocation: false
 
 22. **每个训练营都要在项目资产维护一份已生成短视频的标题目录（强制·tdrive）**：与固定规范第 19 条「发布后归档百度网盘」相对，本条要求每个训练营（9 大类）都有一份**长期留存、跨会话可查**的标题目录索引，存放在 **tdrive 项目资产根级 `短视频目录/`**（与 `We-Media`、`InfoQ` 平级），下设 `00_总览.md` + `01_~09_<大类>.md` 共 10 个 md。维护机制见 Step 8 第 2.2 条「分类目录维护」与 `references/catalog-sync.md`：①本地事实来源由 `scripts/update_catalog.py` 自动写入工作区 `目录/`（每次 Step 8 自动调）；②项目资产副本按 SOP 同步到 tdrive `短视频目录/`（手动场景经作者确认执行；cron/定时场景默认跳过并标注「待手动触发」，下次交互式会话补同步）。**首次启用前须在项目资产建好 `短视频目录/` 并把 dir_id 配置到 `scripts/sync_catalog_tdrive.py` 顶部 `TDRIVE_DIR_ID`**（建目录属 Project Drive mutating，须经作者确认）。这是「方便后面查阅」——日后按训练营大类（如「架构师训练营」）查看已生成过哪些视频、各期讲什么能力维度，配合 `one-hundred-million-syllabus.json` 的 `covered` 掌握体系覆盖进度。
 
+23. **模型使用与限流降级（强制·免费优先 + 自动切换）**：内容生成**优先使用免费模型**；某个模型「使用量超出频率限制 / credit 额度用完」时，**不询问、不停止、不阻塞**，自动切到下一个未耗尽的免费模型继续跑；**全部免费模型耗尽才回退 `Auto`**（计费）并在日志标注。完整 SOP 见 `references/model-fallback.md`，执行靠 `scripts/pick_free_model.py`：
+
+    - **免费清单禁止硬编码**：由服务端下发，每次用脚本实时判定。实时目录 = 本机缓存 `~/.workbuddy/cache/acc-product-config-v3.json` 的 `models[]`，判定字段 `credits`：以 `x0.00` 开头 = 免费；`x0.05`/`x0.21` 等 = 计费；`null`/缺失 = **不计入候选**（无法判定是否免费）。2026-09-03 实测免费模型为 `hy4-preview`（Hy4 preview，100 万上下文 / 64k 输出 / 多模态 / 工具调用 / 推理）与 `hy3`（Hy3，192k / 64k），**该快照仅作参考，一律以实时目录为准**。
+    - **限流信号**（命中任一即走降级，不要当脚本 bug 排查）：`credit 额度已用完`、`使用量超出频率限制`、`rate limit`、HTTP `429` / `Too Many Requests`、`quota exceeded`。脚本报错 / 文件缺失 / 网络超时重试成功**不算**限流——修问题本身，不切模型。
+    - **标准动作**：①开工（Step -1）跑 `pick_free_model.py list` + `pick` 确认本轮模型；②命中限流 → `exhausted <模型id> --reason "<摘要>" --cooldown 7200` 标记冷却（默认 2h，与定时节奏对齐；响应带 reset 时间则以其覆盖）→ `pick` 取下一个可用免费模型；③**断点续跑**——已完成的确定性步骤（脚本 / TTS / ffmpeg / `check_sync` / 像素扫描）不回滚不重做，从被中断的 LLM 依赖步骤继续；④**门禁一条不减**——换模型不豁免 `check_sync.py` exit 0、禁句禁标识扫描、字幕带与水印区扫描、素材双源核验；⑤记录——run 日志与 `metrics.csv` 备注列写「模型：<id>｜切换：<from> → <to>｜原因：限流」。
+    - **切换执行方式**：CLI 用 `/model <id>` 或 `--model <id>`；桌面端在模型下拉选（智能体没有直接改下拉的工具，**无人值守场景靠状态文件跨轮生效**——本轮继续跑确定性步骤，下一轮 `pick` 自动跳过冷却中的模型；作者在场时按 `list` 结果切一次即可）。
+    - **状态文件**：工作区根 `one-hundred-million-model-fallback.json`（`exhausted` / `history` / `current`），与 `one-hundred-million-rotation.json` 同属事实来源，手工改动以文件为准。冷却到期自动释放，误标记用 `reset --id <模型id>` 释放。
+    - 本条**唯一例外**仍是 Step 7 发布关卡：模型切换属生产内部动作可自动，但成片进入发布关卡后不得换模型重生成（会破坏已审核成品），发布一律等作者批准。
+
 ### 定时轮转生产模式（自动化任务驱动 · 每 2 小时一大类）
 
 定时任务（自动化）对本技能的调用方式极简：仅「加载技能 one-hundred-million，每 2 小时执行一次」。**本技能的完整生产逻辑内建于此，定时任务不携带任何流程细节**——技能每次被定时调用时，按以下机制自行决定本次做哪一大类、做成什么样。**自动化每次执行前必须重新完整加载本 SKILL.md 并严格按其当前 Step 0～Step 8 全流程执行；若自动化自身历史记忆中的流程要点与本 SKILL.md 不一致，一律以本 SKILL.md 为准，禁止沿用旧管线**（旧 PIL 管线 `render_frames.py`/`gen_ppt.py` 出 base64 图片式 PPT 已废弃；Step 2 已改强制套 `templates/slide-template.html`，Step 6 已改用 `compose_motion.py`/`render_animated.js`）。
@@ -205,6 +214,16 @@ disable-model-invocation: false
 **7. 纪律**
 
 不臆造发布动作；不向作者逐项确认选题 / 档位；每次只做选中那一个大类；状态文件是轮转的唯一事实来源，手工改动以文件为准。
+
+**8. 限流自动降级（无人值守 · 固定规范第 23 条在定时模式下的落地）**
+
+定时任务最容易撞上限流（2 小时一轮、长时间连续生成）。本模式下按以下顺序执行，**全程不向作者确认**：
+
+1. **开工 Step -1**：`python3 scripts/pick_free_model.py list --workspace <工作区>` 看免费模型与冷却状态；`pick` 取本轮应使用的模型（`0` = 可用免费 id，`2` = 免费全耗尽 → `AUTO`，`3` = 读不到配置 → 记日志并按 Auto 继续、标注待人工核对清单）。
+2. **运行中命中限流信号**：立即 `exhausted <被限流模型id> --reason "<摘要>" --cooldown 7200`，再 `pick` 取下一个，**继续本轮后续步骤**；不得原地重试同一模型、不得中断本轮。
+3. **不可自动改下拉怎么办**：智能体无法在会话内改模型下拉。无人值守时靠状态文件跨轮生效——本轮把已能做的确定性步骤（脚本生成 / TTS / ffmpeg / 校验 / 目录写回）做完，被 LLM 阻断的步骤记入日志；下一轮开工 `pick` 自动跳过冷却模型，落到下一个免费模型。
+4. **全耗尽回退**：`pick` 返回 `AUTO` 时回退 Auto（计费）继续生产，日志与 `metrics.csv` 备注列标注「免费额度已耗尽，本期走计费模型」。
+5. **写回**：轮转状态写回时一并记录本轮模型与切换记录（第 6 部分第 1、5 条）。
 
 ### 训练营体系化选题（开放体系 · 章节无穷 · 看完成为专家）
 
@@ -399,6 +418,7 @@ disable-model-invocation: false
 - **图示来源可查**：画面中的架构图/对比图必须来自项目资产或官网等官方渠道，能说明来源，禁止使用无法核实来源的图片；读书训练营的图示来源 = 原书对应章节（画面/口播标注出处），按「忠于原书概念、自绘原创示意图」入画，非原书图稿复制。
 - **图示无侵权元素**：抽帧检查所有含图示的画面，无第三方平台水印、下载源版权角标、无关第三方 Logo/网址等侵权标识；无法干净去除的图已弃用并重绘。
 - **固定音色校验**：成片配音使用固定音色 `zh-CN-YunxiNeural`，未擅自更换其他音色（固定规范第 10 条）。
+- **模型与限流降级已处理（强制·固定规范第 23 条）**：开工跑过 `scripts/pick_free_model.py list` + `pick`，本期模型在免费候选内，或已明确标注「免费额度耗尽 → 回退 Auto（计费）」；运行中命中限流信号（`credit 额度已用完` / `使用量超出频率限制` / `429` / `quota exceeded`）已用 `exhausted` 记录（时间 + 原因 + 冷却）并切到下一个可用模型，**未**原地重试同一模型、**未**中断本轮；切换后从断点继续、已完成脚本未重跑；**换模型未降低任何门禁**（`check_sync.py` exit 0、禁句禁标识扫描、字幕带与水印区像素扫描、素材双源核验照跑）；run 日志与 `metrics.csv` 备注列有「模型：<id>｜切换：<from> → <to>｜原因：限流」记录。
 - **统一输出目录**：口播稿（txt）、HTML PPT（html）、成片（mp4）均位于以视频标题命名的**同一个文件夹**内，文件夹名与当前标题完全一致（标题终审改名后文件夹已同步重命名）；文件夹内无中间产物混入。
 - **一律默认 16:9 横屏（强制）**：成片画幅为 1920×1080（16:9）；**不因目标平台（含抖音/快手/小红书）自动派生竖屏版**；竖屏版仅在作者明确指定格式时作为派生版本产出，且字幕、水印已按竖屏版重新校准。
 - **发布后已归档百度网盘「自媒体目录」（强制·固定规范第 19 条）**：成片经作者批准后，**整个视频标题文件夹**已归档到 `/自媒体/<训练营名>/<视频标题>/`，13 项物料（主交付 4 + 发布物料 5 + 工程源 4）齐备、字节数与本地一致；临时托管外链已下线并 curl 复验 404；落盘路径已回报作者。已按 `references/netdisk-archive.md` SOP 执行；未经批准的成片未走公网托管上传。
@@ -415,12 +435,14 @@ disable-model-invocation: false
 - `visual-design.md` — **专业视觉设计系统（强制·让画面专业不静态）**：5 大专业版式（卡片/双栏/主视觉/图示/数字聚焦）、图表模板（对比表/柱状/折线/环形/大数字/架构流程/时间线）、动效/镜头运动指引、DO/DON'T 速查与合成前自检清单（§6）。供 Step 2（专业版式与图表）、Step 6（镜头运动消除静态感）使用。解决「视频不好看/画面静态」的规范源头。
 - `netdisk-archive.md` — **百度网盘归档 SOP（Step 8 闭环 · 强制）**：`自媒体/<训练营名>/<视频标题>/` 目录规范、13 项归档物料清单与命名、连接器能力边界（无二进制直传/无删除/无文件夹上传）、路径编码避坑（写操作斜杠禁编码、`make_dir` 不可用、`file_list` 需百分号编码且每页 10 条）、`.zip` 被 WAF 403 的绕法、静态托管快照特性、完整 8 步 SOP 与安全边界。
 - `catalog-sync.md` — **项目资产目录同步 SOP（Step 8 2.2 · tdrive `短视频目录/` · 强制）**：把本地 `目录/*.md`（10 个）幂等同步到 tdrive 项目资产根级 `短视频目录/`，让每个训练营的标题目录在项目资产里长期留存。包含首次启用建目录 + dir_id 配置、`tdrive.search_file` / `file_download` 比对 / `file_upload`(overwrite) + curl PUT + `file_upload_complete` 完整 SOP、cron 跳过 / 手动场景触发的边界，以及与 `update_catalog.py` 写入器 vs 本 SOP 同步器的解耦说明。
+- `model-fallback.md` — **模型使用与限流降级 SOP（固定规范第 23 条 · 强制）**：免费优先 + 限流自动切换。含免费模型实时判定法（本机 `~/.workbuddy/cache/acc-product-config-v3.json` 的 `models[].credits`，`x0.00` = 免费，清单**禁止硬编码**）、限流信号识别（`credit 额度已用完` / `使用量超出频率限制` / `429` / `quota exceeded`）、标准动作（标记冷却 → 取下一个 → 断点续跑 → 门禁不减 → 记录）、三种运行形态的切换执行方式（CLI `/model` / 桌面端下拉 / 无人值守靠状态文件跨轮生效）、避坑与自检清单。
 
 #### scripts/
 - `video_tool.py` — ffmpeg 封装：`frames`（帧转视频）、`watermark`（叠加水印）、`subtitle`（烧录 SRT/ASS）、`cover`（前 3 秒封面拼接）、`audio`（合成音轨）、`sub_clean`（去除 VTT/SRT 每条字幕**末尾**的所有句读/标点类符号，保留行内标点和数字/单位上下文符号如小数点、百分号）。依赖 ffmpeg，执行 `python3 video_tool.py <subcommand> --help` 查看用法。
 - `analyze_voice.py` — 配音音色基线分析（自相关法算基频 F0 推断性别/音高 + faster-whisper 转写算语速）。依赖 numpy（必需）、ffmpeg、faster-whisper（可选，缺则只出 F0）。用法：`python3 analyze_voice.py 参考.mp3 候选.mp3` 并排输出对比。固定音色（`zh-CN-YunxiNeural`）下该脚本仅供诊断/调参，不再是强制门禁。
 - `compose_motion.py` — **镜头运动层合成（消除静态感，Step 6 推荐默认）**：读静态帧目录 + `segments_durations.json`，逐帧做轻微 Ken Burns 缓慢推拉摇移（zoompan）+ xfade 0.5s 交叉淡入衔接，替换「硬切 + 帧静止」。不改 HTML/不重渲帧/不动配音字幕时间轴，只换合成方式，四方同频与时长不受影响。用法：`python3 compose_motion.py <frames_dir> <durations.json> <out.mp4> [--fps 30] [--preset 1|2|3]`（preset 1=轻微推荐正文）。运动/动画纪律见 `references/visual-design.md` §3。
 - `render_animated.js` — **动画帧导出（CSS 动画进视频 · Step 6 可选增强）**：用 Chrome DevTools Protocol(CDP) 对每页 HTML 做真实时间推进的逐帧截屏，把模板里的 CSS 动画类（`.anim-pop` 数字弹入 / `.anim-draw` 线条绘制 / `.anim-fade-up` 要点渐入 / `.anim-fill` 进度填充）真正捕获进帧序列，再 ffmpeg 拼成 body 视频——替代「每页一张静态帧」的导出方式，让动画全程进入成片。**与 `compose_motion.py` 互斥**（Ken Burns 与动画帧二选一，非动画页仍走 Ken Burns）。依赖 Chrome（`/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`，需 `--no-sandbox`）+ node ≥22（内置 WebSocket/fetch）+ ffmpeg。用法：`node scripts/render_animated.js <PPT.html> <segments_durations.json> <out_body.mp4> [--fps 30] [--only-page N]`。详见 Step 6 第 2.1 条。
+- `pick_free_model.py` — **免费模型挑选与限流降级（固定规范第 23 条配套 · 强制）**：实时读本机产品配置（`~/.workbuddy/cache/acc-product-config-v3.json`，回退 app 内置 `product*.json`，可用 `ONE_HUNDRED_MILLION_MODEL_CONFIG` 覆盖），以 `credits` 字段判定免费模型（`x0.00` = 免费、`null` 不选），维护工作区状态文件 `one-hundred-million-model-fallback.json`。子命令：`list`（列免费模型 + 冷却状态）、`pick`（stdout 输出下一个可用模型 id，exit 0；免费全耗尽输出 `AUTO` 且 exit 2；读不到配置 exit 3）、`exhausted <id> [--reason S] [--cooldown N]`（标记限流，默认冷却 7200s）、`reset [--id X]`（释放）、`current <id>`（记录当前模型）。用法：`python3 pick_free_model.py <cmd> [--workspace <工作区>]`。完整 SOP 见 `references/model-fallback.md`。
 - `update_catalog.py` — **分类目录维护（Step 8 2.2 强制 · 本地事实来源）**：把一条已产出视频幂等追加进所属训练营大类的目录索引（**本地** `目录/` —— 事实来源；项目资产副本由 `references/catalog-sync.md` 同步到 tdrive `短视频目录/`，与本脚本解耦），9 大类文件 + `00_总览.md`。用法：`python3 update_catalog.py --camp <大类或别名> --title <视频标题> --tier <S/M/L> --dim <能力维度/主题> [--date yyyy-mm-dd] [--workspace <工作区>]`。幂等：标题已存在则只刷新不重复计数；支持别名归入 9 大类（不匹配则报错退出）。
 - `sync_catalog_tdrive.py` — **项目资产目录同步辅助器（Step 8 2.2 · tdrive `短视频目录/` · 与 `update_catalog.py` 解耦）**：`update_catalog.py` 写本地 `目录/`（事实来源）后，本脚本持有 tdrive 目标 dir_id 配置（TDRIVE_DIR_ID 常量 / 环境变量 ONE_HUNDRED_MILLION_CATALOG_DIR_ID / 配置文件 `scripts/.tdrive_dir_id`），提供 `check`（校验配置 + 列待同步文件）、`list`（路径/size/sha1）、`set-dir-id <id>`（首次启用写入 dir_id）、`sync`（打印 `references/catalog-sync.md` §3 SOP 步骤）。**不直接执行 tdrive 写入**——Project Drive mutating 由 AI 按 SOP 用 tdrive MCP 工具按序执行（交互式经作者确认，cron 跳过），符合 project-file-rules。首次启用前须在 tdrive 项目资产根目录建 `短视频目录/` 并把 dir_id 配置进来。
 - `gen_sync_subs.py` — **分段真实时间轴生成（四方同频的核心）**：读 `segments.txt`（每页一行，首行封面），逐段 edge-tts（开启句级 SentenceBoundary）拿到真实起止时刻，concat 成 `voiceover.mp3`，写 `subtitles.srt`（句级真实时间轴，句内按字符比例拆单行≤32字、去尾句号）与 `segments_durations.json`（`{durations,starts,ends,total}` 作为画面停留与字幕时间的唯一来源）。含全局去重叠+最小 0.15s 兜底。用法：`python3 gen_sync_subs.py <segments.txt> <out_dir> <voice> [cover_min]`。**多音字避坑（已踩·物化视图项目验证）**：edge-tts 在 `zh-CN-YunxiNeural` 上对中文多音字按自身语境猜读，可能偏离用户意图。**禁用 SSML `<phoneme>` 强制读音**——该音色下 `<phoneme>` 会让音频膨胀 4~5 倍（同句 8s→36s），总时长失控不可用。正确做法（仅当 edge-tts 读错方向时）：**代理同音字**——TTS 输入把易错字临时换成一个 edge-tts 必读正确的同音字，句边界文本再换回原字（字幕仍显示正确汉字、观众听到正确读音）；须逐段校验「替换后句边界文本拼接 == 原口播稿」。**物化视图项目特例**：数据库语境「行」(一行数据=row) 用户确认读 **háng**，而 edge-tts 默认正是读 háng，故该项目无需代理，直接喂原始口播稿即可（见 `revert_hang.py`：取消 行→形 替换、还原原始文本；它是 `fix_xing.py` 的反向）。
