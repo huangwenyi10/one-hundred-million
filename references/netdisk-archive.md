@@ -94,26 +94,33 @@
 
 只要缺一项、或中途上传超时 / MCP 会话失效 / 复验不过，该视频一律**不清理**（本地仍是唯一副本）。
 
-**删除粒度（只删重产物，轻量文本全保留）**：
-- **删**（占空间大头，网盘均已含，可随时取回）：
-  - `build/frames/`、`build/sub_frames/`（Chrome 逐帧 PNG / 烧字帧，最占空间）
-  - `build/body.mp4`、`build/seg_*.mp3`、`build/voiceover.mp3`
-  - `<视频标题>_成片.mp4`（从网盘 `发布/...成片.mp4` 项随时取回）
-- **保留**（KB~MB 级轻量项，便于本地即时查阅，不删）：
-  - `<视频标题>_口播稿.txt`、`<视频标题>_PPT.html`
-  - `build/segments.txt`、`build/subtitles.srt`、`build/segments_durations.json`、`build/pages_data.py`、`build/seg_*.json`
-  - 整个 `发布/` 目录
+**删除粒度（分两档，作者二选一）**：
+- **默认档（重产物档 · 归档后默认执行）**：删占空间大头的 build 中间产物 + 可随时取回的大交付，保留 KB~MB 级轻量文本供本地即时查阅。
+  - **删**（网盘均已含，可随时取回；`body.mp4`/`final_silent.mp4` 同为可从网盘 PPT+字幕+配音重生成片的中间片，一并纳入）：
+    - `build/frames/`、`build/sub_frames/`（Chrome 逐帧 PNG / 烧字帧，最占空间）
+    - `build/body.mp4`、`build/final_silent.mp4`、`build/seg_*.mp3`、`build/voiceover.mp3`
+    - `<视频标题>_成片.mp4`（从网盘 `发布/...成片.mp4` 项随时取回）
+  - **保留**（KB~MB 级轻量项，便于本地即时查阅，不删）：
+    - `<视频标题>_口播稿.txt`、`<视频标题>_PPT.html`
+    - `build/segments.txt`、`build/subtitles.srt`、`build/segments_durations.json`、`build/pages_data.py`、`build/seg_*.json`、`build/*.py`（合成/渲染脚本）
+    - 整个 `发布/` 目录
+- **彻底档（整个标题文件夹删净 · 作者明确确认后执行）**：作者偏好「归档完整后本地零残留」——13/13 复验通过后**经作者明确确认**，`rm -rf` 删整个 `<视频标题>/` 文件夹（含全部轻量文本），网盘为唯一副本（完整工程 zip 已含全部文本源码，可随时取回重生成片）。**必须作者明确确认，不默认、不擅自扩大到整文件夹**（Run 20 实测：作者追问「确定传到网盘后为什么没删整个文件夹」→ 作者明确偏好彻底删净，2026-09-03 固化）。
 
-**执行**：
+**执行（默认档，重产物）**：
 ```
 # 在归档复验通过、回报作者落盘路径之后执行
 # 删除前再次确认 file_list 复验记录存在且 13/13
 rm -rf "<标题>/build/frames" "<标题>/build/sub_frames" \
-       "<标题>/build/body.mp4" "<标题>/build/voiceover.mp3"
+       "<标题>/build/body.mp4" "<标题>/build/final_silent.mp4" "<标题>/build/voiceover.mp3"
 rm -f "<标题>"/build/seg_*.mp3 "<标题>"/*_成片.mp4
 du -sh "<标题>"   # 报释放后占用
 ```
+**执行（彻底档，作者确认后整个文件夹删净）**：
+```
+rm -rf "<标题>"
+# 前置：13/13 复验通过 + 作者明确确认 + 完整工程 zip 已兜底整个文件夹
+```
 
-**记录**：metrics.csv 该行备注列追加「已归档 + 已清理本地重产物（释放约 <N> MB）」。
+**记录**：metrics.csv 该行备注列追加「已归档 + 已清理本地重产物（释放约 <N> MB）」（默认档）或「已归档 + 作者确认后整个标题文件夹已彻底删除（<释放 MB>, 本地零残留, 网盘唯一副本）」（彻底档）。
 
-**既有已完整归档历史视频**：可在作者确认后按此粒度一次性回删；作者未确认前不擅自删除任何历史资产。
+**既有已完整归档历史视频**：可在作者确认后按两档粒度一次性回删（作者确认走彻底档则整文件夹删净）；作者未确认前不擅自删除任何历史资产。
