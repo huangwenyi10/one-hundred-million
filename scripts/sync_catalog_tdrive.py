@@ -30,6 +30,10 @@ TDRIVE_DIR_ID = "cDDhGWjfNMso"  # 项目资产根级「短视频目录/」，202
 ENV_KEY = "ONE_HUNDRED_MILLION_CATALOG_DIR_ID"
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".tdrive_dir_id")
 
+# === 目录唯一事实来源（2026-09-03 固化）===
+# 本地 `目录/` 只有一处权威位置：自动化生产主工作区。其它会话语境一律读写它，勿另建 `目录/`。
+DEFAULT_WORKSPACE = "/Users/ay/WorkBuddy/2026-08-30-21-04-18"
+
 INDEX_FILENAME = "00_总览.md"
 CATEGORY_FILENAMES = [
     "01_架构师训练营.md", "02_大数据训练营.md", "03_AI_训练营.md",
@@ -116,7 +120,7 @@ def cmd_sync(args):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--workspace", default=os.getcwd(), help="工作区根目录（含 `目录/` 子目录）")
+    ap.add_argument("--workspace", default=DEFAULT_WORKSPACE, help="工作区根目录（含 `目录/` 子目录）")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("check", help="校验配置 + 列待同步文件").set_defaults(func=cmd_check)
     sub.add_parser("list", help="列待同步文件（路径/size/sha1）").set_defaults(func=cmd_list)
