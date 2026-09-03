@@ -227,6 +227,16 @@ def main():
         prev_end = e
     subs = clean
 
+    # 关闭过大的句间间隙（edge-tts 长稿偶发的自然停顿），让字幕保持连续，
+    # 避免 check_sync ② 间隙过大。仅吸收 > 0.35s 的间隙，正常停顿不受影响；
+    # 文本与总时长不变，分页时长不受影响（④ 只看 segments_durations）。
+    GAP_CLOSE = 0.35
+    for j in range(1, len(subs)):
+        ps, pe, pt = subs[j - 1]
+        s, e, t = subs[j]
+        if s - pe > GAP_CLOSE:
+            subs[j - 1] = (ps, round(s, 3), pt)  # 前一条延伸到本条第起点，吸收停顿
+
     # 拼接 voiceover.mp3
     concat_list = os.path.join(args.out_dir, "segs_concat.txt")
     with open(concat_list, "w") as f:
