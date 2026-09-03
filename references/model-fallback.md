@@ -1,0 +1,118 @@
+# model-fallback.md — 模型使用与限流降级 SOP（免费优先 · 自动切换）
+
+配套 SKILL.md「固定规范第 23 条」。解决一件事：**内容生成优先用免费模型；某个模型被限流 / 额度用完时，不询问、不停止，自动切到下一个未耗尽的免费模型继续跑。**
+
+---
+
+## 1. 硬规则（三条）
+
+1. **免费优先**：内容生成（口播稿、标题打磨、文案派生、素材核验结论）一律优先使用**免费模型**（credits = `x0.00`）。
+2. **限流即切换，不阻塞**：命中限流信号 → 立刻把当前模型标记冷却 → 取下一个可用免费模型继续，**不向作者确认、不中断生产**。
+3. **免费全耗尽才回退 Auto**：全部免费模型处于冷却期 → 回退 `Auto`（计费）继续生产，并在日志/产物标注「免费额度已耗尽，本期走计费模型」；**不因模型降级降低任何质量门禁**。
+
+> 唯一不适用「自动」的节点仍是 Step 7 发布关卡——模型切换属生产内部动作，发布必须等作者批准。
+
+---
+
+## 2. 免费模型清单：实时判定，禁止硬编码
+
+免费模型由**服务端下发**，会随时间变化。禁止在 SKILL.md 或任何文档里写死固定清单。
+
+- **实时目录**：`/Users/ay/.workbuddy/cache/acc-product-config-v3.json`（WorkBuddy 缓存在本机的产品配置，`models[]` 数组）
+- **判定字段**：`models[].credits`
+  - `x0.00` / `x0.00 credits` / `0.00` → **免费**
+  - `x0.05`、`x0.21`… → 计费
+  - `null` / 字段缺失 → **不计入候选**（下拉列表未定价展示，无法判定是否免费）
+- **回退读取路径**（脚本已按序探测）：环境变量 `ONE_HUNDRED_MILLION_MODEL_CONFIG` → 上述缓存 → app 内置 `product.cloudhosted.json` → `product.json`
+- **2026-09-03 实测快照**（仅作参考，以实时目录为准）：
+
+| id | 名称 | 上下文 | 输出 | 多模态 | 工具调用 | 推理 |
+|---|---|---|---|---|---|---|
+| `hy4-preview` | Hy4 preview | 20 万 / 100 万 | 64k | Y | Y | Y |
+| `hy3` | Hy3 | 192k | 64k | Y | Y | Y |
+
+- **廉价计费备选**（仍计费，只在免费全耗尽 + 不想用 Auto 时参考）：`hy3-x` x0.05、`glm-5.3-flash` x0.06、`deepseek-v4-flash` x0.17、`minimax-m2.5` x0.18。
+
+---
+
+## 3. 限流信号识别
+
+出现下列任一即判定命中限流（不是普通报错，不要当作脚本 bug 排查）：
+
+- `credit 额度已用完，立即升级订阅。`
+- `Your complimentary allowance has also been used up.`
+- `使用量超出频率限制` / `已达到频率限制` / `rate limit` / `Rate limit reached`
+- HTTP `429` / `Too Many Requests` / `quota exceeded` / `QuotaExceededError`
+- 模型侧返回但内容为空且提示额度 / 频率相关
+
+> 前两条来自服务端配置 `config.limitHintCN` / `config.limitHint`，是产品**额度耗尽**的官方文案；第 3 条起是**频率限制**文案。两类都走同一套降级动作。
+
+**反例（不算限流，不要误切）**：脚本报错、文件不存在、网络超时重试成功、ffmpeg/TTS 失败——这些是执行问题，修问题本身，不切模型。
+
+---
+
+## 4. 标准动作（SOP）
+
+### 4.1 开工前（Step -1，每轮一次）
+
+```bash
+python3 scripts/pick_free_model.py current <当前模型id> --workspace <工作区>   # 记录当前模型
+python3 scripts/pick_free_model.py list      --workspace <工作区>              # 看免费模型与冷却状态
+python3 scripts/pick_free_model.py pick      --workspace <工作区>              # 取应使用的模型
+```
+
+`pick` 退出码：`0` = 有可用免费模型（stdout 输出 id）；`2` = 免费全耗尽（stdout 输出 `AUTO`）；`3` = 读不到配置，需人工确认。
+
+开工时若 `pick` 给出的模型 ≠ 当前会话模型，按第 5 节切换后再继续。
+
+### 4.2 命中限流时
+
+```bash
+python3 scripts/pick_free_model.py exhausted <被限流模型id> \
+        --reason "credit 额度已用完" --cooldown 7200 --workspace <工作区>
+python3 scripts/pick_free_model.py pick --workspace <工作区>     # 取下一个
+```
+
+然后：
+1. **切到新模型继续**，`pick` 返回 `AUTO` 时回退 Auto 并在日志标注。
+2. **断点续跑**：已经跑完的确定性步骤（脚本生成、TTS 配音、ffmpeg 合成、check_sync 校验、像素扫描）**不回滚、不重做**，从被中断的 LLM 依赖步骤继续。
+3. **门禁不变**：换模型不豁免任何硬门禁——`check_sync.py` exit 0、禁句/禁标识扫描、字幕带与水印区像素扫描、素材双源核验，全部照跑。
+4. **记录**：本轮 run 日志写一行 `模型：<id>｜切换：<from> → <to>｜原因：限流`；`metrics.csv` 备注列同步标注。
+
+### 4.3 冷却与恢复
+
+- 冷却默认 **7200 秒（2 小时）**，与定时任务 2h 一轮的节奏对齐；若限流响应里带明确 reset 时间，用该时间覆盖 `--cooldown`。
+- 冷却到期后模型自动回到候选池（`exhausted_ids()` 按时间戳自动释放），无需手动 reset。
+- 误标记或提前恢复：`python3 scripts/pick_free_model.py reset --id <模型id>`（不带 `--id` 则清空全部）。
+
+---
+
+## 5. 切换模型的执行方式（按运行形态）
+
+| 运行形态 | 怎么切 |
+|---|---|
+| **CLI / codebuddy** | `/model <id>` 面板切换，或启动参数 `--model <id>`；环境变量级覆盖见官方 `models.md`（`CODEBUDDY_SMALL_FAST_MODEL` 等只对 lite/reasoning 变体生效，不是主模型） |
+| **桌面端会话** | 会话输入框的模型下拉选对应 id（如 `hy4-preview` / `hy3`）；智能体**没有**直接改下拉的工具，切换由人工点选完成——因此无人值守场景靠状态文件跨轮生效（见下） |
+| **定时任务 / cron（无人值守）** | 智能体无法在会话内自己改模型。**做法**：把模型与限流结果写进状态文件 `one-hundred-million-model-fallback.json`，本轮能继续的确定性步骤继续跑，LLM 依赖步骤记入日志；下一轮开工 `pick` 自然跳过冷却中的模型，自动落到下一个免费模型。作者下次在场时按 `list` 结果在下拉里切一次即可。 |
+
+**状态文件**：工作区根 `one-hundred-million-model-fallback.json`，结构见脚本头注释。它和 `one-hundred-million-rotation.json` 一样是事实来源，手工改动以文件为准。
+
+---
+
+## 6. 避坑（已核实）
+
+- **不要硬编码免费模型 id**：服务端一换就全部失效，且会把作者引到已下线的模型上。永远先 `pick`。
+- **`credits: null` 不等于免费**：那是未在下拉定价展示的条目（含一批内部/历史模型），判不出来就不选。
+- **不要把限流当失败重跑同一模型**：同一模型在冷却期内重试必然再失败，白白消耗一轮。先 `exhausted` 再 `pick`。
+- **不要为了「省额度」降低质量门禁**：换模型后仍需完整跑完 `check_sync.py`、禁句扫描、像素扫描；靠降门禁省出来的额度不值得。
+- **不要在 Step 7 之后切模型**：成片已进入发布关卡，此时换模型重生成会破坏已审核的成品；发布关卡内的一切动作等作者批准。
+
+---
+
+## 7. 自检清单（每轮结束对照）
+
+- [ ] 开工跑过 `pick`，当前模型确实在免费候选内（或已明确标注「免费耗尽 → Auto」）。
+- [ ] 命中限流已 `exhausted` 记录（时间 + 原因 + 冷却），不是默默重试。
+- [ ] 切换后从断点继续，已完成脚本未重跑。
+- [ ] 质量门禁一条没少跑。
+- [ ] run 日志 / metrics.csv 备注列有模型与切换记录。
