@@ -1,6 +1,6 @@
 # 权威来源清单与核验 SOP（固定规范第 7 条配套 · 强制）
 
-> 定位：回答「内容凭什么这么讲」。国内与国外权威渠道**同等有效**，凡是能核到一手官方原文的主题，都必须核到一手——**语言与地域不构成取材边界**，英文一手官方内容优先于任何中文二手转述。**云厂商官方文档（阿里云 / 腾讯云 / 百度智能云 / 华为云 / 火山引擎 / AWS / Google Cloud / Azure）是 L1 一手来源、云与大数据类主题的取材主力。**
+> 定位：回答「内容凭什么这么讲」。国内与国外权威渠道**同等有效**，凡是能核到一手官方原文的主题，都必须核到一手——**语言与地域不构成取材边界**，英文一手官方内容优先于任何中文二手转述。**云厂商官方文档（阿里云 / 腾讯云 / 百度智能云 / 华为云 / 火山引擎 / 青云 / UCloud / 金山云 / 京东云 / 天翼云 / 七牛云 / AWS / Google Cloud / Azure / Oracle Cloud / IBM Cloud / DigitalOcean / Vultr）是 L1 一手来源、云与大数据类主题的取材主力。**
 > 使用位置：Step 0 第 5 项「事实可核实性」判断、Step 1 第 1 条双重来源获取素材、Step 1 第 1.1 条国外权威来源、Quality Gates。
 > 铁律不变：**正确性优先于完整性**，拿不准就删或留白，禁止"看起来合理"的推断性编写。
 
@@ -10,7 +10,7 @@
 
 | 级别 | 来源类型 | 采信规则 |
 |------|----------|----------|
-| **L1 · 一手官方** | 项目/产品**官方网站与官方文档**（英文原版站与中文站同等，冲突以英文原版/最新版为准）、官方博客、Release Notes / CHANGELOG、官方 GitHub 仓库（README / `docs/` / releases / 官方 benchmark）、官方白皮书 PDF、官方大会 slides（KubeCon / re:Invent / SIGMOD 等）、**国内外云厂商官方文档与官方最佳实践（阿里云 / 腾讯云 / 百度智能云 / 华为云 / 火山引擎 / AWS / Google Cloud / Azure，见 §二「云厂商」）** | **可直接采信**，是数据与结论的第一依据 |
+| **L1 · 一手官方** | 项目/产品**官方网站与官方文档**（英文原版站与中文站同等，冲突以英文原版/最新版为准）、官方博客、Release Notes / CHANGELOG、官方 GitHub 仓库（README / `docs/` / releases / 官方 benchmark）、官方白皮书 PDF、官方大会 slides（KubeCon / re:Invent / SIGMOD 等）、**国内外云厂商官方文档与官方最佳实践（阿里云 / 腾讯云 / 百度智能云 / 华为云 / 火山引擎 / 青云 / UCloud / 金山云 / 京东云 / 天翼云 / 七牛云 / AWS / Google Cloud / Azure / Oracle Cloud / IBM Cloud / DigitalOcean / Vultr，见 §二「云厂商」）** | **可直接采信**，是数据与结论的第一依据 |
 | **L2 · 标准规范机构** | IETF RFC、W3C / WHATWG、ECMA（如 ECMA-262）、ISO / IEEE SA / ANSI、NIST（含 NVD）、OWASP、Unicode Consortium、TPC / SPEC 官方榜单 | **可直接采信**（协议、标准、规范类结论的唯一权威） |
 | **L3 · 学术论文** | 原论文优先：ACM DL、IEEE Xplore、Springer、ScienceDirect、**USENIX（ATC/FAST/OSDI/NSDI，官网开放 PDF）**、**VLDB Endowment（vldb.org/pvldb）**、CIDR、arXiv；检索用 DBLP / Google Scholar / Semantic Scholar | **可直接采信**，但须带实验条件（数据集、规模、硬件、版本） |
 | **L4 · 权威技术媒体/机构观点** | ACM Queue、IEEE Spectrum、Communications of the ACM、The New Stack、InfoWorld、InfoQ 英文站、Ars Technica、Stack Overflow Blog、Red Hat Blog、ThoughtWorks Technology Radar、各大厂工程博客（Netflix / Cloudflare / Meta Engineering / Uber / Airbnb / Stripe / LinkedIn Engineering / AWS / GCP / Azure） | **只作线索与交叉验证**，单一 L4 来源不得单独支撑性能数字 |
@@ -30,10 +30,20 @@
   - **腾讯云**：腾讯云文档 `cloud.tencent.com/document`（产品文档 / API / 最佳实践），官方公告与技术实践文章（官方署名）
   - **百度智能云**：百度智能云文档 `cloud.baidu.com/doc`（含 AI / 大模型千帆相关官方文档）
   - **华为云**：华为云帮助中心 `support.huaweicloud.com`；**火山引擎**：`www.volcengine.com/docs`（含字节系大数据/AI 产品文档）
+  - **青云**：`docs.qingcloud.com`（云平台 / SDN / 对象存储 / 大数据）
+  - **UCloud**：`docs.ucloud.cn`（云主机 / GPU 云 / 裸金属 / 罗马网络加速 / 数据方舟）
+  - **金山云**：`docs.ksyun.com`（视频云 / 边缘计算 / 云主机 / 对象存储）
+  - **京东云**：`docs.jdcloud.com`（云主机 / 原生容器 / 区块链 BaaS / 智算平台）
+  - **天翼云**：`www.ctyun.cn/document`（云主机 / 分布式数据库 / 弹性高性能计算 / 天翼 AI）
+  - **七牛云**：`developer.qiniu.com`（对象存储 / 视频处理 / 直播云 / CDN 加速 / 智能多媒体）
 - **国外云厂商**：
   - **AWS**：AWS Documentation `docs.aws.amazon.com` + 官方博客 `aws.amazon.com/blogs`（含中文站 `/cn/blogs`）+ re:Invent 官方 slides/录播
   - **Google Cloud**：`cloud.google.com/docs` + 官方博客 `cloud.google.com/blog`
   - **Microsoft Azure**：Microsoft Learn `learn.microsoft.com/azure` + Azure 官方博客
+  - **Oracle Cloud**：`docs.oracle.com`（OCI 云原生 / 自治数据库 / Oracle DB / 云基础设施）
+  - **IBM Cloud**：`cloud.ibm.com/docs`（云原生 / Watson AI / 量子计算 / 混合云）
+  - **DigitalOcean**：`docs.digitalocean.com`（云主机 / Kubernetes / App Platform / 数据库托管 + 社区教程）
+  - **Vultr**：`docs.vultr.com`（高频云主机 / 裸金属 / GPU 计算 / 对象存储）
 - **取材边界（防坑，强制）**：①**官方产品文档 / 技术规格 / API 文档 / 官方署名的最佳实践 = L1 可采信**；②**产品营销页上的性能对比数字（自家 vs 竞品）≠ L1**——属厂商宣传，按 L4 处理：口播须表述「据 XX 官方公布的测试…」并带测试条件，最好再找一个独立来源交叉；③**云厂商开发者社区的第三方作者投稿 ≠ 官方内容**（阿里云开发者社区 / 腾讯云开发者社区大量是个人投稿）——按 L4/L5 处理，须回溯官方文档确认；④跨厂商选型对比类结论，不得只引单一厂商一方的 benchmark。
 
 **基础设施 / 数据库 / 大数据**
@@ -77,7 +87,7 @@
    - 例：`Doris 读写分离` → 同时搜 `Apache Doris compute-storage separation`
    - 例：`布隆过滤器 误判率` → 同时搜 `bloom filter false positive rate`
    - 例：`缓存雪崩` → 同时搜 `cache stampede thundering herd`
-2. **site 限定提精度**：`site:help.aliyun.com ...`、`site:cloud.tencent.com ...`、`site:cloud.baidu.com ...`、`site:docs.aws.amazon.com ...`、`site:apache.org doris ...`、`site:kubernetes.io ...`、`site:arxiv.org ...`。
+2. **site 限定提精度**：`site:help.aliyun.com ...`、`site:cloud.tencent.com ...`、`site:cloud.baidu.com ...`、`site:docs.qingcloud.com ...`、`site:docs.ucloud.cn ...`、`site:docs.ksyun.com ...`、`site:docs.jdcloud.com ...`、`site:www.ctyun.cn ...`、`site:developer.qiniu.com ...`、`site:docs.aws.amazon.com ...`、`site:docs.oracle.com ...`、`site:cloud.ibm.com/docs ...`、`site:docs.digitalocean.com ...`、`site:docs.vultr.com ...`、`site:apache.org ...`、`site:kubernetes.io ...`、`site:arxiv.org ...`。
 3. **云产品主题优先打官方文档**：凡主题落在某云厂商产品上（RDS / 数据库 / 大数据 / AI / 云原生托管服务…），先查该厂商官方文档的产品页 + 最佳实践页，再补社区与论文——不要反过来从博客倒推官方参数。
 3. **定位 → 抓原文**：WebSearch 定位到权威页面 → WebFetch 抓正文；抓不到就用官方仓库原始文档（`raw.githubusercontent.com/<org>/<repo>/<branch>/docs/...`）或官方 PDF/白皮书。
 4. **官方中文站 vs 英文站**：二者都是 L1。中英**冲突时以英文原版/最新版本为准**（中文翻译常滞后），并在产物日志中记一笔差异。
@@ -126,7 +136,7 @@
 
 - [ ] 每个关键数据/结论都能追到一个 L1–L3 的一手来源（名称 + URL + 版本/日期写在 `build/sources.md`）
 - [ ] 中英文双语都检索过，英文一手原文已核（不是只看中文解读）
-- [ ] **云产品主题已查过对应云厂商官方文档**（阿里云/腾讯云/百度智能云/华为云/火山引擎/AWS/GCP/Azure 的产品文档与最佳实践），不是只看个人博客
+- [ ] **云产品主题已查过对应云厂商官方文档**（阿里云/腾讯云/百度智能云/华为云/火山引擎/青云/UCloud/金山云/京东云/天翼云/七牛云/AWS/GCP/Azure/Oracle Cloud/IBM Cloud/DigitalOcean/Vultr 的产品文档与最佳实践），不是只看个人博客
 - [ ] 云厂商营销页性能对比数字未当 L1 使用（按 L4 处理且带测试条件、口播改「据 XX 官方公布的测试…」）
 - [ ] 官方中文站与英文站冲突处，已按英文原版/最新版为准并记录
 - [ ] 性能类数字全部带测试条件，缺条件的已删除
