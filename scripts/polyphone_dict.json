@@ -1,0 +1,584 @@
+{
+  "version": "2026-09-05",
+  "voice": "zh-CN-YunxiNeural",
+  "method": "同音字代理法。action: proxy=必须代理（已确认会读错/高风险）；check=已实测读对，仅抽检确认。",
+  "evidence_base": "2026-09-05 用 edge-tts 7.2.8 + ffmpeg 实测：孤立重复单字法判定确定性 corr=1.000；词级替换会因韵律变化导致波形比对失效，故词级结论以实测通过/作者听感为准。",
+  "entries": [
+    {
+      "char": "行",
+      "want": "háng",
+      "wrong": "xíng",
+      "contexts": [
+        "一行",
+        "行数据",
+        "行列",
+        "行式",
+        "行数",
+        "每行",
+        "行存",
+        "行级",
+        "跨行",
+        "单行",
+        "多行",
+        "行转列"
+      ],
+      "proxy": "航",
+      "action": "proxy",
+      "note": "数据库/代码语境的量词与行列，读 háng。实测孤立『行』默认读 xíng，必须代理",
+      "proxy_alt": [
+        "杭"
+      ]
+    },
+    {
+      "char": "行",
+      "want": "xíng",
+      "wrong": "háng",
+      "contexts": [
+        "执行",
+        "运行",
+        "进行",
+        "并行",
+        "串行",
+        "发行",
+        "行不行",
+        "行得通"
+      ],
+      "proxy": null,
+      "action": "check",
+      "note": "动作义读 xíng，TTS 默认即 xíng，无需代理"
+    },
+    {
+      "char": "处",
+      "want": "chǔ",
+      "wrong": "chù",
+      "contexts": [
+        "处理",
+        "处理器",
+        "处置",
+        "处于",
+        "相处"
+      ],
+      "proxy": "楚",
+      "action": "check",
+      "note": "词级实测『处理』读 chǔ 正确；孤立『处』默认读 chù，若试听发现读错再用『楚』代理"
+    },
+    {
+      "char": "更",
+      "want": "gēng",
+      "wrong": "gèng",
+      "contexts": [
+        "更新",
+        "变更",
+        "更替",
+        "更改",
+        "更名"
+      ],
+      "proxy": "耕",
+      "action": "proxy",
+      "note": "动词义读 gēng；未通过自动判定，正确性优先一律代理",
+      "proxy_alt": [
+        "庚"
+      ]
+    },
+    {
+      "char": "供",
+      "want": "gōng",
+      "wrong": "gòng",
+      "contexts": [
+        "提供",
+        "供给",
+        "供应",
+        "供需"
+      ],
+      "proxy": "工",
+      "action": "check",
+      "note": "词级实测『提供』读 gōng 正确"
+    },
+    {
+      "char": "率",
+      "want": "lǜ",
+      "wrong": "shuài",
+      "contexts": [
+        "效率",
+        "概率",
+        "速率",
+        "成功率",
+        "转化率",
+        "频率",
+        "比率",
+        "命中率"
+      ],
+      "proxy": "律",
+      "action": "check",
+      "note": "词级实测『效率』读 lǜ 正确；『率领/草率』才读 shuài"
+    },
+    {
+      "char": "长",
+      "want": "zhǎng",
+      "wrong": "cháng",
+      "contexts": [
+        "增长",
+        "增长量",
+        "增长率",
+        "成长",
+        "增长到"
+      ],
+      "proxy": "掌",
+      "action": "check",
+      "note": "词级实测『增长』读 zhǎng 正确"
+    },
+    {
+      "char": "长",
+      "want": "cháng",
+      "wrong": "zhǎng",
+      "contexts": [
+        "长度",
+        "长连接",
+        "长尾",
+        "长任务",
+        "长查询",
+        "长耗时",
+        "冗长"
+      ],
+      "proxy": "常",
+      "action": "proxy",
+      "note": "长度义读 cháng；未验证，默认代理",
+      "proxy_alt": [
+        "尝"
+      ]
+    },
+    {
+      "char": "载",
+      "want": "zài",
+      "wrong": "zǎi",
+      "contexts": [
+        "加载",
+        "下载",
+        "承载",
+        "载荷",
+        "过载",
+        "载体",
+        "转载数据"
+      ],
+      "proxy": "在",
+      "action": "proxy",
+      "note": "承载义读 zài；『一年半载』才读 zǎi",
+      "proxy_alt": [
+        "再"
+      ]
+    },
+    {
+      "char": "中",
+      "want": "zhòng",
+      "wrong": "zhōng",
+      "contexts": [
+        "命中",
+        "命中率",
+        "中标",
+        "中选"
+      ],
+      "proxy": "众",
+      "action": "check",
+      "note": "词级实测『命中』读 zhòng 正确；高频易错点仍需抽检"
+    },
+    {
+      "char": "应",
+      "want": "yìng",
+      "wrong": "yīng",
+      "contexts": [
+        "响应",
+        "应用",
+        "适应",
+        "应对",
+        "供应"
+      ],
+      "proxy": "硬",
+      "action": "check",
+      "note": "词级实测『响应』读 yìng 正确"
+    },
+    {
+      "char": "调",
+      "want": "diào",
+      "wrong": "tiáo",
+      "contexts": [
+        "调用",
+        "调度",
+        "调配",
+        "调优任务"
+      ],
+      "proxy": "吊",
+      "action": "proxy",
+      "note": "调用/调度读 diào；未验证，默认代理",
+      "proxy_alt": [
+        "钓"
+      ]
+    },
+    {
+      "char": "调",
+      "want": "tiáo",
+      "wrong": "diào",
+      "contexts": [
+        "调整",
+        "调优",
+        "调节",
+        "协调"
+      ],
+      "proxy": "条",
+      "action": "check",
+      "note": "词级实测『调整』读 tiáo 正确"
+    },
+    {
+      "char": "重",
+      "want": "chóng",
+      "wrong": "zhòng",
+      "contexts": [
+        "重写",
+        "重试",
+        "重放",
+        "重构",
+        "重启",
+        "重复",
+        "重传",
+        "重新"
+      ],
+      "proxy": "崇",
+      "action": "check",
+      "note": "词级实测『重写』读 chóng 正确"
+    },
+    {
+      "char": "重",
+      "want": "zhòng",
+      "wrong": "chóng",
+      "contexts": [
+        "重要",
+        "权重",
+        "重点",
+        "重量",
+        "重度"
+      ],
+      "proxy": "众",
+      "action": "check",
+      "note": "『重载 overload』业界 chóng/zhòng 两读并存，口播改用『重新加载』或『过载』规避"
+    },
+    {
+      "char": "为",
+      "want": "wèi",
+      "wrong": "wéi",
+      "contexts": [
+        "为了",
+        "因为",
+        "为何",
+        "为此"
+      ],
+      "proxy": "未",
+      "action": "proxy",
+      "note": "介词义读 wèi；高频易错，默认代理",
+      "proxy_alt": [
+        "味",
+        "位"
+      ]
+    },
+    {
+      "char": "还",
+      "want": "huán",
+      "wrong": "hái",
+      "contexts": [
+        "还原",
+        "归还",
+        "返还",
+        "还原到"
+      ],
+      "proxy": "环",
+      "action": "proxy",
+      "note": "归还义读 huán；高频易错，默认代理",
+      "proxy_alt": [
+        "桓"
+      ]
+    },
+    {
+      "char": "量",
+      "want": "liàng",
+      "wrong": "liáng",
+      "contexts": [
+        "数量",
+        "量化",
+        "容量",
+        "向量",
+        "流量",
+        "增量",
+        "吞吐量"
+      ],
+      "proxy": "亮",
+      "action": "check",
+      "note": "名词义读 liàng；『测量/衡量』才读 liáng"
+    },
+    {
+      "char": "数",
+      "want": "shù",
+      "wrong": "shǔ",
+      "contexts": [
+        "数据",
+        "数组",
+        "数量",
+        "参数",
+        "函数",
+        "整数",
+        "指数"
+      ],
+      "proxy": "树",
+      "action": "check",
+      "note": "名词义读 shù"
+    },
+    {
+      "char": "空",
+      "want": "kòng",
+      "wrong": "kōng",
+      "contexts": [
+        "空格",
+        "空闲",
+        "空白",
+        "抽空",
+        "空隙"
+      ],
+      "proxy": "控",
+      "action": "proxy",
+      "note": "『空格/空闲』读 kòng；『空值/空间』读 kōng"
+    },
+    {
+      "char": "间",
+      "want": "jiàn",
+      "wrong": "jiān",
+      "contexts": [
+        "间隔",
+        "间接",
+        "间断",
+        "间隔性",
+        "相间"
+      ],
+      "proxy": "见",
+      "action": "proxy",
+      "note": "『间隔』读 jiàn；『时间/空间/中间』读 jiān",
+      "proxy_alt": [
+        "建",
+        "件"
+      ]
+    },
+    {
+      "char": "粘",
+      "want": "zhān",
+      "wrong": "nián",
+      "contexts": [
+        "粘贴",
+        "粘连"
+      ],
+      "proxy": "沾",
+      "action": "proxy",
+      "note": "动词义读 zhān；高频易错",
+      "proxy_alt": [
+        "瞻"
+      ]
+    },
+    {
+      "char": "系",
+      "want": "xì",
+      "wrong": "jì",
+      "contexts": [
+        "系统",
+        "关系",
+        "系列",
+        "体系",
+        "联系"
+      ],
+      "proxy": "细",
+      "action": "check",
+      "note": "『系统』读 xì；『系鞋带』才读 jì"
+    },
+    {
+      "char": "尽",
+      "want": "jǐn",
+      "wrong": "jìn",
+      "contexts": [
+        "尽管",
+        "尽快",
+        "尽可能",
+        "尽早"
+      ],
+      "proxy": "紧",
+      "action": "proxy",
+      "note": "读 jǐn；高频易错",
+      "proxy_alt": [
+        "锦"
+      ]
+    },
+    {
+      "char": "差",
+      "want": "chā",
+      "wrong": "chà",
+      "contexts": [
+        "差异",
+        "差别",
+        "误差",
+        "差值",
+        "偏差",
+        "温差"
+      ],
+      "proxy": "插",
+      "action": "proxy",
+      "note": "名词义读 chā；『差不多』读 chà"
+    },
+    {
+      "char": "分",
+      "want": "fēn",
+      "wrong": "fèn",
+      "contexts": [
+        "分析",
+        "分布",
+        "分离",
+        "分类",
+        "分片",
+        "分量"
+      ],
+      "proxy": "芬",
+      "action": "check",
+      "note": "动词义读 fēn；『分量/成分/过分』读 fèn（注：『分量』本读 fèn liàng，口播建议改说『权重』规避）"
+    },
+    {
+      "char": "片",
+      "want": "piàn",
+      "wrong": "piān",
+      "contexts": [
+        "分片",
+        "片段",
+        "切片",
+        "图片",
+        "片键"
+      ],
+      "proxy": "骗",
+      "action": "proxy",
+      "note": "读 piàn；『片子』口语读 piān"
+    },
+    {
+      "char": "只",
+      "want": "zhī",
+      "wrong": "zhǐ",
+      "contexts": [
+        "一只",
+        "两只",
+        "只身"
+      ],
+      "proxy": "织",
+      "action": "proxy",
+      "note": "量词读 zhī；『只是/只有』读 zhǐ",
+      "proxy_alt": [
+        "汁"
+      ]
+    },
+    {
+      "char": "背",
+      "want": "bèi",
+      "wrong": "bēi",
+      "contexts": [
+        "背景",
+        "背后",
+        "背诵",
+        "背压"
+      ],
+      "proxy": "备",
+      "action": "check",
+      "note": "『背景』读 bèi；『背着/背包』读 bēi"
+    },
+    {
+      "char": "干",
+      "want": "gān",
+      "wrong": "gàn",
+      "contexts": [
+        "干扰",
+        "干净",
+        "干涉",
+        "干预"
+      ],
+      "proxy": "甘",
+      "action": "check",
+      "note": "『干扰』读 gān；『骨干/主干/干什么』读 gàn"
+    },
+    {
+      "char": "着",
+      "want": "zhuó",
+      "wrong": "zháo",
+      "contexts": [
+        "着手",
+        "着重",
+        "着色",
+        "着陆"
+      ],
+      "proxy": "酌",
+      "action": "proxy",
+      "note": "读 zhuó；『着急』zháo、『随着』zhe",
+      "proxy_alt": [
+        "卓"
+      ]
+    },
+    {
+      "char": "转",
+      "want": "zhuǎn",
+      "wrong": "zhuàn",
+      "contexts": [
+        "转换",
+        "转发",
+        "转型",
+        "转义",
+        "转换率"
+      ],
+      "proxy": null,
+      "action": "check",
+      "note": "读 zhuǎn（『转圈/自转/轮询转动』读 zhuàn，可用『撰』代理）；无稳妥同音代理字，优先改写表述"
+    },
+    {
+      "char": "卷",
+      "want": "juàn",
+      "wrong": "juǎn",
+      "contexts": [
+        "存储卷",
+        "卷挂载",
+        "数据卷",
+        "卷组"
+      ],
+      "proxy": "倦",
+      "action": "proxy",
+      "note": "K8s/存储语境 Volume 读 juàn（卷宗义）；『卷起来』读 juǎn",
+      "proxy_alt": [
+        "眷"
+      ]
+    },
+    {
+      "char": "卡",
+      "want": "qiǎ",
+      "wrong": "kǎ",
+      "contexts": [
+        "卡住",
+        "卡顿",
+        "卡壳",
+        "卡死"
+      ],
+      "proxy": null,
+      "action": "check",
+      "note": "『卡顿』规范读 qiǎ，但 IT 口语普遍读 kǎ；无同音代理字（qiǎ 同音字极罕见），口播改用『不流畅/阻塞』规避"
+    },
+    {
+      "char": "给",
+      "want": "jǐ",
+      "wrong": "gěi",
+      "contexts": [
+        "给予",
+        "供给",
+        "自给"
+      ],
+      "proxy": "己",
+      "action": "proxy",
+      "note": "『给予/供给』读 jǐ；单独『给』读 gěi",
+      "proxy_alt": [
+        "挤"
+      ]
+    }
+  ]
+}
