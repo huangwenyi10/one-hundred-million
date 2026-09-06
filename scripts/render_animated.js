@@ -119,7 +119,7 @@ async function main() {
     '--headless=new', `--remote-debugging-port=${port}`,
     '--no-sandbox', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
     '--hide-scrollbars', '--force-device-scale-factor=1', '--disable-extensions',
-    '--disable-dev-shm-usage', '--disable-software-rasterizer',
+    '--disable-dev-shm-usage', '--enable-unsafe-swiftshader',
     '--user-data-dir=' + fs.mkdtempSync(path.join(os.tmpdir(), 'chrome_profile_')),
     'about:blank',
   ];
@@ -156,12 +156,18 @@ async function main() {
       await sleep(350); // 等首帧渲染与动画启动
 
       // 4. 逐帧截屏（真实时间推进，捕获 CSS 动画全程）
+      // 用「累计目标时间戳」调度而非固定 sleep：补偿截屏耗时，避免帧间隔漂移→卡顿/跳帧。
+      const t0 = Date.now();
       for (let f = 0; f < nFrames; f++) {
         const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
         const file = path.join(framesDir, `frame_${String(globalIdx).padStart(6, '0')}.png`);
         fs.writeFileSync(file, Buffer.from(shot.data, 'base64'));
         globalIdx++;
-        if (f < nFrames - 1) await sleep(frameInterval);
+        if (f < nFrames - 1) {
+          const target = t0 + (f + 1) * frameInterval;
+          const wait = target - Date.now();
+          if (wait > 0) await sleep(wait);
+        }
       }
       log(`页 ${p + 1}/${nPages} 完成（${nFrames} 帧，${dur.toFixed(1)}s）`);
     }
@@ -170,7 +176,7 @@ async function main() {
     const pattern = path.join(framesDir, 'frame_%06d.png');
     const r = spawnSync('ffmpeg', [
       '-y', '-framerate', String(fps), '-i', pattern,
-      '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
+      '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
       path.resolve(outMp4),
     ], { stdio: 'inherit' });
     if (r.status !== 0) throw new Error('ffmpeg 拼接失败');
