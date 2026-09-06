@@ -70,6 +70,9 @@ def main():
     # 运动强度参数（zoompan 的 zoom 终点、位移量）
     zoom_max = {1: 1.06, 2: 1.10, 3: 1.16}[args.preset]
     pan_px = {1: 40, 2: 90, 3: 150}[args.preset]
+    # 源帧只按「最大 zoom」预放大（约 1.06~1.16×），保证放大到极致时仍 1:1 清晰；
+    # 旧实现 scale=8000:-1 把 1080p 源拉到 4× 再压回 1080p → 全片发虚，必须避免。
+    zbase = zoom_max
 
     tmp = tempfile.mkdtemp(prefix="compose_motion_")
     seg_paths = []
@@ -102,11 +105,16 @@ def main():
             x = f"(iw-iw/zoom)/2-{pan_px}*on/{n_frames}"; y = f"(ih-ih/zoom)/2-{pan_px}*on/{n_frames}"
 
         seg = os.path.join(tmp, f"seg_{i:03d}.mp4")
-        vf = (f"scale=8000:-1,zoompan=z='{zexpr}':x='{x}':y='{y}':"
+        # 预放大到最大 zoom 倍（保持原宽高比、偶数对齐），zoompan 在此之上做推拉摇移，
+        # 放大到极致时采样区域≈输出分辨率 → 清晰；不再 4× 下采样发虚。
+        scale_expr = f"scale=trunc(iw*{zbase}/2)*2:trunc(ih*{zbase}/2)*2"
+        vf = (f"{scale_expr},zoompan=z='{zexpr}':x='{x}':y='{y}':"
               f"d={n_frames}:s=1920x1080:fps={fps},format=yuv420p")
+        # 中间段用无损暂存（qp 0），仅最终 xfade 一次有损编码（crf 18）→
+        # 避免「逐段 crf20 再 xfade crf20」二次有损在渐变背景上产生 H.264 色带/块化。
         run(["ffmpeg", "-y", "-loop", "1", "-i", fp,
              "-t", f"{d:.3f}", "-vf", vf, "-r", str(fps),
-             "-c:v", "libx264", "-preset", "medium", "-crf", "20", seg])
+             "-c:v", "libx264", "-preset", "ultrafast", "-qp", "0", "-pix_fmt", "yuv420p", seg])
         seg_paths.append(seg)
 
     # 用 xfade 把各段级联起来（前一段尾部与后一段头部交叉淡入）
@@ -146,7 +154,7 @@ def main():
     fc = ";".join(filter_parts) + f";[{cur}]format=yuv420p[vout]"
     out = os.path.abspath(args.out_video)
     run(["ffmpeg", "-y"] + inputs + ["-filter_complex", fc, "-map", "[vout]",
-         "-r", str(fps), "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", out])
+         "-r", str(fps), "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", out])
     sys.stdout.write(f"OK -> {out}  (frames={total}, 预估时长≈{acc:.1f}s)\n")
 
 
