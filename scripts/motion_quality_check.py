@@ -107,17 +107,39 @@ def compute_plan(frames, durations, fps, preset, XD=XD_DEFAULT):
     return plan, xd_frames, zoom_max, acc
 
 
-def run_gate(frames, durations, fps, preset, XD=XD_DEFAULT, strict=False, quiet=False):
-    """执行门禁校验。返回退出码 int（0 PASS / 1 FAIL / 2 WARN-only）。"""
+def run_gate(frames, durations, fps, preset, XD=XD_DEFAULT, strict=False, quiet=False, return_issues=False):
+    """执行门禁校验。返回退出码 int（0 PASS / 1 FAIL / 2 WARN-only）；
+    return_issues=True 时返回 (code, issues)，供统一总门禁 video_quality_gate 复用。"""
     plan, xd_frames, zoom_max, total_frames = compute_plan(frames, durations, fps, preset, XD)
-    issues = []  # (level, seg, msg)
+    issues = collect_issues(plan, xd_frames, fps)  # [(level, seg, msg)]
+    has_fail = any(lv == "FAIL" for lv, _, _ in issues)
+    has_warn = any(lv == "WARN" for lv, _, _ in issues)
 
+    # 退出码判定
+    if has_fail:
+        code = 1
+    elif has_warn and strict:
+        code = 1
+    elif has_warn:
+        code = 2
+    else:
+        code = 0
+
+    if not quiet:
+        _print_report(plan, xd_frames, zoom_max, total_frames, fps, preset, XD, issues, code)
+    if return_issues:
+        return code, issues
+    return code
+
+
+def collect_issues(plan, xd_frames, fps):
+    """运动门禁判定（与 run_gate 共用，唯一权威实现）：返回 [(level, seg, msg)]。"""
+    issues = []
     for seg in plan:
-        i = seg["idx"]
-        n = seg["n_frames"]
+        i, n = seg["idx"], seg["n_frames"]
         # 1) 段过短 → 转场占满整段，抖动高风险
         if n < xd_frames + 1:
-            issues.append(("FAIL", i, f"段{n}帧(<{xd_frames+1}帧≈{(xd_frames+1)/fps:.2f}s)极短，xfade占满整段→抖动高风险，请加长该段时长"))
+            issues.append(("FAIL", i, f"段{n}帧(<{xd_frames+1}帧≈{(xd_frames+1)/fps if fps else 0:.2f}s)极短，xfade占满整段→抖动高风险，请加长该段时长"))
         elif n < 2 * xd_frames:
             issues.append(("WARN", i, f"段{n}帧(<{2*xd_frames}帧=2×转场)偏短，转场占比高，建议加长"))
         # 2) 帧时长对齐偏差：d 非 fps 整数倍 → 段尾可能有≤1帧误差
@@ -137,23 +159,7 @@ def run_gate(frames, durations, fps, preset, XD=XD_DEFAULT, strict=False, quiet=
             issues.append(("FAIL", i, f"xfade offset={seg['off_frames']}非整数帧→转场混合起点在帧中间→画面抖"))
         if i > 0 and seg["off_frames"] < 0:
             issues.append(("WARN", i, "offset被clamp到0（前段过短），转场从段头开始，可能重叠异常"))
-
-    has_fail = any(lv == "FAIL" for lv, _, _ in issues)
-    has_warn = any(lv == "WARN" for lv, _, _ in issues)
-
-    # 退出码判定
-    if has_fail:
-        code = 1
-    elif has_warn and strict:
-        code = 1
-    elif has_warn:
-        code = 2
-    else:
-        code = 0
-
-    if not quiet:
-        _print_report(plan, xd_frames, zoom_max, total_frames, fps, preset, XD, issues, code)
-    return code
+    return issues
 
 
 def _fmt_pan(p):
@@ -211,16 +217,12 @@ def main():
     if args.json:
         plan, xd_frames, zoom_max, total_frames = compute_plan(
             frames, durations, args.fps, args.preset, args.xd)
-        issues = []
-        # 复用 run_gate 的判定逻辑但不打印
-        code = run_gate(frames, durations, args.fps, args.preset, XD=args.xd,
-                        strict=args.strict, quiet=True)
-        # 重新收集 issues（quiet 模式不返回，这里直接重算一次以便 JSON 输出）
-        issues = _collect_issues(frames, durations, args.fps, args.preset, args.xd, args.strict)
+        code, issues = run_gate(frames, durations, args.fps, args.preset, XD=args.xd,
+                                strict=args.strict, quiet=True, return_issues=True)
         out = {
             "fps": args.fps, "preset": args.preset, "xd_frames": xd_frames,
             "zoom_max": zoom_max, "total_frames": total_frames,
-            "exit_code": code, "issues": issues,
+            "exit_code": code, "issues": [{"level": lv, "seg": s, "msg": m} for lv, s, m in issues],
             "segments": plan,
         }
         print(json.dumps(out, ensure_ascii=False, indent=2))
@@ -231,31 +233,9 @@ def main():
     return code
 
 
-def _collect_issues(frames, durations, fps, preset, XD, strict):
-    """与 run_gate 相同的判定，返回 issue 列表（供 JSON 模式）。"""
-    plan, xd_frames, zoom_max, total_frames = compute_plan(frames, durations, fps, preset, XD)
-    issues = []
-    for seg in plan:
-        i, n = seg["idx"], seg["n_frames"]
-        if n < xd_frames + 1:
-            issues.append({"level": "FAIL", "seg": i,
-                           "msg": f"段{n}帧极短，xfade占满整段→抖动高风险，请加长该段时长"})
-        elif n < 2 * xd_frames:
-            issues.append({"level": "WARN", "seg": i, "msg": f"段{n}帧偏短，转场占比高"})
-        drift_frames = abs(seg["dur"] * fps - n)
-        if drift_frames > 0.5:
-            issues.append({"level": "WARN", "seg": i,
-                           "msg": f"时长非fps整数倍，偏差{drift_frames:.2f}帧"})
-        if i > 0:
-            prev = plan[i - 1]
-            if abs(prev["z_end"] - seg["z_start"]) > 1e-6:
-                issues.append({"level": "FAIL", "seg": i, "msg": "缩放不连续"})
-            if (abs(prev["pan_end"][0] - seg["pan_start"][0]) > 1e-6 or
-                    abs(prev["pan_end"][1] - seg["pan_start"][1]) > 1e-6):
-                issues.append({"level": "FAIL", "seg": i, "msg": "平移不连续"})
-        if seg["off_frames"] != int(seg["off_frames"]):
-            issues.append({"level": "FAIL", "seg": i, "msg": "xfade offset非整数帧"})
-    return issues
+def _collect_issues_deprecated():
+    """已废弃：判定逻辑统一到 collect_issues()。保留空壳避免误调用。"""
+    return []
 
 
 if __name__ == "__main__":
