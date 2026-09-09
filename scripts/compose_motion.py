@@ -67,15 +67,19 @@ def main():
         else:
             durations = durations[:len(frames)]
 
-    # 运动强度参数（zoompan 的 zoom 终点、位移量）
+    # 运动强度参数（zoompan 的 zoom 峰值、位移量）
     zoom_max = {1: 1.06, 2: 1.10, 3: 1.16}[args.preset]
     pan_px = {1: 40, 2: 90, 3: 150}[args.preset]
     # 源帧只按「最大 zoom」预放大（约 1.06~1.16×），保证放大到极致时仍 1:1 清晰；
     # 旧实现 scale=8000:-1 把 1080p 源拉到 4× 再压回 1080p → 全片发虚，必须避免。
     zbase = zoom_max
+    # 转场以整数帧为单位（避免浮点秒 offset 落在非整数帧 → 转场混合起点在帧中间 → 画面抖）
+    XD = 0.5
+    XD_FRAMES = max(1, round(XD * fps))
 
     tmp = tempfile.mkdtemp(prefix="compose_motion_")
     seg_paths = []
+    seg_frames = []          # 每段实际帧数（整数，确定，作为时间基准）
     total = len(frames)
     fps = args.fps
 
@@ -85,24 +89,24 @@ def main():
         if d < 0.5:
             d = 0.5
         n_frames = max(1, int(round(d * fps)))
-        # 方向在 4 种间轮转：放大-居中、放大-左上摇、缩小-居中、放大-右下摇
-        mode = i % 4
-        if mode == 0:
-            # 缓慢放大(1.0→zoom_max)，中心
-            zexpr = f"1+{zoom_max-1:.3f}*on/{n_frames}"
-            x = "(iw-iw/zoom)/2"; y = "(ih-ih/zoom)/2"
-        elif mode == 1:
-            # 放大并向右下平移
-            zexpr = f"1+{zoom_max-1:.3f}*on/{n_frames}"
-            x = f"(iw-iw/zoom)/2+{pan_px}*on/{n_frames}"; y = f"(ih-ih/zoom)/2+{pan_px}*on/{n_frames}"
-        elif mode == 2:
-            # 缩小(zoom_max→1)，中心
-            zexpr = f"{zoom_max}-{zoom_max-1:.3f}*on/{n_frames}"
-            x = "(iw-iw/zoom)/2"; y = "(ih-ih/zoom)/2"
+        # 运动在 80% 时长内完成，尾 20% 静止 → xfade 重叠期两段都静止，只做透明度交叉、不扭不抖
+        if n_frames <= XD_FRAMES + 1:
+            N = max(1, n_frames - 1)        # 段过短，压缩运动避免转场占满整段
         else:
-            # 放大并向左上摇
-            zexpr = f"1+{zoom_max-1:.3f}*on/{n_frames}"
-            x = f"(iw-iw/zoom)/2-{pan_px}*on/{n_frames}"; y = f"(ih-ih/zoom)/2-{pan_px}*on/{n_frames}"
+            N = max(1, int(n_frames * 0.8))
+        # 三角波衔接：相邻段缩放/平移连续（上一段尾 = 下一段头），消除衔接跳变抖
+        # 偶数段放大 1.0→Z，奇数段缩小 Z→1.0；pan 方向按 (i//2)%4 选，放大段 0→P、缩小段 P→0（同向回收）
+        e = f"min(on/{N},1)"                 # 0→1 缓动因子，尾段恒定（静止）
+        if i % 2 == 0:
+            zexpr = f"1+({zoom_max-1:.4f})*{e}"            # 1.0 → Z
+        else:
+            zexpr = f"{zoom_max:.4f}-({zoom_max-1:.4f})*{e}"  # Z → 1.0
+        dx, dy = [(1, 1), (-1, 1), (1, -1), (-1, -1)][(i // 2) % 4]
+        if i % 2 == 0:
+            px = f"{pan_px*dx}*{e}"; py = f"{pan_px*dy}*{e}"          # 0 → P
+        else:
+            px = f"{pan_px*dx}-({pan_px*dx})*{e}"; py = f"{pan_px*dy}-({pan_px*dy})*{e}"  # P → 0
+        x = f"(iw-iw/zoom)/2+({px})"; y = f"(ih-ih/zoom)/2+({py})"
 
         seg = os.path.join(tmp, f"seg_{i:03d}.mp4")
         # 预放大到最大 zoom 倍（保持原宽高比、偶数对齐），zoompan 在此之上做推拉摇移，
@@ -112,50 +116,42 @@ def main():
               f"d={n_frames}:s=1920x1080:fps={fps},format=yuv420p")
         # 中间段用无损暂存（qp 0），仅最终 xfade 一次有损编码（crf 18）→
         # 避免「逐段 crf20 再 xfade crf20」二次有损在渐变背景上产生 H.264 色带/块化。
+        # 用 -frames:v 精确锁定段帧数（替代 -t 浮点秒），消除段尾帧差 1 导致的衔接抖。
         run(["ffmpeg", "-y", "-loop", "1", "-i", fp,
-             "-t", f"{d:.3f}", "-vf", vf, "-r", str(fps),
+             "-frames:v", str(n_frames), "-vf", vf, "-r", str(fps),
              "-c:v", "libx264", "-preset", "ultrafast", "-qp", "0", "-pix_fmt", "yuv420p", seg])
         seg_paths.append(seg)
+        seg_frames.append(n_frames)
 
-    # 用 xfade 把各段级联起来（前一段尾部与后一段头部交叉淡入）
-    # xfade 需要所有输入等长较麻烦；简单起见：先 concat 无过渡会退化为硬切。
-    # 这里实现「相邻两段级联一个 0.5s xfade」：用 filter_complex 链式，前一段裁剪 -0.5s。
-    # 更稳健做法：不裁剪，两段 concat，仅在最外层对相邻段做局部 xfade 不现实；
-    # 方案：逐段 append 用 xfade 需知道前段"去尾后"时长，逐段算累计。
-    #
-    # 采用链式 xfade：把每段作为一个输入，第 k 段 offset = (前面积累总长) - k*XD
-    XD = 0.5
+    # 用 xfade 把各段级联（前一段尾部与后一段头部交叉淡入）。
+    # 关键防抖：offset 必须落在整数帧边界，否则转场混合起点在帧中间 → 画面抖。
+    # 因此全程以整数帧为唯一时间基准：offset_frames = 累计帧数 - XD_FRAMES，再除以 fps。
+    # （不再用 ffprobe 浮点时长，从根上消除秒级浮点累积误差导致的转场抖。）
     inputs = []
     for s in seg_paths:
         inputs += ["-i", s]
-    # 计算每段实际时长
-    seg_durs = []
-    for s in seg_paths:
-        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                            "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", s],
-                           capture_output=True, text=True)
-        seg_durs.append(float(r.stdout.strip()))
-
-    # 累计 xfade offset：合并 k 段后总长 = sum(first k+1) - k*XD
-    acc = seg_durs[0]
+    acc_frames = seg_frames[0]
     filter_parts = []
-    # 每一路 concat 输入给个 label
     filter_parts.append(f"[0:v]format=yuv420p[v0]")
     cur = "v0"
     for k in range(1, total):
-        # 第 k 路输入与 cur 做 xfade，offset = acc - XD
-        off = max(0.0, acc - XD)
+        off_frames = acc_frames - XD_FRAMES
+        if off_frames < 0:
+            off_frames = 0
+        off = off_frames / fps
         filter_parts.append(f"[{k}:v]format=yuv420p[v{k}]")
         outlabel = f"vx{k}"
-        filter_parts.append(f"[{cur}][v{k}]xfade=transition=fade:duration={XD}:offset={off:.3f}[{outlabel}]")
+        filter_parts.append(
+            f"[{cur}][v{k}]xfade=transition=fade:duration={XD_FRAMES/fps:.4f}:offset={off:.6f}[{outlabel}]")
         cur = outlabel
-        acc = acc + seg_durs[k] - XD
+        acc_frames = acc_frames + seg_frames[k] - XD_FRAMES
 
     fc = ";".join(filter_parts) + f";[{cur}]format=yuv420p[vout]"
     out = os.path.abspath(args.out_video)
     run(["ffmpeg", "-y"] + inputs + ["-filter_complex", fc, "-map", "[vout]",
          "-r", str(fps), "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", out])
-    sys.stdout.write(f"OK -> {out}  (frames={total}, 预估时长≈{acc:.1f}s)\n")
+    est = acc_frames / fps
+    sys.stdout.write(f"OK -> {out}  (frames={total}, 预估时长≈{est:.1f}s)\n")
 
 
 if __name__ == "__main__":
