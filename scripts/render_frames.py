@@ -71,14 +71,29 @@ def arrow(draw, x1, y1, x2, y2, color, width=4):
 def box_text(draw, cx, cy, w, h, title, lines, fill=PANEL, tcolor=WHITE, lcolor=TEXT):
     x0, y0 = cx - w // 2, cy - h // 2
     rr(draw, [x0, y0, x0 + w, y0 + h], radius=14, fill=fill, outline=ACCENT, width=2)
+    # title：折行/截断，避免溢出节点
     if title:
-        tw = draw.textlength(title, font=F_DIAG)
-        draw.text((cx - tw / 2, y0 + 12), title, font=F_DIAG, fill=tcolor)
+        title_lines = get_text(draw, title, F_DIAG, w - 24)
+        tw = draw.textlength(title_lines[0], font=F_DIAG) if title_lines else 0
+        draw.text((cx - tw / 2, y0 + 12), title_lines[0] if title_lines else "", font=F_DIAG, fill=tcolor)
+    # body：按内宽折行，行数过多时自动缩小字号，仍超限则截断
+    inner_w = w - 24
+    line_h = 40
+    max_lines = max(1, (h - (44 if title else 18) - 18) // line_h)
+    body_font = F_BODY
+    while hasattr(body_font, 'size') and body_font.size > 22:
+        wrapped = []
+        for text in lines:
+            wrapped.extend(get_text(draw, text, body_font, inner_w))
+        if len(wrapped) <= max_lines:
+            break
+        body_font = load_font(body_font.size - 2)
+    wrapped = wrapped[:max_lines]
     yy = y0 + (44 if title else 18)
-    for ln in lines:
-        lw = draw.textlength(ln, font=F_BODY)
-        draw.text((cx - lw / 2, yy), ln, font=F_BODY, fill=lcolor)
-        yy += 44
+    for ln in wrapped:
+        lw = draw.textlength(ln, font=body_font)
+        draw.text((cx - lw / 2, yy), ln, font=body_font, fill=lcolor)
+        yy += line_h
 
 
 # ---------- 示意图绘制 ----------
@@ -274,11 +289,22 @@ def draw_topology(draw, box, spec):
         r = nd.get("r", 50)
         col = ACCENT if nd.get("accent") else PANEL
         draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col, outline=HILITE, width=3)
-        lw = draw.textlength(nd["label"], font=F_DIAG)
-        draw.text((cx - lw / 2, cy - 18), nd["label"], font=F_DIAG, fill=WHITE)
+        # 标签折行并居中，限制在圆内
+        max_lw = max(20, 2 * r - 20)
+        lbl_lines = get_text(draw, nd["label"], F_DIAG, max_lw)[:max(1, (r - 10) // 28)]
+        line_h = 28
+        ly = cy - 18 - (len(lbl_lines) - 1) * line_h / 2
+        for ln in lbl_lines:
+            lw = draw.textlength(ln, font=F_DIAG)
+            draw.text((cx - lw / 2, ly), ln, font=F_DIAG, fill=WHITE)
+            ly += line_h
         if nd.get("sub"):
-            sw = draw.textlength(nd["sub"], font=F_SMALL)
-            draw.text((cx - sw / 2, cy + 6), nd["sub"], font=F_SMALL, fill=SUBTLE)
+            sub_lines = get_text(draw, nd["sub"], F_SMALL, max_lw)[:2]
+            sy = cy + 6
+            for ln in sub_lines:
+                slw = draw.textlength(ln, font=F_SMALL)
+                draw.text((cx - slw / 2, sy), ln, font=F_SMALL, fill=SUBTLE)
+                sy += 18
     for e in spec.get("edges", []):
         ax, ay = pos[e["from"]]; bx, by = pos[e["to"]]
         ang = math.atan2(by - ay, bx - ax)
