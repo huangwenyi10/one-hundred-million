@@ -91,7 +91,18 @@
 - **段时长用 `-frames:v` 精确锁帧**（替代 `-t` 浮点秒）：段实际帧数 = `round(d*fps)` 整数，避免 zoompan `d` 与编码帧数差 1 导致的段尾状态不连续。
 - **相邻段运动连续（三角波衔接）**：缩放做「1.0→Z / Z→1.0」奇偶交替、pan 做「0→P / P→0」同向回收，**上一段尾 = 下一段头**，杜绝衔接处缩放/平移跳变。
 - **运动在 80% 时长内完成、尾 20% 静止**：xfade 重叠期两段皆静止，只做透明度交叉 → 不扭不抖；段过短（≤转场帧数+1）时压缩运动幅度，避免转场占满整段。
-- **渲染前必过抖动门禁**：`compose_motion.py` 合成前自动调用 `scripts/motion_quality_check.py` 复算全链路并校验上述三条（整数帧对齐 / 三角波连续 / offset 整数帧），FAIL 直接终止；也可单独 `python3 scripts/motion_quality_check.py <frames_dir> <durations.json> --json` 检视预期 xfade offset 表（退出码 0=PASS / 1=FAIL / 2=WARN-only，`--strict` 时 WARN 升格为 FAIL）。门禁脚本的契约参数（zoom_max / pan_px / XD / 三角波方向表）须与 compose_motion.py 及本 §3.6/§3.7 随时同步，否则门禁失效。
+- **渲染前必过统一质量总门禁**：`compose_motion.py` 合成前自动调用 `scripts/video_quality_gate.py` 一次性校验三类问题——①画面抖（整数帧对齐 / 三角波连续 / offset 整数帧，复用 `motion_quality_check`）、②编码画质契约（见 §3.8）、③素材合规（源帧须 1920×1080、非空、数量对齐），FAIL 直接终止；也可单独 `python3 scripts/video_quality_gate.py <frames_dir> <durations.json> --json` 检视全量问题（退出码 0=PASS / 1=FAIL / 2=WARN-only，`--strict` 时 WARN 升格为 FAIL）。门禁脚本的契约参数（zoom_max / pan_px / XD / 三角波方向表）须与 compose_motion.py 及本 §3.6/§3.7 随时同步，否则门禁失效。
+
+### 3.8 统一质量总门禁（video_quality_gate.py，消除"渲染完才发现脏/抖/虚"）
+- **为什么需要**：前面 §3.6/§3.7 的修复都是"编码参数 / 运动逻辑"，一旦有人改坏（把 `qp 0` 删了、把 `scale=8000` 加回来、把 SwiftShader 去掉、源帧导出成 1280×720），缺陷会一直带进成片。总门禁在**跑 ffmpeg 之前**一次性把"抖动 / 编码契约 / 素材"三类全查完，FAIL 直接拦下。
+- **三类检查项**：
+  - **[MOTION] 画面抖**：复用 `motion_quality_check`（唯一权威实现），校验整数帧对齐 / 三角波连续 / offset 整数帧。
+  - **[ENCODE] 编码契约**：`compose_motion.py` 必须含 `qp 0`（无损暂存）+ 单次 `crf 18`、不得含 `scale=8000`；`render_animated.js` 必须含 `swiftshader`（SwiftShader 启用）、不得含 `disable-software-rasterizer`、截屏须用累计时间戳（`Date.now` + `frameInterval`）。任一违约 → FAIL（防回归）。
+  - **[ASSET] 素材合规**：源帧须为 1920×1080 PNG、非空（非 0 字节）、帧数与 `durations.json` 对齐、编号自然序连续（缺号仅 WARN）。尺寸不符 → 合成 `s=1920x1080` 会拉伸/裁切、运动失真 → FAIL。
+- **调用方式**：
+  - 自动化任务：已内置进 `compose_motion.py` 合成前自动调用，无需人工记着跑。
+  - 人工 / CI：`python3 scripts/video_quality_gate.py <frames_dir> <durations.json> [--fps 30] [--preset 1] [--scripts-dir <dir>] [--strict] [--json]`
+- **契约同步约束**：ENCODE 组检查的是"源码字符串特征"，故 `compose_motion.py` / `render_animated.js` 的上述关键字一旦变更，须同步更新本 §3.8 的检查项描述，否则门禁会误判或漏判。
 
 ---
 
