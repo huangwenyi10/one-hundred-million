@@ -19,12 +19,12 @@ compose_motion.py — 给静态帧目录加「镜头运动 + 交叉淡入」，�
 """
 import argparse, json, os, re, subprocess, sys, tempfile
 
-# 抖动门禁：合成前先过质量自检（与 references/craft-quality.md §3.7 一致）。
-# motion_quality_check.py 与本脚本同目录；缺失则阻断以确保质量。
+# 统一质量总门禁：合成前先过自检（抖动+编码契约+素材；与 craft-quality.md §3.6/§3.7 一致）。
+# video_quality_gate.py 与本脚本同目录（内部复用 motion_quality_check）；缺失则阻断以确保质量。
 try:
-    from motion_quality_check import run_gate as _run_motion_gate
+    from video_quality_gate import run_gate as _run_quality_gate
 except ImportError:
-    _run_motion_gate = None
+    _run_quality_gate = None
 
 
 def parse_page_num(path):
@@ -82,20 +82,22 @@ def main():
     zbase = zoom_max
     # 转场以整数帧为单位（避免浮点秒 offset 落在非整数帧 → 转场混合起点在帧中间 → 画面抖）
     XD = 0.5
-    XD_FRAMES = max(1, round(XD * fps))
+    XD_FRAMES = max(1, round(XD * args.fps))
 
     # —— 抖动门禁（渲染前自检，强制）——
     # 复刻本脚本确定性逻辑，校验整数帧对齐 / 三角波连续 / offset 整数帧；FAIL 立即终止，
     # 避免带着抖动缺陷跑完 ffmpeg 才发现问题。WARN-only（退出码2）不阻断。
-    if _run_motion_gate is None:
-        sys.stderr.write("[抖动门禁] motion_quality_check.py 缺失，无法执行门禁，终止以确保质量。\n")
+    if _run_quality_gate is None:
+        sys.stderr.write("[质量总门禁] video_quality_gate.py 缺失，无法执行门禁，终止以确保质量。\n")
         raise SystemExit(2)
-    gate_code = _run_motion_gate(frames, durations, args.fps, args.preset, XD=XD, strict=False)
+    gate_code = _run_quality_gate(frames, durations, args.fps, args.preset,
+                                 scripts_dir=os.path.dirname(os.path.abspath(__file__)),
+                                 XD=XD, strict=False)
     if gate_code == 1:
-        sys.stderr.write("[抖动门禁] 未通过（FAIL），终止合成。请先修复上方问题再跑 compose_motion.py。\n")
+        sys.stderr.write("[质量总门禁] 未通过（FAIL），终止合成。请先修复上方问题再跑 compose_motion.py。\n")
         raise SystemExit(1)
     elif gate_code == 2:
-        sys.stderr.write("[抖动门禁] 存在 WARN（非阻断），继续合成。\n")
+        sys.stderr.write("[质量总门禁] 存在 WARN（非阻断），继续合成。\n")
 
     tmp = tempfile.mkdtemp(prefix="compose_motion_")
     seg_paths = []
