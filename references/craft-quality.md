@@ -91,6 +91,7 @@
 - **段时长用 `-frames:v` 精确锁帧**（替代 `-t` 浮点秒）：段实际帧数 = `round(d*fps)` 整数，避免 zoompan `d` 与编码帧数差 1 导致的段尾状态不连续。
 - **相邻段运动连续（三角波衔接）**：缩放做「1.0→Z / Z→1.0」奇偶交替、pan 做「0→P / P→0」同向回收，**上一段尾 = 下一段头**，杜绝衔接处缩放/平移跳变。
 - **运动在 80% 时长内完成、尾 20% 静止**：xfade 重叠期两段皆静止，只做透明度交叉 → 不扭不抖；段过短（≤转场帧数+1）时压缩运动幅度，避免转场占满整段。
+- **渲染前必过抖动门禁**：`compose_motion.py` 合成前自动调用 `scripts/motion_quality_check.py` 复算全链路并校验上述三条（整数帧对齐 / 三角波连续 / offset 整数帧），FAIL 直接终止；也可单独 `python3 scripts/motion_quality_check.py <frames_dir> <durations.json> --json` 检视预期 xfade offset 表（退出码 0=PASS / 1=FAIL / 2=WARN-only，`--strict` 时 WARN 升格为 FAIL）。门禁脚本的契约参数（zoom_max / pan_px / XD / 三角波方向表）须与 compose_motion.py 及本 §3.6/§3.7 随时同步，否则门禁失效。
 
 ---
 
