@@ -115,14 +115,28 @@
   /* ============ ⑥ 版式 4：图示页（架构 / 流程，占 55%~75%） ============ */
   .diagram-stage{position:absolute;left:120px;right:120px;top:250px;bottom:170px;
     background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:40px;
-    display:flex;flex-direction:column;gap:24px}
-  .node{background:color-mix(in srgb,var(--accent) 12%,var(--panel));
+    display:flex;flex-direction:column;gap:24px;overflow:hidden}
+  /* node / nodebox：图内节点，必须允许折行、溢出隐藏，禁止 white-space:nowrap 导致撑破 */
+  .node,.nodebox{background:color-mix(in srgb,var(--accent) 12%,var(--panel));
     border:2px solid var(--accent);border-radius:18px;padding:20px 28px;
-    font-size:30px;font-weight:600;text-align:center;white-space:nowrap}
-  .node.dim{border-color:var(--line);background:var(--panel);color:var(--muted)}
+    font-size:30px;font-weight:600;text-align:center;white-space:normal;
+    overflow-wrap:anywhere;word-break:keep-all;min-width:0;max-width:100%;overflow:hidden}
+  .node.dim,.nodebox.dim{border-color:var(--line);background:var(--panel);color:var(--muted)}
   .node.cyl{border-radius:50%/50% 50% 0 0;padding-top:28px}
   .edge{stroke:var(--hilite);stroke-width:3;fill:none;marker-end:url(#arrow)}
   .legend{margin-top:auto;font-size:22px;color:var(--muted)}
+  /* 流程图横向步骤：自适应宽度、文本自动折行、防止撑破 */
+  .flow{display:flex;align-items:stretch;gap:26px;justify-content:center;margin-top:10px;min-width:0;width:100%}
+  .flow .arrow{align-self:center;font-size:46px;color:var(--hilite);font-weight:800;line-height:1;flex-shrink:0}
+  .stepcard{background:var(--panel);border:2px solid var(--accent);border-radius:20px;padding:32px 26px;text-align:center;flex:1;display:flex;flex-direction:column;gap:14px;justify-content:center;min-width:0;overflow:hidden}
+  .stepcard.hot{border-color:var(--hilite);background:color-mix(in srgb,var(--accent) 14%,var(--panel))}
+  .stepcard .sic{font-size:46px;line-height:1}
+  .stepcard .st{font-size:32px;font-weight:700;overflow-wrap:anywhere;word-break:keep-all}
+  .stepcard .sd{font-size:24px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  /* 架构图网格：多层/多列自动分布，避免绝对定位导致箭头错位 */
+  .diagram-grid{display:flex;flex-direction:column;gap:36px;align-items:center;justify-content:center;height:100%;width:100%}
+  .diagram-row{display:flex;align-items:center;justify-content:center;gap:40px;width:100%;flex-wrap:wrap}
+  .diagram-row .spacer{min-width:60px;text-align:center;color:var(--hilite);font-size:38px;font-weight:800}
 
   /* ============ ⑦ 版式 5：数字聚焦页（单点强冲击） ============ */
   .stat{position:absolute;inset:0;display:flex;flex-direction:column;
@@ -198,22 +212,20 @@
     <div class="title">一条 SQL 的<b style="color:var(--hilite)">加速</b>之旅</div>
   </div>
 
-  <!-- 版式 4：图示页（架构/流程），节点用 .node + SVG .edge 连线 -->
+  <!-- 版式 4：图示页（架构/流程），推荐用 .diagram-grid / .flow 组件，禁止手写绝对定位+SVG坐标（易错位/溢出） -->
   <div class="diagram-stage">
-    <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 1680 660" preserveAspectRatio="none">
-      <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-          <path d="M0 0 L10 5 L0 10 z" fill="#4D8DFF"/>
-        </marker>
-      </defs>
-      <path class="edge anim-draw" d="M170 200 H500"/>
-      <path class="edge anim-draw" d="M760 200 H1090"/>
-      <path class="edge anim-draw" d="M1350 200 H1520"/>
-    </svg>
-    <div style="position:absolute;left:60px;top:170px" class="node">查询请求</div>
-    <div style="position:absolute;left:430px;top:170px" class="node">物化视图</div>
-    <div style="position:absolute;left:690px;top:170px" class="node dim">原表扫描</div>
-    <div style="position:absolute;left:1020px;top:170px" class="node">结果返回</div>
+    <div class="diagram-grid">
+      <div class="diagram-row">
+        <div class="nodebox">查询请求</div>
+        <div class="spacer">→</div>
+        <div class="nodebox">物化视图</div>
+        <div class="spacer">→</div>
+        <div class="nodebox">结果返回</div>
+      </div>
+      <div class="diagram-row">
+        <div class="nodebox dim">原表扫描（兜底路径）</div>
+      </div>
+    </div>
     <div class="legend">数据流：左→右 · 物化视图命中即跳过全表扫描</div>
   </div>
 
