@@ -61,6 +61,20 @@ except ImportError:
     _run_quality_gate = None
     _png_size = None
 
+# 运动模型参数与「运动时长占段时长比例」的**唯一来源** = motion_quality_check（门禁权威实现）。
+# 本脚本只做「把模型翻译成 ffmpeg 表达式」，参数不再各写一份 → 从根上消除两侧漂移。
+# ⚠️ 公式本身（smoothstep / 可用空间比例平移 / 三角波）在 motion_quality_check.quad_at 里
+#    有一份等价的纯 Python 实现，改动公式时必须同时改这两处（§3.7 契约）。
+try:
+    from motion_quality_check import ZOOM_MAX, PAN_FRAC, PAN_DIRS, MOTION_TAIL
+    _MODEL_OK = True
+except ImportError:
+    ZOOM_MAX = {1: 1.06, 2: 1.10, 3: 1.16}
+    PAN_FRAC = {1: 0.70, 2: 0.85, 3: 0.95}
+    PAN_DIRS = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
+    MOTION_TAIL = 0.8
+    _MODEL_OK = False
+
 
 def _resolve_tool(name):
     """定位 ffmpeg/ffprobe：先查 PATH，再查常见绝对路径。
@@ -147,8 +161,9 @@ def main():
     W, H = probe_size(frames[0])
 
     # 运动强度参数：zoom 峰值 + 平移占「缩放可用空间」的比例（比例式 → 永不越界）
-    zoom_max = {1: 1.06, 2: 1.10, 3: 1.16}[args.preset]
-    pan_frac = {1: 0.70, 2: 0.85, 3: 0.95}[args.preset]
+    # 参数取自 motion_quality_check（门禁权威实现），不在此重复定义数值。
+    zoom_max = ZOOM_MAX[args.preset]
+    pan_frac = PAN_FRAC[args.preset]
     # 转场以整数帧为单位（避免浮点秒 offset 落在非整数帧 → 转场混合起点在帧中间 → 画面抖）
     XD = 0.5
     XD_FRAMES = max(1, round(XD * args.fps))
@@ -180,27 +195,32 @@ def main():
         if d < 0.5:
             d = 0.5
         n_frames = max(1, int(round(d * fps)))
-        # 运动在 80% 时长内完成，尾 20% 静止 → xfade 重叠期两段都静止，只做透明度交叉、不扭不抖
+        # 运动在 80%（MOTION_TAIL）时长内完成，尾段静止 → xfade 重叠期两段都静止，只做透明度交叉
         if n_frames <= XD_FRAMES + 1:
             N = max(1, n_frames - 1)        # 段过短，压缩运动避免转场占满整段
         else:
-            N = max(1, int(n_frames * 0.8))
+            N = max(1, int(n_frames * MOTION_TAIL))
 
-        e = f"min(on/{N},1)"                          # 0→1 缓动因子，尾段恒定（静止）
-        f = e if i % 2 == 0 else f"(1-{e})"           # 平移因子：偶数段 e，奇数段 1-e
+        e = f"min(on/{N},1)"                          # 0→1 线性因子，尾段恒定（=1）
+        # smoothstep 缓动：s = e²(3-2e)，两端速度为 0 → 段首/段尾不出现「起停跳变」，
+        # 且 zoom 与平移用同一个 s，保证合成运动是 C1 连续的（无速度突变）。
+        s = f"({e}*{e}*(3-2*{e}))"
+        fexpr_s = s if i % 2 == 0 else f"(1-{s})"     # 平移因子（smoothstep 缓动后）
         if i % 2 == 0:
-            zexpr = f"1+({zoom_max-1:.6f})*{e}"                     # 1.0 → Z
+            zexpr = f"1+({zoom_max-1:.6f})*{s}"                     # 1.0 → Z
         else:
-            zexpr = f"{zoom_max:.6f}-({zoom_max-1:.6f})*{e}"        # Z → 1.0
+            zexpr = f"{zoom_max:.6f}-({zoom_max-1:.6f})*{s}"        # Z → 1.0
         # 可用空间（随 zoom 变化）：Ux(z)=W*(1-1/z)、Uy(z)=H*(1-1/z)
         ux = f"({W}-{W}/({zexpr}))"
         uy = f"({H}-{H}/({zexpr}))"
-        dx, dy = [(1, 1), (-1, 1), (1, -1), (-1, -1)][(i // 2) % 4]
+        dx, dy = PAN_DIRS[(i // 2) % 4]
         # 裁剪窗四角（浮点，亚像素）；|PAN_FRAC|≤1 且 0≤f≤1 ⇒ 恒在 [0,W]×[0,H] 内
         w_expr = f"{W}/({zexpr})"
         h_expr = f"{H}/({zexpr})"
-        x0 = f"({ux})*(0.5+0.5*({dx}*{pan_frac:.4f})*{f})"
-        y0 = f"({uy})*(0.5+0.5*({dy}*{pan_frac:.4f})*{f})"
+        # f 用 smoothstep 后的 s 才是缓动；奇偶段用 (1-s) 反向回收 → 段尾=段头
+        fexpr_s = s if i % 2 == 0 else f"(1-{s})"
+        x0 = f"({ux})*(0.5+0.5*({dx}*{pan_frac:.4f})*{fexpr_s})"
+        y0 = f"({uy})*(0.5+0.5*({dy}*{pan_frac:.4f})*{fexpr_s})"
 
         seg = os.path.join(tmp, f"seg_{i:03d}.mp4")
         vf = (f"perspective=x0='{x0}':y0='{y0}':"
