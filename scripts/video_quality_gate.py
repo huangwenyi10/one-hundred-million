@@ -6,7 +6,8 @@ video_quality_gate.py — 短视频统一质量总门禁（渲染/合成前一�
 合并三类检查，输出单一结论（PASS / FAIL / WARN），供自动化任务与人工 CI 直接用来
 在「跑 ffmpeg 之前」拦下质量问题，避免"渲染完才发现画面抖/脏/发虚"。
 
-  [MOTION] 画面抖（复用 motion_quality_check 的确定性逻辑：整数帧 / 三角波连续 / offset 整数帧）
+  [MOTION] 画面抖（复用 motion_quality_check 的确定性逻辑：亚像素裁剪窗零位移帧 / 越界 /
+           跨段连续 / xfade 整数帧）
   [ENCODE] 编码画质（检查 compose_motion.py / render_animated.js 是否守住 craft-quality.md §3.6 契约）
   [ASSET ] 素材合规（源帧尺寸 / 非空 / 数量对齐 / 命名连续）
 
@@ -68,8 +69,8 @@ def png_size(path):
 def check_motion(frames, durations, fps, preset, XD):
     if not _MQC_OK:
         return [("FAIL", "MOTION", "motion_quality_check 缺失，无法校验运动连续性，终止以确保质量")]
-    plan, xd_frames, zoom_max, total_frames = mqc.compute_plan(frames, durations, fps, preset, XD)
-    issues = mqc.collect_issues(plan, xd_frames, fps)
+    plan, xd_frames, zoom_max, total_frames, W, H = mqc.compute_plan(frames, durations, fps, preset, XD)
+    issues = mqc.collect_issues(plan, xd_frames, fps, W, H)
     # 归并分组标签
     return [(lv, "MOTION", m) for lv, s, m in issues]
 
@@ -85,6 +86,25 @@ def _read(path):
         return None
 
 
+_TRIPLE_RE = re.compile(r'("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')')
+
+
+def _code_only(src):
+    """去掉模块/函数文档字符串与行注释，只留真实代码。
+
+    否则「文档里解释 zoompan 的历史与危害」会被误判成「代码里还在用 zoompan」。
+    """
+    s = _TRIPLE_RE.sub("", src)
+    out = []
+    for ln in s.splitlines():
+        i = ln.find("#")
+        if i >= 0:
+            ln = ln[:i]
+        if ln.strip():
+            out.append(ln)
+    return "\n".join(out)
+
+
 def check_encode(scripts_dir):
     issues = []
     cm = os.path.join(scripts_dir, "compose_motion.py")
@@ -96,24 +116,38 @@ def check_encode(scripts_dir):
         issues.append(("FAIL", "ENCODE", f"找不到 {cm}，无法校验编码契约"))
         return issues
 
-    # 逐行扫描时跳过 # 注释行，避免注释里的关键字（如「旧实现 scale=8000:-1」）误触发
-    def _code_lines(src):
-        for ln in src.splitlines():
-            if ln.strip().startswith("#"):
-                continue
-            yield ln
-    cm_code = "\n".join(_code_lines(cm_src))
+    # 只扫真实代码：文档字符串 / 注释里对 zoompan 的历史说明不算违约
+    cm_code = _code_only(cm_src)
 
     # --- compose_motion.py 契约（craft-quality.md §3.6）---
     # 1) 中间段无损暂存：实际参数对 '-qp', '0'（只看真实编码参数，不认注释，避免漏判）
     if not re.search(r'["\']-qp["\']\s*,\s*["\']0["\']', cm_code):
         issues.append(("FAIL", "ENCODE",
                        "compose_motion.py 中间段未用无损暂存(qp 0) → 二次有损压缩 → 渐变背景色带/块化"))
-    # 2) 禁止盲目4×放大：仅当「实际 filter 行」含 scale=8000 且同现 zoompan 才算违约
-    if any(("scale=8000" in ln and "zoompan" in ln) for ln in _code_lines(cm_src)):
+    # 2) ★ 亚像素运动契约（2026-09-10 抖动根因修复，防回归）：
+    #    Ken Burns 必须用 perspective 的浮点四角 + 逐帧求值 + 三次插值；
+    #    zoompan 会把裁剪窗量化到源像素整数格点 → 单帧位移 <1px 时变成「数帧静止 + 跳 1 像素」
+    #    = 画面抖。任何把这些关键字改回 zoompan / 整数裁剪的改动都必须 FAIL 拦下。
+    if not re.search(r'perspective\s*=', cm_code):
+        issues.append(("FAIL", "ENCODE",
+                       "compose_motion.py 未使用 perspective 滤镜 → 镜头运动回到整数裁剪（zoompan/crop），"
+                       "单帧位移 <1px 时会被量化成阶梯 = 画面抖"))
+    if re.search(r'zoompan\s*=', cm_code):
+        issues.append(("FAIL", "ENCODE",
+                       "compose_motion.py 仍在滤镜串里使用 zoompan= → 裁剪窗被整数截断，"
+                       "运动量化成「停顿帧」= 画面抖（2026-09-10 已废弃，改用 perspective）"))
+    if "interpolation=cubic" not in cm_code:
+        issues.append(("FAIL", "ENCODE",
+                       "compose_motion.py 的 perspective 未用 interpolation=cubic → 亚像素采样退化为双线性，文字边缘发虚"))
+    if "eval=frame" not in cm_code:
+        issues.append(("FAIL", "ENCODE",
+                       "compose_motion.py 的 perspective 未用 eval=frame → 四角表达式只求值一次，运动层失效"))
+    # 3) 禁止盲目4×放大：仅当「实际 filter 行」含 scale=8000 且同现运动滤镜才算违约
+    if any(("scale=8000" in ln and ("zoompan" in ln or "perspective" in ln))
+           for ln in cm_code.splitlines()):
         issues.append(("FAIL", "ENCODE",
                        "compose_motion.py 存在 scale=8000 盲目4×放大 → 全片文字/线条发虚"))
-    # 3) 最终有损编码 crf≤18（只看真实编码参数对，不认注释，避免漏判）
+    # 4) 最终有损编码 crf≤18（只看真实编码参数对，不认注释，避免漏判）
     if not re.search(r'["\']-crf["\']\s*,\s*["\']1[0-8]["\']', cm_code):
         issues.append(("WARN", "ENCODE",
                        "compose_motion.py 最终编码未用 crf≤18（建议 crf 18, preset medium）→ 画质余量不足"))
@@ -126,7 +160,7 @@ def check_encode(scripts_dir):
     if "swiftshader" not in ra_low:
         issues.append(("FAIL", "ENCODE",
                        "render_animated.js 未启用 SwiftShader → transform/opacity 动画被丢弃、页面变静态"))
-    ra_code = "\n".join(ln for ln in ra_src.splitlines() if not ln.strip().startswith("#"))
+    ra_code = _code_only(ra_src)
     if "disable-software-rasterizer" in ra_code:
         issues.append(("FAIL", "ENCODE",
                        "render_animated.js 含 --disable-software-rasterizer → 动画丢帧/失真"))
@@ -142,6 +176,7 @@ def check_encode(scripts_dir):
 def check_asset(frames, durations):
     issues = []
     # 1) 非负、尺寸
+    sizes = {}
     for fp in frames:
         try:
             sz = os.path.getsize(fp)
@@ -153,9 +188,16 @@ def check_asset(frames, durations):
             continue
         if fp.lower().endswith(".png"):
             wh = png_size(fp)
-            if wh and wh != (1920, 1080):
-                issues.append(("FAIL", "ASSET",
-                               f"{os.path.basename(fp)} 尺寸 {wh[0]}x{wh[1]} ≠ 1920x1080 → 合成 s=1920x1080 会拉伸/裁切、运动失真"))
+            if wh:
+                sizes.setdefault(wh, []).append(os.path.basename(fp))
+                if wh != (1920, 1080):
+                    issues.append(("FAIL", "ASSET",
+                                   f"{os.path.basename(fp)} 尺寸 {wh[0]}x{wh[1]} ≠ 1920x1080 → 合成输出尺寸随之改变、"
+                                   f"与既定 16:9 横屏规格不符（固定规范第 13 条）"))
+    # 1.1) 全帧同尺寸：尺寸混用会让透视裁剪窗按首帧画布计算 → 其余帧被拉伸/裁切、运动失真
+    if len(sizes) > 1:
+        detail = "；".join(f"{w}x{h}({len(v)}帧)" for (w, h), v in sorted(sizes.items()))
+        issues.append(("FAIL", "ASSET", f"源帧尺寸不一致：{detail} → 裁剪窗按首帧画布计算，其余帧被拉伸/裁切、运动失真"))
     # 2) 帧数 vs 时长数
     if durations is not None and len(frames) != len(durations):
         issues.append(("WARN", "ASSET",
