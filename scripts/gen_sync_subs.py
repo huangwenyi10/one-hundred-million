@@ -15,7 +15,7 @@ gen_sync_subs.py — 分段同步字幕与时长生成（Step 3/5 强制）
 
 依赖: edge_tts (pip install edge-tts)，ffmpeg (PATH)
 """
-import argparse, asyncio, json, os, subprocess, sys, re
+import argparse, asyncio, hashlib, json, os, subprocess, sys, re
 
 TICK = 1e-7  # edge-tts offset/duration 单位：100 纳秒
 MAX_CHARS = 32  # 单行最大中文字符数（render 端仍会按需缩字号兜底）
@@ -96,15 +96,32 @@ async def tts_segment(text, voice, max_retries=6):
     raise RuntimeError(f"TTS 失败（已重试 {max_retries} 次）: {last_err}")
 
 
-def load_cached(out_dir, i):
-    """断点续跑：复用已成功的分段音频 + 句级时间轴，避免整批重跑。"""
+def _seg_hash(text):
+    """分段文本内容哈希：缓存键必须含内容，否则换视频/改稿会串音。"""
+    return hashlib.sha1(text.encode("utf-8")).hexdigest()[:16]
+
+
+def load_cached(out_dir, i, text=None):
+    """断点续跑：复用已成功的分段音频 + 句级时间轴，避免整批重跑。
+
+    缓存有效性 = 段序号 + **该段文本内容哈希**一致。
+    历史坑（2026-09-10 实测）：旧版缓存只按段序号复用 seg_XX.mp3，
+    换一支视频或改了某段文本后若未清空 build/，会把上一条视频的音频
+    串进来（串音 / 时长错乱）。故缓存 json 必须带内容哈希；读到无哈希
+    的旧格式一律视为未命中，强制重新 TTS。
+    """
     mp3 = os.path.join(out_dir, f"seg_{i:02d}.mp3")
     js = os.path.join(out_dir, f"seg_{i:02d}.json")
     if (os.path.exists(mp3) and os.path.exists(js)
             and os.path.getsize(mp3) > 1024):
         try:
             with open(js, encoding="utf-8") as f:
-                sents = [tuple(x) for x in json.load(f)]
+                raw = json.load(f)
+            if not isinstance(raw, dict) or "h" not in raw or "s" not in raw:
+                return None, None          # 旧格式（无内容哈希）→ 不复用
+            if text is not None and raw["h"] != _seg_hash(text):
+                return None, None          # 文本已变 → 缓存失效
+            sents = [tuple(x) for x in raw["s"]]
             with open(mp3, "rb") as f:
                 return f.read(), sents
         except Exception:
@@ -112,10 +129,12 @@ def load_cached(out_dir, i):
     return None, None
 
 
-def save_cached(out_dir, i, audio, sents):
+def save_cached(out_dir, i, text, audio, sents):
+    """写缓存：json 内记录内容哈希，供 load_cached 校验。"""
     with open(os.path.join(out_dir, f"seg_{i:02d}.json"), "w",
               encoding="utf-8") as f:
-        json.dump([list(s) for s in sents], f, ensure_ascii=False)
+        json.dump({"h": _seg_hash(text), "s": [list(s) for s in sents]}, f,
+                  ensure_ascii=False)
 
 
 def ffprobe_dur(path):
@@ -168,13 +187,13 @@ def main():
 
     cum = 0.0
     for i, seg_text in enumerate(segs):
-        audio, sents = load_cached(args.out_dir, i)
+        audio, sents = load_cached(args.out_dir, i, seg_text)
         if audio is not None:
             print(f"  [{i+1}/{len(segs)}] 复用缓存 seg_{i:02d}.mp3", flush=True)
         else:
             print(f"  [{i+1}/{len(segs)}] TTS {len(seg_text)} 字 ...", flush=True)
             audio, sents = asyncio.run(tts_segment(seg_text, args.voice))
-            save_cached(args.out_dir, i, audio, sents)
+            save_cached(args.out_dir, i, seg_text, audio, sents)
         seg_path = os.path.join(args.out_dir, f"seg_{i:02d}.mp3")
         with open(seg_path, "wb") as wf:
             wf.write(audio)
