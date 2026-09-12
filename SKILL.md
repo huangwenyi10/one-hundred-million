@@ -337,6 +337,7 @@ disable-model-invocation: false
 | `humanizer-zh`（内置插件技能） | 已可用 | 去除口播稿中的 AI 生成痕迹，让语言更像人写 | Step 1 写完后 |
 | `remotion-video-toolkit`（用户级） | 已安装 | React/Remotion 程序化视频：需要复杂字幕动画、转场、云端渲染时的可选替代路径 | Step 5/6（默认仍走 ffmpeg） |
 | `multi-wordcheck` 多平台违禁词检测（用户级） | 已安装·**默认略过（非强制门禁）** | 三平台（公众号/小红书/抖音）违禁词官方检测，纯 API 依赖 `REDFOX_API_KEY`；**无 key 时本流程默认略过，不做强制门禁**，作者明确要求执行时才调用 | Step 7（可选·默认略过） |
+| **抖音合规自检（本技能内置）** | **已可用·强制门禁** | `scripts/douyin_compliance_check.py` 本地确定性扫描（零外部依赖、无需 `REDFOX_API_KEY`）：站外引流 / 绝对化用语 / 效果收益承诺 / 焦虑对立 / 教培虚拟内容禁语 / 固定收尾句 / 训练营标识与期号，含技术语境白名单防误报；BLOCK 清零才允许进入作者审核。规则与来源分级见 `references/douyin-compliance.md` | **Step 7（强制·第 1 步）**、Step 8 文案复检、定时轮转模式 |
 | 腾讯文档 `tencent-docs` 连接器 | 待连接 | 口播稿在线协作，作者批注修改意见，审核留痕 | Step 1 / Step 7 |
 | `cn-last30days` 社媒话题研究（用户级） | 已安装 v2.0.1 | 近 30 天小红书/抖音/公众号跨平台热点与舆情趋势，供 Step 0 选题 | Step 0 |
 | 百度网盘 `baidu-netdisk` 连接器 | **已连接** | **发布后归档（强制）**：把**视频交付物**（成片 + PPT.html + 口播稿 + `发布/` 5 子项 + 打包这四样的交付物 zip，共 9 项）归档到 `/自媒体/<训练营名>/<视频标题>/`，build 中间产物不入档。**能力边界**：无本地二进制直传、无删除、无文件夹上传——二进制一律走「临时静态托管 → `file_upload_by_url` → 立即下线」，完整 SOP 与编码避坑见 `references/netdisk-archive.md` | Step 8（发布后归档） |
