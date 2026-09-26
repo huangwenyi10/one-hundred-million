@@ -41,11 +41,11 @@ PY=/Users/ay/.workbuddy/binaries/python/envs/default/bin/python
 D=/Users/ay/.workbuddy/skills/one-hundred-million/scripts
 
 # ① Step 1 写稿后：扫稿列出所有多音字命中
-$PY $D/polyphone_check.py scan "<标题>_口播稿.txt"
+$PY $D/polyphone_check.py scan "<训练营全名>-<标题>_口播稿.txt"
 #    输出【需代理】/【抽检】两类；--strict 可在有需代理项时 exit 1 作门禁
 
 # ② Step 3 配音前：生成 TTS 输入版（替换代理字）+ 映射文件
-$PY $D/polyphone_check.py apply "<标题>_口播稿.txt" \
+$PY $D/polyphone_check.py apply "<训练营全名>-<标题>_口播稿.txt" \
       --out build/script_tts.txt --map build/polyphone_map.json
 
 # ③ 用 build/script_tts.txt（不是原稿）跑分段 TTS
@@ -57,7 +57,7 @@ $PY $D/polyphone_check.py restore --srt build/subtitles.srt \
 
 # ⑤ 用还原后的字幕交付，并跑四方同频校验
 $PY $D/check_sync.py build/segments_durations.json build/subtitles_fixed.srt \
-      "<标题>_口播稿.txt" build/voiceover.mp3
+      "<训练营全名>-<标题>_口播稿.txt" build/voiceover.mp3
 ```
 
 **关键约束**：时间轴（⑤ 的 durations）来自真实音频，**字幕文本来自原稿**——两者合起来才既「读音正确」又「字幕==口播稿」。第 ④ 步是整个流程最容易漏的一环。
