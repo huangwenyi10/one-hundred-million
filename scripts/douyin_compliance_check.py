@@ -14,7 +14,7 @@ douyin_compliance_check.py — 抖音发布前合规自检（本地确定性扫�
 
 用法：
   python3 douyin_compliance_check.py <口播稿.txt> [更多文件...] [--title "标题"] [--json]
-  例：python3 douyin_compliance_check.py "标题/xxx_口播稿.txt" --title "Doris读写分离" --copy 发布/抖音.md
+  例：python3 douyin_compliance_check.py "<标题>/<训练营全名>-<标题>_口播稿.txt" --title "Doris读写分离" --copy 发布/抖音.md
 
 退出码：0 通过（无 BLOCK）｜1 命中 BLOCK｜2 用法或文件错误
 """
