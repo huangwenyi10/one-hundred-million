@@ -20,7 +20,7 @@
 |---|---|---|
 | 主交付 | `<视频标题>_成片.mp4` | 根目录 |
 | 主交付 | `<视频标题>_PPT.html` | 根目录 |
-| 主交付 | `<视频标题>_口播稿.txt` | 根目录 |
+| 主交付 | `<训练营全名>-<视频标题>_口播稿.txt` | 根目录 |
 | 主交付 | `<视频标题>_交付物.zip` | zip 根目录四样：成片 + PPT.html + 口播稿 + `发布/` |
 | 发布物料 | `发布_封面.png` | `发布/封面.png` |
 | 发布物料 | `发布_抖音文案.md` | `发布/抖音_发布文案.md` |
@@ -65,7 +65,7 @@
 ## 七、完整 SOP
 
 1. **打包交付物 zip**：只打四样——成片 + PPT.html + 口播稿 + 整个 `发布/`（不含 build、不含整文件夹）：
-   `cd "<标题>/.." && zip -rq /tmp/wd_upload/project.zip "<视频标题>/<视频标题>_成片.mp4" "<视频标题>/<视频标题>_PPT.html" "<视频标题>/<视频标题>_口播稿.txt" "<视频标题>/发布"`，再 `mv project.zip project.dat`
+   `cd "<标题>/.." && zip -rq /tmp/wd_upload/project.zip "<视频标题>/<视频标题>_成片.mp4" "<视频标题>/<视频标题>_PPT.html" "<视频标题>/<训练营全名>-<视频标题>_口播稿.txt" "<视频标题>/发布"`，再 `mv project.zip project.dat`
 2. **暂存**：把四样单文件 + 发布/ 内 5 子项复制到 `/tmp/wd_upload`，文件名改 ASCII（`video.mp4` / `ppt.html` / `script.txt` / `pub/cover.png` …），中文最终名在第 5 步 `filename` 还原
 3. **部署**：`workbuddy_sites_deploy`（`language: static`）
 4. **验证**：逐个 `curl -o /dev/null -w "%{http_code} %{size_download}"`，全部 200 且字节数与本地一致
@@ -98,7 +98,7 @@
   - **保留（四样交付物）**：
     - `<视频标题>_成片.mp4`（成片本体）
     - `<视频标题>_PPT.html`（画面源）
-    - `<视频标题>_口播稿.txt`（口播稿）
+    - `<训练营全名>-<视频标题>_口播稿.txt`（口播稿）
     - 整个 `发布/` 目录
   - **删（其余全部 build 中间产物，均可弃——PPT.html + 口播稿足以日后重生成片，无需异地备份）**：
     - `build/` 整个目录：`frames/`、`sub_frames/`、`body.mp4`、`final_silent.mp4`、`seg_*.mp3`、`voiceover.mp3`
