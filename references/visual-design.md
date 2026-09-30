@@ -270,3 +270,6 @@ node scripts/render_animated.js <PPT.html> <segments_durations.json> <out_body.m
 1. 用 Chrome headless `?page=N` 导出静态帧后，逐页检查 `.diagram-stage` 内的节点、箭头、图例是否完整、无重叠、无溢出。
 2. 若发现溢出，优先「拆节点/减字」，而不是继续塞长文本依赖自动折行。
 3. 流程步骤数 ≤5；架构图一屏节点总数 ≤6；超过则拆成两屏或做成「总览 → 分层」两页。
+
+### 8.4 用架构图生成技能出图（可选增强路径）
+当需高质量原创可编辑架构图、且资产原图/官方图不可得时，可用外部技能 `contextweave-interactive-architecture` 一键生成 SVG/HTML（**需一次性外发授权**，数据发往云端 `pptx.chenxitech.site`），其产出归入「HTML/CSS 重绘」档，嵌入 `.diagram-stage` 后同样须过本 §8 全部健壮性约束。调用接口、外发授权、映射到本规范的约束、回退路径与反模式见 `references/diagram-generation.md`。
