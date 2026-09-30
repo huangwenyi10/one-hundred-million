@@ -107,9 +107,16 @@
     - `build/segments.txt`、`build/subtitles.srt`、`build/segments_durations.json`、`build/pages_data.py`、`build/seg_*.json`、`build/*.py`（合成/渲染脚本）
 - **彻底档（整个标题文件夹删净 · 作者明确确认后执行）**：作者偏好「归档完整后本地零残留」——9/9 复验通过后**经作者明确确认**，`rm -rf` 删整个 `<视频标题>/` 文件夹（含四样交付物），网盘为唯一副本（四样已作为单文件 + 交付物 zip 双份落网盘）。**必须作者明确确认，不默认、不擅自扩大到整文件夹**（Run 20 实测：作者追问「确定传到网盘后为什么没删整个文件夹」→ 作者明确偏好彻底删净，2026-09-03 固化）。
 
-**执行（build 即时清 · 不需归档 · 交付后立即做）**：
+**执行（build 即时清 · 不需归档 · 交付后立即做 · 2026-09-30 起工具化）**：
 ```
 # 前置：成片已过 Step 7 批准，且「成片 + PPT.html + 口播稿 + 发布/」四样已确认落盘
+
+# 推荐：用技能脚本一次扫全（默认 dry-run，只出「可清 / 保留」清单，不动文件）
+python3 ~/.workbuddy/skills/one-hundred-million/scripts/cleanup_builds.py --workspace <工作区>
+# 复核清单无误后执行（移入系统废纸篓，可恢复；mtime 60 分钟内的构建自动跳过）
+python3 ~/.workbuddy/skills/one-hundred-million/scripts/cleanup_builds.py --workspace <工作区> --apply
+
+# 手工路径（等价；`rm` 立即释放空间但**不可恢复**——仅限 build 中间产物）
 du -sh "<标题>/build"          # 先记录，便于回报释放量
 rm -rf "<标题>/build"
 du -sh "<标题>"                # 报占用（此时仅剩四样交付物）
@@ -118,6 +125,8 @@ du -sh "<标题>"                # 报占用（此时仅剩四样交付物）
 du -sh build_prev_* build_<tag>_<ts> 2>/dev/null   # 先看体积
 rm -rf build_prev_<...>                            # 一次一批，删后复核
 ```
+
+**收尾提醒（2026-09-30 实测）**：脚本走**废纸篓**（可恢复）但**不释放磁盘空间**，须在作者确认无误后清空废纸篓才真正回收；要立刻释放空间就用上面的手工 `rm -rf`（仅适用于 build 中间产物，**绝不用于四样交付物**）。
 
 **执行（默认档，精简 · 需归档复验通过）**：
 ```
