@@ -8,6 +8,8 @@
 
 判据（与 SKILL.md 固定规范第 24 条一致）：
   A 类  <交付目录>/build/             同目录存在 `<标题>_成片.mp4` → 临时产物，可清
+       （交付目录名自 2026-10-01 起带 `_<YYYYMMDD>-<NN>` 时间戳后缀；成片文件名仍为纯标题基准，
+         即 `<标题>_成片.mp4` 或 `<标题>.mp4` —— 两种命名都已识别）
        （无成片 → 视为未完成任务，默认保留并单列，需 --include-incomplete 才清）
   B 类  工作区根级 `build*` 目录       孤儿构建目录（build / build_prev_* / build_<tag>_<ts>）→ 可清
        护栏：名称含 backup 跳过；mtime 距今 < --min-age-min 分钟跳过（防删正在跑的构建）
@@ -24,6 +26,7 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -38,6 +41,9 @@ FORBIDDEN = {
 
 # 顶层需跳过的非视频目录（工作区固定结构 / 保留项）
 SKIP_TOP = {"scripts", "templates", "目录", "发布", "assets", "node_modules", "__pycache__"}
+
+# 交付目录名的时间戳后缀（固定规范第 12 条：`<视频标题>_<YYYYMMDD>-<NN>`）
+TS_SUFFIX_RE = re.compile(r"_\d{8}-\d{2,}$")
 
 
 def dir_size(path):
@@ -60,16 +66,24 @@ def human(n):
 
 
 def has_final(dirpath):
-    """目录内是否存在成片（<标题>_成片.mp4 或 <目录名>.mp4）"""
+    """目录内是否存在成片。
+
+    兼容三种情况（固定规范第 12 条：交付目录名自 2026-10-01 起带时间戳后缀）：
+      - `<任意>_成片.mp4`            （主判据，最常见）
+      - `<目录名>.mp4`               （旧式：成片与目录同名）
+      - `<目录名去时间戳>.mp4`       （新式：目录名 = `<标题>_<YYYYMMDD>-<NN>`，成片仍叫 `<标题>.mp4`）
+    """
     base = os.path.basename(dirpath.rstrip(os.sep))
+    stem = TS_SUFFIX_RE.sub("", base)  # 去掉 `_YYYYMMDD-NN` 后缀
     try:
         names = os.listdir(dirpath)
     except OSError:
         return False
+    candidates = {base + ".mp4", stem + ".mp4"}
     for f in names:
         if not f.endswith(".mp4"):
             continue
-        if "成片" in f or f == base + ".mp4":
+        if "成片" in f or f in candidates:
             return True
     return False
 
