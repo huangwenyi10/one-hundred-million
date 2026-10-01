@@ -158,7 +158,7 @@ def update_overview(cat_dir, camp, title):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--camp", required=True, help="训练营大类（支持别名）")
-    ap.add_argument("--title", required=True, help="视频标题（视频标题文件夹名）")
+    ap.add_argument("--title", required=True, help="视频标题——传**纯标题**，不含 `_<YYYYMMDD>-<NN>` 时间戳后缀（目录索引记录的始终是纯标题，生成时间见 --date 列；输出目录带时间戳见固定规范第 12 条）")
     ap.add_argument("--tier", default="", help="档位 S/M/L")
     ap.add_argument("--dim", default="", help="能力维度/主题（如 架构师·高并发）")
     ap.add_argument("--date", default=datetime.date.today().isoformat())
