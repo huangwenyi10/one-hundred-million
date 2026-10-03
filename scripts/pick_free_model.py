@@ -5,10 +5,10 @@ pick_free_model.py —— 模型限流降级：免费优先 + 自动切换（Ste
 
 背景
 ----
-技能硬规则：内容生成优先用**免费模型**；免费模型额度耗尽时**不暂停**，自动切到
-**最便宜的计费模型**（credits 数值最小且 >0）继续跑，目标：自动化任务永不因额度暂停。
+技能硬规则：内容生成优先用**免费模型**；免费模型额度耗尽时**不暂停**，直接回退
+**默认模型（Auto）**继续跑，目标：自动化任务永不因额度暂停。
 当某个模型「使用量超出频率限制 / credit 额度用完」时，不询问、不停止，自动切到
-下一个未耗尽的免费模型继续跑；免费全耗尽则按价格升序落到最便宜计费模型。
+下一个未耗尽的免费模型继续跑；免费全耗尽则直接回退默认模型 Auto。
 
 免费模型清单**禁止硬编码**——它由服务端下发、会变。本脚本每次实时读取本机产品
 配置，以 `models[].credits` 字段判定：
@@ -37,9 +37,8 @@ pick_free_model.py —— 模型限流降级：免费优先 + 自动切换（Ste
 退出码
 ------
   0 = 找到可用免费模型
-  2 = 免费模型全部处于冷却/耗尽 → stdout 输出最便宜计费模型 id（credits 最小、>0）；
-      若计费模型也全被限流 / 无计费模型，兜底输出 AUTO
-  3 = 读不到任何产品配置（无法判定），需人工确认模型清单
+  2 = 免费模型全部处于冷却/耗尽 → stdout 输出 AUTO（默认模型）；不切计费模型
+  3 = 读不到任何产品配置（无法判定），按默认模型 Auto 继续、标注待人工核对
 """
 
 import argparse
@@ -258,17 +257,14 @@ def main():
             print("冷却中: %s" % ", ".join("%s(剩%ds)" % (k, v) for k, v in ex.items()))
         paid = paid_models(models)
         if paid:
-            print("\n计费模型（按价格升序，免费耗尽后回退到最便宜者）：")
+            print("\n计费模型（列出仅供了解，本技能免费耗尽后不切计费、直接回退默认模型 Auto）：")
             for m in paid[:5]:
                 left = ex.get(m["id"])
                 flag = "  [冷却中]" if left else ""
                 print("  - %-18s credits=%-6s%s" % (m["id"], m.get("credits"), flag))
-            print(
-                "\n回退建议: 免费模型全部耗尽时，自动切最便宜计费模型 `%s`（credits=%s）继续，不阻塞生产。"
-                % (paid[0]["id"], paid[0].get("credits"))
-            )
-        else:
-            print("\n回退建议: 免费模型全部耗尽且无计费模型可切时，回退 Auto（兜底），不阻塞生产。")
+        print(
+            "\n回退建议: 免费模型全部耗尽时，直接回退默认模型 Auto 继续生产，不切计费模型、不阻塞。"
+        )
         return 0 if free else 2
 
     # pick
@@ -276,18 +272,8 @@ def main():
     if avail:
         print(avail[0]["id"])
         return 0
-    # 免费模型全耗尽 → 自动切最便宜计费模型（credits 最小、>0），目标：不暂停
-    paid_avail = [m for m in paid_models(models) if m["id"] not in ex]
-    if paid_avail:
-        chosen = paid_avail[0]
-        print(
-            "FALLBACK: 免费模型耗尽 -> 自动切最便宜计费模型 %s（credits=%s）"
-            % (chosen["id"], chosen.get("credits")),
-            file=sys.stderr,
-        )
-        print(chosen["id"])
-        return 2
-    print("FALLBACK: 免费模型耗尽且无可用计费模型 -> 回退 Auto（兜底）", file=sys.stderr)
+    # 免费模型全耗尽 → 直接回退默认模型（Auto），不切计费模型，目标：不暂停
+    print("FALLBACK: 免费模型耗尽 -> 直接回退默认模型 Auto 继续生产", file=sys.stderr)
     print("AUTO")
     return 2
 
