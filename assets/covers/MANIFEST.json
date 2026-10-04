@@ -1,0 +1,109 @@
+{
+  "schema": "ohl-cover-manifest/1",
+  "updated": "2026-10-04",
+  "note": "各客户端共享的训练营合集封面底图。生成封面时优先取此处PNG 作底图，缺失时回退 SKILL.md 训练营主题色表渐变。",
+  "covers": [
+    {
+      "file": "AI训练营_合集封面.png",
+      "camp": "AI训练营",
+      "bytes": 93675,
+      "width": 1902,
+      "height": 1066,
+      "sha256": "74b09b4df9bd9e253213b2e367aab896ef68008ec60001d09d005ea709dd89b1",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cvvhVTcoVOGf"
+      }
+    },
+    {
+      "file": "产品训练营_合集封面.png",
+      "camp": "产品训练营",
+      "bytes": 1703975,
+      "width": 1536,
+      "height": 1152,
+      "sha256": "182049449812f0c9ec6a80a1bbc4fcbe7aa5e11a2225b12ed6eacdcd5e601c20",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cdWeOSKUAUQw"
+      }
+    },
+    {
+      "file": "前端训练营_合集封面.png",
+      "camp": "前端训练营",
+      "bytes": 109282,
+      "width": 1288,
+      "height": 714,
+      "sha256": "ad06a45e795631136ce80c995babe643c981c5ad131a9fab2b877e1a1cfa63ba",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cQXlnpwPqcCw"
+      }
+    },
+    {
+      "file": "大数据训练营_合集封面.png",
+      "camp": "大数据训练营",
+      "bytes": 2129442,
+      "width": 2098,
+      "height": 1244,
+      "sha256": "61ad749bc999e196be94d35b339b6e57eac60ba7c508b405f48917e51db015a6",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cLFDwlfHsYkF"
+      }
+    },
+    {
+      "file": "架构师训练营_合集封面.png",
+      "camp": "架构师训练营",
+      "bytes": 128663,
+      "width": 2020,
+      "height": 1130,
+      "sha256": "1b496e9e81d8b62e4e12b99c83058d73d6d69503289f2414b9eba142174b485b",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cnFzAVrvsvML"
+      }
+    },
+    {
+      "file": "测试训练营_合集封面.png",
+      "camp": "测试训练营",
+      "bytes": 241423,
+      "width": 3840,
+      "height": 2160,
+      "sha256": "afc7907bd58d4584337b6f7f37d8649398020f62eb5670bf5ff927c0784013b1",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cxYYAYeNIdNO"
+      }
+    },
+    {
+      "file": "管理训练营_合集封面.png",
+      "camp": "管理训练营",
+      "bytes": 1139549,
+      "width": 1536,
+      "height": 1152,
+      "sha256": "012ef22ec2d5f24f4caab7802f0c1e0631d0bf8d3d1af9ce7d8f346e0cbbb41d",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cqizNXtRhgCP"
+      }
+    },
+    {
+      "file": "读书训练营_合集封面.png",
+      "camp": "读书训练营",
+      "bytes": 80620,
+      "width": 1080,
+      "height": 1920,
+      "sha256": "6fa7a455e7e0f7f97141cfb0e8fd8b0c4f8b62bc52873e8d2d567cef26f9b013",
+      "source": {
+        "drive": "项目资产/We-Media",
+        "file_id": "cUmjLlbATzht"
+      }
+    }
+  ],
+  "usage": {
+    "allowed": "抖音/快手「合集·专辑」入口封面、训练营主页横图、课件/PPT 首屏。合集封面按「训练营/系列」维度展示，训练营名称属于应当出现的识别信息。",
+    "forbidden": "禁止直接当作单条视频的封面图或视频前3 秒画面使用——图中训练营名称为烧录文字层，命中 SKILL.md 固定规范第14 条（成片画面禁训练营标识）与 douyin-compliance.md §6「不当宣传/招募（画面）」，2026-09-13 SRE 上篇已实测被限流。单条视频封面须另出无标识版（见固定规范第 14 条 + 读书训练营专项「封面_16x9/9x16」规则）。",
+    "style_source": "可作为配色与版式参考：各营主题色见 SKILL.md「训练营主题色」表；读书训练营底图为纯白(255,255,255)、标题玫红，禁止用主题色重铺背景。"
+  },
+  "path_resolution": "相对本技能根目录 assets/covers/<file>；各客户端换机器时随技能仓库一起 clone/拷贝即可，不依赖任何连接器。"
+}
