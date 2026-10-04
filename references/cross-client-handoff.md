@@ -32,9 +32,26 @@ Qoder / Kimi 等不同客户端加载执行，各客户端模型额度彼此独�
 | `scripts/jobctl.py` | **做到哪一步了？下一步做什么？** | 扫描磁盘实物判定阶段；生成续跑包 |
 | `scripts/client_preflight.py` | **这台机器/这个客户端能不能干？** | 探测 ffmpeg/edge-tts/node/Chrome/字体/连接器；登记各客户端额度 |
 | `scripts/pick_free_model.py` | **用哪个模型？额度还有没有？** | 已改造为按客户端命名空间隔离 + 跨客户端额度提示 |
+| `scripts/pick_topic.py` | **这期选什么题？跟别的客户端撞了吗？** | 读**技能内**共享主题候选池，按 `covered` 去重 |
 
 全部**只依赖 Python 标准库 + 通用可执行文件**，不调用任何客户端私有 API——
 所以换到 Trae / Codex / Qoder / Kimi 上照样能跑。
+
+### 2.1 共享资产 vs 工作区状态（两类东西，别搞混）
+
+跨客户端协作时最容易踩的坑是**以为所有东西都跟着工作区走**。实际分两类：
+
+| 类别 | 位置 | 换客户端后| 文件 |
+|------|------|-----------|------|
+| **共享资产**（选题候选 / 封面底图 / 体系进度） | **技能内 `assets/`** | **自动就在**（clone/拷贝技能即得，不依赖连接器） | `assets/topics/topic_pool.json`、`assets/covers/*.png`、`assets/state/syllabus.json` |
+| **工作区状态**（任务台账 / 客户端额度 / 模型冷却） | 工作区根 | 跟着工作区目录走 | `one-hundred-million-jobs.json`、`-clients.json`、`-model-fallback.json` |
+
+**共享资产为什么要放技能内**：放工作区则换机器就是空进度（重复选题）；放项目 Drive 则
+Trae / Codex / Qoder / Kimi 没有该连接器、根本读不到。完整取用与维护见
+`references/asset-index.md`。
+
+> ⚠️ 共享资产里的**体系进度**要提交到技能仓库才有效——否则其他客户端 clone 到的进度偏旧、
+> 会重复选题。`mark` / `add` 之后 `git add assets/ && git commit`。
 
 ---
 
@@ -52,6 +69,9 @@ python3 scripts/jobctl.py scan --workspace <工作区>     # exit 4 = 有活可�
 
 # ③ 有活 → 直接拿续跑包（自动认领 + 打印下一步精确命令）
 python3 scripts/jobctl.py resume --workspace <工作区> --client <客户端名>
+
+# ④ 没活要开新选题 → 先查共享候选池（别现造，会跟别的客户端撞车）
+python3 scripts/pick_topic.py pick --camp <训练营> --uncovered-only -n 5
 ```
 
 `resume` 输出的续跑包含：目录路径、**上一客户端在哪个阶段因什么中断**、
@@ -150,6 +170,10 @@ Step 7（作者审核）/ Step 8（发布归档）属人工环节，不算「未
 
 **手工改动以文件为准**；三者都在工作区根，跟着目录走，换客户端不会丢。
 
+**另有一组「共享资产」在技能内**（不在工作区）：`assets/topics/topic_pool.json`（主题候选池）、
+`assets/covers/*.png`（合集封面底图）、`assets/state/syllabus.json`（体系进度 covered）——
+随技能仓库分发，各客户端 clone 即得，详见 §2.1 与 `references/asset-index.md`。
+
 ---
 
 ## 7. 避坑（已踩）
@@ -166,8 +190,14 @@ Step 7（作者审核）/ Step 8（发布归档）属人工环节，不算「未
   发布动作永远等作者批准（与第 23 条同一边界）。
 - **不要信自报的进度**：`jobctl.py done` 会重新扫磁盘，产物不在就是没完成——
   这正是它能跨客户端可靠续跑的原因。
+- **不要在新客户端里"重新想一个选题"**：选题候选在**技能内共享池**，换个客户端现造会跟上一个客户端撞车。
+  先 `pick_topic.py pick --uncovered-only`。
+- **不要把 `assets/covers/*_合集封面.png` 当单条视频封面用**：图中训练营名是烧录文字层，
+  用作视频封面/前 3 秒画面会命中固定规范第 14 条与抖音「不当宣传/招募（画面）」限流规则
+  （2026-09-13 SRE 上篇实测）。它的用途是**合集/专辑入口封面**——详见 `references/asset-index.md` §5.2。
 - **清理工作区时别删台账**：`one-hundred-million-*.json` 是跨客户端续跑的唯一依据，
-  不属于固定规范第 24 条可清理的 build 中间产物。
+  不属于固定规范第 24 条可清理的 build 中间产物。**但也别删技能内 `assets/`**——
+  那是共享资产本体（候选池 / 封面 / 进度），删了下个客户端就取不到。
 
 ---
 
@@ -177,6 +207,8 @@ Step 7（作者审核）/ Step 8（发布归档）属人工环节，不算「未
 - [ ] 跑过 `jobctl.py scan`，知道有哪些未完成任务（exit 4 = 有活）
 - [ ] `jobctl.py resume` 已看过：上一客户端的中断原因与下一步命令明确
 - [ ] 已 `claim` 认领，确认上一客户端已停手（不并行写 `build/`）
+- [ ] 选题走的是**共享候选池**（`pick_topic.py pick --uncovered-only`），不是现造——否则会跟别的客户端撞选题
+- [ ] 上一客户端的 `mark` / `add` 改动**已提交到技能仓库**（否则读到的进度偏旧）
 - [ ] 已完成阶段**一个都没重跑**（配音/时间轴/字幕尤其不能重生成）
 - [ ] 质量门禁一条没少跑：`check_sync.py` exit 0、禁句禁标识扫描、
       字幕带与水印区像素扫描、素材双源核验（换客户端不豁免）
