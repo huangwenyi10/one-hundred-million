@@ -23,8 +23,20 @@ pick_free_model.py —— 模型限流降级：免费优先 + 自动切换（Ste
   4. .../cli/product.json
 
 状态文件（工作区根）：one-hundred-million-model-fallback.json
-  {"exhausted": {"<model-id>": {"at": ISO, "reason": "...", "cooldown": 7200}},
-   "current": "<model-id>", "history": [{"at": ISO, "from": "", "to": "", "reason": ""}]}
+  {"exhausted": {"<client>": {"<model-id>": {"at": ISO, "reason": "...", "cooldown": 7200}}},
+   "current": "<model-id>", "current_client": "<client>",
+   "history": [{"at": ISO, "from": "", "to": "", "reason": ""}]}
+
+跨客户端（2026-10-04 起）
+------------------------
+限流标记**按客户端命名空间隔离**：`exhausted[client][model]`。
+原因——WorkBuddy 的 `hy3` 用完了，不代表 Trae / Codex / Qoder / Kimi 里的同名模型
+也用完；额度是各客户端账号独立的。因此：
+  * `pick` 只跳过**当前客户端**已耗尽的模型，不会被别的客户端的限流记录误伤；
+  * 当前客户端全部耗尽时，除回退 Auto 外还会打印「哪些客户端还有额度」，
+    提示可以换客户端接着跑（换客户端后进度不丢，见 scripts/jobctl.py resume）；
+  * 客户端注册表 `one-hundred-million-clients.json`（由 client_preflight.py 维护）
+    记录各客户端名称与额度状态，本脚本 `clients` 子命令只读展示。
 
 子命令
 ------
@@ -33,6 +45,11 @@ pick_free_model.py —— 模型限流降级：免费优先 + 自动切换（Ste
   exhausted <id> [--reason S] [--cooldown N]   记录该模型已限流，冷却 N 秒（默认 7200）
   reset [--id X]             清除耗尽标记（全部或指定模型）
   current <id>               记录当前正在使用的模型
+  clients                    列出各客户端额度状态（跨客户端续跑用）
+  register [ok|exhausted] [--reason S]  把当前客户端登记进共享注册表
+
+通用选项：--client <name>（默认取环境变量 OHM_CLIENT，缺省 "workbuddy"）
+          --workspace <工作区根目录>
 
 退出码
 ------
@@ -49,7 +66,9 @@ import time
 from datetime import datetime, timezone, timedelta
 
 STATE_NAME = "one-hundred-million-model-fallback.json"
+CLIENTS_NAME = "one-hundred-million-clients.json"
 DEFAULT_COOLDOWN = 7200  # 2 小时，与定时任务 2h 一轮的节奏对齐
+DEFAULT_CLIENT = "workbuddy"
 
 CANDIDATE_PATHS = [
     "/Users/ay/.workbuddy/cache/acc-product-config-v3.json",
@@ -135,6 +154,28 @@ def state_path(ws):
     return os.path.join(ws or os.getcwd(), STATE_NAME)
 
 
+def clients_path(ws):
+    return os.path.join(ws or os.getcwd(), CLIENTS_NAME)
+
+
+def current_client(explicit=None):
+    """当前客户端名：显式参数 > 环境变量 OHM_CLIENT > 默认 workbuddy。
+
+    统一小写归一化——「WorkBuddy」与「workbuddy」必须命中同一份冷却记录，
+    否则手工传参与默认值会各记一份，冷却失效。
+    """
+    raw = (explicit or os.environ.get("OHM_CLIENT") or DEFAULT_CLIENT).strip()
+    return (raw or DEFAULT_CLIENT).lower()
+
+
+def _looks_like_client_map(d):
+    """兼容旧结构：旧 exhausted 是 {model-id: {...}}，新结构是 {client: {model-id: {...}}}。"""
+    for v in d.values():
+        if isinstance(v, dict) and ("at" in v or "cooldown" in v):
+            return False
+    return True
+
+
 def load_state(ws):
     p = state_path(ws)
     if os.path.isfile(p):
@@ -144,6 +185,11 @@ def load_state(ws):
             if isinstance(s, dict):
                 s.setdefault("exhausted", {})
                 s.setdefault("history", [])
+                # 迁移旧结构到按客户端命名空间
+                if s["exhausted"] and not _looks_like_client_map(s["exhausted"]):
+                    legacy = s["exhausted"]
+                    s["exhausted"] = {"workbuddy": legacy}
+                    s.setdefault("migrated_at", now_iso())
                 return s
         except Exception:
             pass
@@ -155,11 +201,23 @@ def save_state(ws, s):
         json.dump(s, f, ensure_ascii=False, indent=2)
 
 
-def exhausted_ids(s):
-    """返回仍处于冷却期的模型 id 集合（过冷却期自动释放）"""
+def client_bucket(exhausted, client):
+    """取某客户端的限流桶，键大小写不敏感（历史文件里可能存了 `WorkBuddy`）。"""
+    for k, v in (exhausted or {}).items():
+        if str(k).lower() == str(client).lower() and isinstance(v, dict):
+            return v
+    return {}
+
+
+def exhausted_ids(s, client):
+    """返回该客户端仍处于冷却期的模型 id 集合（过冷却期自动释放）。
+
+    按客户端隔离：别的客户端的限流记录不影响本客户端 pick。
+    """
     out = {}
+    bucket = client_bucket(s.get("exhausted"), client)
     now = time.time()
-    for mid, info in list(s.get("exhausted", {}).items()):
+    for mid, info in list(bucket.items()):
         try:
             at = datetime.fromisoformat(info.get("at", "")).timestamp()
         except Exception:
@@ -171,16 +229,114 @@ def exhausted_ids(s):
     return out
 
 
+def other_clients_with_quota(s, ws, me):
+    """从共享注册表里找出「额度还好、且不是本客户端」的候选，用于换客户端提示。"""
+    out = []
+    p = clients_path(ws)
+    if not os.path.isfile(p):
+        return out
+    try:
+        with open(p, encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception:
+        return out
+    for name, info in (d.get("clients") or {}).items():
+        if str(name).lower() == str(me).lower():
+            continue
+        if info.get("quota") != "exhausted":
+            out.append(info.get("display") or name)
+    return out
+
+
+def cmd_clients(ws, me):
+    """列出各客户端额度状态（跨客户端续跑用）。"""
+    p = clients_path(ws)
+    if not os.path.isfile(p):
+        print("尚无客户端注册表（各客户端跑 client_preflight.py register 后在此汇总）：%s" % p)
+        return 0
+    try:
+        with open(p, encoding="utf-8") as f:
+            d = json.load(f)
+    except Exception:
+        print("注册表读取失败：%s" % p, file=sys.stderr)
+        return 1
+    clients = d.get("clients") or {}
+    if not clients:
+        print("注册表为空：%s" % p)
+        return 0
+    print("客户端额度状态（更新时间 %s）：" % d.get("updatedAt", "-"))
+    for name, info in clients.items():
+        flag = "额度用完" if info.get("quota") == "exhausted" else "可用"
+        mark = " ← 当前客户端" if str(name).lower() == str(me).lower() else ""
+        print("  - %-12s %-9s %s%s" % (
+            info.get("display") or name, flag, info.get("reason") or "", mark))
+    others = other_clients_with_quota(None, ws, me)
+    if others:
+        print("\n可换客户端继续：%s（额度独立，换过去即可接着跑，"
+              "进度用 jobctl.py resume 读取，不丢）" % "、".join(others))
+    return 0
+
+
+def cmd_register(ws, me, status, reason, display=None):
+    p = clients_path(ws)
+    d = {}
+    if os.path.isfile(p):
+        try:
+            with open(p, encoding="utf-8") as f:
+                d = json.load(f)
+        except Exception:
+            d = {}
+    if not isinstance(d, dict):
+        d = {}
+    d.setdefault("version", 1)
+    d.setdefault("clients", {})
+    # 同一客户端只留一条（大小写不敏感去重）
+    for k in list(d["clients"]):
+        if str(k).lower() == me and k != me:
+            d["clients"][me] = d["clients"].pop(k)
+    prev = d["clients"].get(me) or {}
+    d["clients"][me] = {
+        "quota": status,
+        "reason": reason,
+        # 未显式给展示名时保留原值（client_preflight 可能已写入 "WorkBuddy" 这类写法）
+        "display": display or prev.get("display") or me,
+        "at": now_iso(),
+    }
+    for k, v in prev.items():
+        d["clients"][me].setdefault(k, v)   # 保住 platform/ffmpeg/edge_tts 等已登记字段
+    d["updatedAt"] = now_iso()
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(d, f, ensure_ascii=False, indent=2)
+    print("OK 已登记客户端 %s 额度=%s -> %s" % (display or me, status, p))
+    return 0
+
+
 def main():
-    ap = argparse.ArgumentParser(description="免费模型挑选与限流降级")
-    ap.add_argument("cmd", choices=["list", "pick", "exhausted", "reset", "current"])
+    ap = argparse.ArgumentParser(description="免费模型挑选与限流降级（按客户端隔离额度）")
+    ap.add_argument("cmd", choices=["list", "pick", "exhausted", "reset", "current",
+                                    "clients", "register"])
     ap.add_argument("model", nargs="?", help="模型 id（exhausted/reset/current 用）")
+    ap.add_argument("status", nargs="?", choices=["ok", "exhausted"],
+                    help="register 用的额度状态")
     ap.add_argument("--reason", default="", help="限流原因摘要")
     ap.add_argument("--cooldown", type=int, default=DEFAULT_COOLDOWN, help="冷却秒数，默认 7200")
     ap.add_argument("--workspace", default=None, help="工作区根目录（状态文件位置）")
+    ap.add_argument("--client", default=None,
+                    help="客户端名（WorkBuddy/Trae/Codex/Qoder/Kimi...），默认取 OHM_CLIENT")
+    ap.add_argument("--display", default="", help="register 时的展示名（默认同 --client）")
     args = ap.parse_args()
 
     ws = args.workspace
+    me = current_client(args.client)
+
+    if args.cmd == "clients":
+        return cmd_clients(ws, me)
+
+    if args.cmd == "register":
+        # 兼容 `register exhausted`（被第一个位置参数 model 吞掉）的情况
+        status = args.status or (args.model if args.model in ("ok", "exhausted") else "ok")
+        return cmd_register(ws, me, status, args.reason, args.display)
+
     cfg_path, models = load_config()
 
     if args.cmd == "exhausted":
@@ -188,23 +344,32 @@ def main():
             print("ERROR: exhausted 需要 <model id>", file=sys.stderr)
             return 1
         s = load_state(ws)
-        s["exhausted"][args.model] = {
+        s.setdefault("exhausted", {})
+        # 归一化客户端键，避免同一客户端因大小写不同记成两份
+        old = client_bucket(s["exhausted"], me)
+        for k in list(s["exhausted"]):
+            if str(k).lower() == me and k != me:
+                s["exhausted"][me] = s["exhausted"].pop(k)
+        s["exhausted"].setdefault(me, {})[args.model] = {
             "at": now_iso(),
             "reason": args.reason or "rate limit / quota exceeded",
             "cooldown": args.cooldown,
         }
         s.setdefault("history", []).append(
-            {"at": now_iso(), "event": "exhausted", "model": args.model, "reason": args.reason}
+            {"at": now_iso(), "event": "exhausted", "client": me,
+             "model": args.model, "reason": args.reason}
         )
         save_state(ws, s)
-        print("OK 已标记限流: %s（冷却 %ds）" % (args.model, args.cooldown))
+        print("OK 已标记限流: [%s] %s（冷却 %ds）" % (me, args.model, args.cooldown))
         return 0
 
     if args.cmd == "reset":
         s = load_state(ws)
         if args.model:
-            s.get("exhausted", {}).pop(args.model, None)
-            print("OK 已释放: %s" % args.model)
+            for k in list(s.get("exhausted") or {}):
+                if str(k).lower() == me:
+                    s["exhausted"][k].pop(args.model, None)
+            print("OK 已释放: [%s] %s" % (me, args.model))
         else:
             s["exhausted"] = {}
             print("OK 已释放全部模型")
@@ -217,23 +382,27 @@ def main():
             return 1
         s = load_state(ws)
         s["current"] = args.model
+        s["current_client"] = me
         save_state(ws, s)
-        print("OK 当前模型: %s" % args.model)
+        print("OK 当前模型: [%s] %s" % (me, args.model))
         return 0
 
     # list / pick 需要读模型目录
     if not cfg_path:
         print("ERROR: 未找到产品配置文件，无法判定免费模型清单", file=sys.stderr)
+        print("       非 WorkBuddy 客户端读不到属正常——直接用本客户端自带模型继续，不阻塞。",
+              file=sys.stderr)
         print("       可用 ONE_HUNDRED_MILLION_MODEL_CONFIG 指定路径", file=sys.stderr)
         return 3
 
     free = [m for m in models if is_free(m)]
     free.sort(key=rank, reverse=True)
     s = load_state(ws)
-    ex = exhausted_ids(s)
+    ex = exhausted_ids(s, me)
 
     if args.cmd == "list":
         print("配置来源: %s" % cfg_path)
+        print("当前客户端: %s" % me)
         print("免费模型（credits=x0.00）共 %d 个：" % len(free))
         for m in free:
             left = ex.get(m["id"])
@@ -254,7 +423,13 @@ def main():
             print("  （无）")
         print("\n当前模型: %s" % (s.get("current") or "(未记录)"))
         if ex:
-            print("冷却中: %s" % ", ".join("%s(剩%ds)" % (k, v) for k, v in ex.items()))
+            print("本客户端冷却中: %s" % ", ".join("%s(剩%ds)" % (k, v) for k, v in ex.items()))
+        # 跨客户端：别的客户端限流不影响本客户端，但额度用完时可以换客户端接着跑
+        all_ex = (s.get("exhausted") or {})
+        for cname, bucket in all_ex.items():
+            if str(cname).lower() != str(me).lower() and bucket:
+                print("（参考）客户端 %s 曾限流: %s —— 与本客户端额度独立，不影响本机 pick"
+                      % (cname, ", ".join(bucket.keys())))
         paid = paid_models(models)
         if paid:
             print("\n计费模型（列出仅供了解，本技能免费耗尽后不切计费、直接回退默认模型 Auto）：")
@@ -273,7 +448,16 @@ def main():
         print(avail[0]["id"])
         return 0
     # 免费模型全耗尽 → 直接回退默认模型（Auto），不切计费模型，目标：不暂停
-    print("FALLBACK: 免费模型耗尽 -> 直接回退默认模型 Auto 继续生产", file=sys.stderr)
+    print("FALLBACK: [%s] 免费模型耗尽 -> 直接回退默认模型 Auto 继续生产" % me, file=sys.stderr)
+    others = other_clients_with_quota(None, ws, me)
+    if others:
+        print("HINT: 额度按客户端独立，可换客户端接着跑：%s" % "、".join(others), file=sys.stderr)
+        print("      换客户端后先跑 scripts/client_preflight.py probe，再跑 "
+              "scripts/jobctl.py resume --workspace <工作区> --client <新客户端名>",
+              file=sys.stderr)
+    else:
+        print("      若要换客户端续跑：scripts/jobctl.py resume --workspace <工作区> "
+              "--client <新客户端名>（进度在磁盘，换客户端不丢）", file=sys.stderr)
     print("AUTO")
     return 2
 
