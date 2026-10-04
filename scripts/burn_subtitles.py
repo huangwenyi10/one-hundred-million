@@ -86,25 +86,69 @@ def probe_duration(path):
 
 
 def parse_srt(path):
-    cues = []
+    """解析 SRT。
+
+    兼容两种块分隔：空行分隔（常见 SRT）与单换行分隔（本项目 gen_sync_subs /
+    gen_subs_from_segments 的输出）。若按单换行切分后出现「序号 / 时间 / 文本」
+    三行结构，则按每 3 行一条 cue 处理，避免只读到第 1 条字幕。
+    """
     with open(path, encoding="utf-8") as f:
-        blocks = re.split(r'\n\n+', f.read().strip())
-    for b in blocks:
+        raw = f.read().strip()
+
+    cues = []
+    # 优先按空行分块（标准 SRT）
+    for b in re.split(r'\n\n+', raw):
         lines = [l.strip() for l in b.split("\n") if l.strip()]
         ti = None
         for k, l in enumerate(lines):
             if "-->" in l:
-                ti = k; break
+                ti = k
+                break
         if ti is None:
             continue
         t = lines[ti].replace(" ", "")
         s, e = t.split("-->")
+
         def ts(x):
             x = x.strip().replace(",", ".")
             hh, mm, ss = x.split(":")
             return int(hh) * 3600 + int(mm) * 60 + float(ss)
-        text = "".join(lines[ti + 1:])
-        cues.append((ts(s), ts(e), text))
+
+        cues.append((ts(s), ts(e), "".join(lines[ti + 1:])))
+
+    # 空行分块只得到少量几条 → 多半是单换行分隔（或正文里混进了空行），
+    # 回退按「含 --> 的行为时间行」逐条解析：文本 = 紧随其后的连续非空行，
+    # 遇到下一个时间行即止（**空行不作为终止条件**，否则会被提前截断）。
+    if len(cues) <= 1 or len(cues) < len(re.findall(r'-->', raw)):
+        lines = [l.rstrip() for l in raw.split("\n")]
+        fixed = []
+        for i, l in enumerate(lines):
+            if "-->" not in l:
+                continue
+            t = l.replace(" ", "")
+            try:
+                s, e = t.split("-->")
+
+                def ts2(x):
+                    x = x.strip().replace(",", ".")
+                    hh, mm, ss = x.split(":")
+                    return int(hh) * 3600 + int(mm) * 60 + float(ss)
+
+                st, en = ts2(s), ts2(e)
+            except Exception:
+                continue
+            text_lines = []
+            for nxt in lines[i + 1:]:
+                if "-->" in nxt or nxt.strip().isdigit():
+                    break
+                if nxt.strip():          # 空行跳过而非终止
+                    text_lines.append(nxt.strip())
+            if text_lines:
+                fixed.append((st, en, "".join(text_lines)))
+        if len(fixed) > len(cues):
+            cues = fixed
+
+    cues = [c for c in cues if c[2]]
     cues.sort()
     return cues
 
