@@ -22,8 +22,8 @@
 | 主交付 | `<视频标题>_PPT.html` | 根目录 |
 | 主交付 | `<训练营全名>-<视频标题>_口播稿.txt` | 根目录 |
 | 主交付 | `<视频标题>_交付物.zip` | zip 根目录四样：成片 + PPT.html + 口播稿 + `发布/` |
-| 发布物料 | `发布_封面_16x9.png`（原书封皮为底图） | `发布/封面_16x9.png` |
-| 发布物料 | `发布_封面_9x16.png`（原书封皮为底图） | `发布/封面_9x16.png` |
+| 发布物料 | `发布_封面_4x3.png`（原书封皮为底图） | `发布/封面_4x3.png` |
+| 发布物料 | `发布_封面_3x4.png`（原书封皮为底图） | `发布/封面_3x4.png` |
 | 发布物料 | `发布_抖音文案.md` | `发布/抖音_发布文案.md` |
 | 发布物料 | `发布_公众号文案.md` | `发布/公众号_发布文案.md` |
 | 发布物料 | `发布_小红书文案.md` | `发布/小红书_发布文案.md` |
@@ -67,15 +67,15 @@
 
 1. **打包交付物 zip**：只打四样——成片 + PPT.html + 口播稿 + 整个 `发布/`（不含 build、不含整文件夹）。下述命令中 `<目录>` = 本地输出文件夹名 `<视频标题>_<YYYYMMDD>-<NN>`（**与网盘目录同名**）：
    `cd "<目录>/.." && zip -rq /tmp/wd_upload/project.zip "<目录>/<视频标题>_成片.mp4" "<目录>/<视频标题>_PPT.html" "<目录>/<训练营全名>-<视频标题>_口播稿.txt" "<目录>/发布"`，再 `mv project.zip project.dat`
-2. **暂存**：把四样单文件 + 发布/ 内 6 子项复制到 `/tmp/wd_upload`，文件名改 ASCII（`video.mp4` / `ppt.html` / `script.txt` / `pub/cover_16x9.png` / `pub/cover_9x16.png` …），中文最终名在第 5 步 `filename` 还原
+2. **暂存**：把四样单文件 + 发布/ 内 6 子项复制到 `/tmp/wd_upload`，文件名改 ASCII（`video.mp4` / `ppt.html` / `script.txt` / `pub/cover_4x3.png` / `pub/cover_3x4.png` …），中文最终名在第 5 步 `filename` 还原
 3. **部署**：`workbuddy_sites_deploy`（`language: static`）
 4. **验证**：逐个 `curl -o /dev/null -w "%{http_code} %{size_download}"`，全部 200 且字节数与本地一致
 5. **转存**：逐个 `file_upload_by_url`（`dir=/自媒体/<训练营名>/<视频标题>_<YYYYMMDD>-<NN>`，`filename=<上表中文名>`），校验返回 `errno: 0` 且 `size` 与本地一致
-6. **复验**：`file_list`（注意分页）确认全部落盘——四样单文件 + zip + `发布/` 6 子项（封面_16x9 / 封面_9x16 / 三平台文案 / 标题标签）
+6. **复验**：`file_list`（注意分页）确认全部落盘——四样单文件 + zip + `发布/` 6 子项（封面_4x3 / 封面_3x4 / 三平台文案 / 标题标签）
 7. **下线**：`workbuddy_sites_unpublish`，再 `curl` 复验返回 **404**
 8. **清理**：`rm -rf /tmp/wd_upload*`
 
-> **复验口径（10/10）**：精简归档共 10 项 = 四样单文件（成片/PPT/口播稿，zip 计 1 项即交付物 zip）+ `发布/` 6 子项。明细：`成片.mp4` / `PPT.html` / `口播稿.txt` / `交付物.zip` / `封面_16x9.png` / `封面_9x16.png` / `抖音文案` / `公众号文案` / `小红书文案` / `标题与标签`。build 中间产物（frames/sub_frames/body/final_silent/seg_*/voiceover/字幕srt/分段稿/幻灯片源码/脚本）**一律不入档、不异地备份**。
+> **复验口径（10/10）**：精简归档共 10 项 = 四样单文件（成片/PPT/口播稿，zip 计 1 项即交付物 zip）+ `发布/` 6 子项。明细：`成片.mp4` / `PPT.html` / `口播稿.txt` / `交付物.zip` / `封面_4x3.png` / `封面_3x4.png` / `抖音文案` / `公众号文案` / `小红书文案` / `标题与标签`。build 中间产物（frames/sub_frames/body/final_silent/seg_*/voiceover/字幕srt/分段稿/幻灯片源码/脚本）**一律不入档、不异地备份**。
 
 ## 八、安全边界
 
