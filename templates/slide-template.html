@@ -202,6 +202,44 @@
 
   /* 数字滚数（JS 可选增强：给 .num 加 data-count 终值即可） */
   .js-count{font-variant-numeric:tabular-nums}
+
+  /* ============ ⑨ 代码页组件（实战类内容必须上屏 · practical-visualization.md） ============ */
+  .code-wrap{position:absolute;left:120px;right:120px;top:300px;bottom:150px;
+    display:flex;gap:40px;align-items:stretch}
+  .code-main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .code-file{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:22px;color:var(--muted);
+    padding:0 4px 12px;display:flex;align-items:center;gap:12px}
+  .code-file::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--hilite)}
+  .code-block{background:#0A0E1F;border:1px solid var(--line);border-radius:20px;
+    padding:28px 36px;overflow:hidden;flex:1;position:relative}
+  .code-block::before{content:"";position:absolute;left:0;top:28px;bottom:28px;width:4px;
+    background:var(--accent);border-radius:0 4px 4px 0}
+  .code-line{display:flex;gap:22px;line-height:1.62;font-size:27px;
+    font-family:"SF Mono",Menlo,Consolas,monospace;color:#D7E0F5;white-space:pre}
+  .code-line .ln{flex:0 0 44px;text-align:right;color:#3C4A6E;user-select:none}
+  .code-line.hi{background:color-mix(in srgb,var(--hilite) 20%,transparent);
+    border-radius:8px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hilite) 45%,transparent)}
+  .code-line.hi .ln{color:var(--hilite)}
+  .ck{color:#7AA2FF}   /* 关键字 */
+  .cs{color:#9ECE6A}   /* 字符串 */
+  .cc{color:#5C6A8F;font-style:italic}  /* 注释 */
+  .cf{color:#7DCFFF}   /* 函数名 */
+  .cn{color:#FF9E64}   /* 数字 */
+  .code-note{margin-top:14px;font-size:24px;color:var(--muted);line-height:1.5}
+  .code-note b{color:var(--hilite);font-weight:600}
+  .code-side{flex:0 0 400px;display:flex;flex-direction:column;gap:22px}
+  .side-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:30px 28px}
+  .side-card h4{font-size:26px;color:var(--hilite);margin-bottom:14px;font-weight:600}
+  .side-card p{font-size:24px;color:var(--muted);line-height:1.6}
+  .side-card p b{color:var(--text);font-weight:600}
+  .code-src{position:absolute;right:120px;bottom:104px;font-size:20px;color:#3C4A6E;
+    font-family:"SF Mono",Menlo,Consolas,monospace}
+  /* 代码页：标题单行化 + 内容区让位 */
+  .slide.code-page .title{font-size:54px}
+  .slide.code-page .slide-head{top:64px}
+  .slide.code-page .code-wrap{top:268px;bottom:158px}
+  .slide.code-page .code-note{font-size:23px;margin-top:12px}
+  .slide.code-page .code-line{font-size:26px;line-height:1.58}
 </style>
 </head>
 <body>
