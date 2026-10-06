@@ -297,11 +297,13 @@ def cmd_check(args):
 
 
 def cmd_gate(args):
-    """开工硬门禁：本客户端已 register + 额度未耗尽 + 台账已 scan 过。
+    """开工硬门禁：①核心依赖 + ②客户端 register+额度 + ③台账 + ④技能版本最新。
 
     任一不满足 → exit 1 并给出具体修复指引。把 Step -3 的「建议跑」升级成「必须过」，
     防止执行方跳过 register/scan 直接选题，导致跨客户端续跑规则（固定规范第 33 条）
     失效（台账空、客户端未登记 → 换客户端无人能续跑）。
+    ④（2026-10-06 新增）：技能仓库与 GitHub origin/main 一致性校验——确保本机技能
+    是最新版本，否则新规则（如 gate 自身）在本机不生效，旧客户端会按过期规则录制。
     """
     ws = args.workspace
     client_key = (args.client or "").strip().lower()
@@ -309,27 +311,27 @@ def cmd_gate(args):
     # ① 核心依赖齐全
     caps = probe()
     if not caps["ready"]:
-        print("BLOCK [1/3] 缺核心依赖：", file=sys.stderr)
+        print("BLOCK [1/4] 缺核心依赖：", file=sys.stderr)
         for b in caps["missing_core"]:
             print("  - %s：%s" % (b, FIX_HINT.get(b, "")), file=sys.stderr)
         return 1
 
     # ② 本客户端已 register 且额度未耗尽
     if not client_key:
-        print("BLOCK [2/3] 未提供 --client <客户端名>，无法校验注册状态。", file=sys.stderr)
+        print("BLOCK [2/4] 未提供 --client <客户端名>，无法校验注册状态。", file=sys.stderr)
         print("  用法：client_preflight.py gate --client <workbuddy|trae|codex|qoder|kimi> "
               "--workspace <工作区>", file=sys.stderr)
         return 1
     d = load_reg(ws)
     entry = d.get("clients", {}).get(client_key)
     if not entry:
-        print("BLOCK [2/3] 客户端 %s 未在本工作区 register（台账里查不到）。" % args.client,
+        print("BLOCK [2/4] 客户端 %s 未在本工作区 register（台账里查不到）。" % args.client,
               file=sys.stderr)
         print("  先跑：python3 scripts/client_preflight.py register %s --probe --workspace %s"
               % (args.client, ws or "<工作区>"), file=sys.stderr)
         return 1
     if entry.get("quota") == "exhausted":
-        print("BLOCK [2/3] 客户端 %s 额度已耗尽：%s" % (
+        print("BLOCK [2/4] 客户端 %s 额度已耗尽：%s" % (
             args.client, entry.get("reason") or ""), file=sys.stderr)
         print("  请换一个未耗尽的客户端接手（固定规范第 33 条）：", file=sys.stderr)
         print("    python3 scripts/client_preflight.py gate --client <新客户端> --workspace %s"
@@ -346,10 +348,10 @@ def cmd_gate(args):
                             ws or os.getcwd()],
                            capture_output=True, text=True, timeout=30)
     except Exception as e:
-        print("BLOCK [3/3] 调 jobctl.py scan 失败：%s" % e, file=sys.stderr)
+        print("BLOCK [3/4] 调 jobctl.py scan 失败：%s" % e, file=sys.stderr)
         return 1
     if r.returncode == 5:
-        print("BLOCK [3/3] 台账为空：本工作区从未跑过 scan（无任务登记）。", file=sys.stderr)
+        print("BLOCK [3/4] 台账为空：本工作区从未跑过 scan（无任务登记）。", file=sys.stderr)
         print("  先跑：python3 scripts/jobctl.py scan --workspace %s" % (ws or "<工作区>"),
               file=sys.stderr)
         print("  （若工作区确实空、要开新选题，scan 会登记新建目录后通过；", file=sys.stderr)
@@ -358,17 +360,97 @@ def cmd_gate(args):
         return 1
     # exit 3 或 4 都算「台账已建立」
     if r.returncode not in (3, 4):
-        print("BLOCK [3/3] jobctl.py scan 异常 exit=%d：%s" % (
+        print("BLOCK [3/4] jobctl.py scan 异常 exit=%d：%s" % (
             r.returncode, r.stderr.strip()), file=sys.stderr)
         return 1
 
-    print("GATE OK：核心依赖齐 + 客户端 %s 已 register 且额度可用 + 台账已建立。" % args.client)
+    # ④ 技能仓库与 GitHub origin/main 一致性校验（2026-10-06 新增）
+    #     技能根目录 = scripts/ 的上一级（脚本自定位，不依赖客户端路径）
+    #     四种情况：非 git 仓库 / 落后远端 / 领先远端 / 有未提交改动 / 网络失败
+    skill_root = os.path.dirname(here)
+    rc, msg = _check_skill_version(skill_root)
+    if rc == 1:
+        print("BLOCK [4/4] 技能版本不是最新：%s" % msg, file=sys.stderr)
+        print("  本机技能若不是最新，新规则（含本 gate 门禁）在本机不生效，", file=sys.stderr)
+        print("  旧客户端会按过期规则录制——必须先拉取最新技能再开工。", file=sys.stderr)
+        return 1
+    if rc == 2:
+        # 网络失败：WARN 不阻断（离线场景可继续，但记日志）
+        print("WARN [4/4] 技能版本校验：无法 fetch GitHub（%s）" % msg, file=sys.stderr)
+        print("  离线场景可继续开工，但建议联网后 git pull origin main 确认技能最新。",
+              file=sys.stderr)
+    # rc == 0：通过，不打日志（最后统一打印 GATE OK）
+
+    print("GATE OK：核心依赖齐 + 客户端 %s 已 register 且额度可用 + 台账已建立"
+          " + 技能版本最新。" % args.client)
     if r.returncode == 4:
         print("  （有未完成任务，可 jobctl.py resume --client %s --workspace %s 续跑）"
               % (args.client, ws or "<工作区>"))
     else:
         print("  （工作区干净，可开新选题）")
     return 0
+
+
+def _check_skill_version(skill_root):
+    """检查技能根目录是否与 GitHub origin/main 一致。
+
+    Returns:
+      (rc, msg)
+      rc=0: 一致（通过）
+      rc=1: 不一致或非 git 仓库或本地有未提交改动（阻断）
+      rc=2: 网络失败 fetch 不到远端（WARN 不阻断）
+    """
+    git_dir = os.path.join(skill_root, ".git")
+    if not os.path.isdir(git_dir):
+        return 1, "技能根目录 %s 不是 git 仓库（应是 git clone 的副本）" % skill_root
+
+    def _run(args, **kw):
+        try:
+            return subprocess.run(args, capture_output=True, text=True,
+                                  timeout=kw.get("timeout", 30),
+                                  cwd=skill_root)
+        except Exception as e:
+            return None
+
+    # ① 检查工作区干净（无未提交改动）
+    s = _run(["git", "status", "--porcelain"], timeout=15)
+    if s is None:
+        return 2, "git status 执行失败"
+    if s.returncode != 0:
+        return 1, "git status 异常：%s" % s.stderr.strip()
+    if s.stdout.strip():
+        return 1, "技能目录有未提交改动（%d 项），先 git stash 或 git checkout -- . 再开工" % len(
+            s.stdout.strip().splitlines())
+
+    # ② fetch 远端（判定网络可达）
+    f = _run(["git", "fetch", "origin"], timeout=60)
+    if f is None:
+        return 2, "git fetch 超时"
+    if f.returncode != 0:
+        # 网络失败：WARN 不阻断
+        return 2, "git fetch 失败（%s）" % (f.stderr.strip()[:80] or "网络不可达")
+
+    # ③ 比较本地 HEAD 与 origin/main
+    h = _run(["git", "rev-parse", "HEAD"], timeout=10)
+    o = _run(["git", "rev-parse", "origin/main"], timeout=10)
+    if h is None or o is None or h.returncode != 0 or o.returncode != 0:
+        return 1, "无法读取 HEAD / origin/main"
+    local_head = h.stdout.strip()
+    remote_head = o.stdout.strip()
+    if not remote_head:
+        return 1, "origin/main 不存在（remote 是否配置？git remote -v 检查）"
+    if local_head == remote_head:
+        return 0, "一致"
+    # 不一致：判定是落后还是领先
+    behind = _run(["git", "rev-list", "--count", "HEAD..origin/main"], timeout=10)
+    ahead = _run(["git", "rev-list", "--count", "origin/main..HEAD"], timeout=10)
+    b = behind.stdout.strip() if behind and behind.returncode == 0 else "?"
+    a = ahead.stdout.strip() if ahead and ahead.returncode == 0 else "?"
+    if b != "0" and b != "?":
+        return 1, "本地落后 origin/main %s 个提交，先 git pull origin main" % b
+    if a != "0" and a != "?":
+        return 1, "本地领先 origin/main %s 个提交（未推送），先 git push origin main 或 git reset --hard origin/main" % a
+    return 1, "本地 HEAD=%s 与 origin/main=%s 不一致" % (local_head[:8], remote_head[:8])
 
 
 def main():
