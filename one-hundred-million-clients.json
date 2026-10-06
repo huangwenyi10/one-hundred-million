@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "clients": {
+    "workbuddy": {
+      "display": "WorkBuddy",
+      "platform": "macOS",
+      "quota": "ok",
+      "reason": "",
+      "model": "",
+      "ffmpeg": true,
+      "edge_tts": true,
+      "at": "2026-10-05T23:02:31+08:00"
+    }
+  },
+  "updatedAt": "2026-10-05T23:02:31+08:00"
+}
