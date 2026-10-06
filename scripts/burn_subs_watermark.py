@@ -43,6 +43,12 @@ FONT_CANDIDATES = [
 ]
 
 
+# 供 mux_final.py 复用
+ABITRATE = "95k"
+ASRATE = 24000
+FPS = 30
+
+
 def load_font(size, index=0):
     for p in FONT_CANDIDATES:
         if os.path.isfile(p):
