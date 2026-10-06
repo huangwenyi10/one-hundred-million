@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-render_frames.py — PIL 渲染每页 1920x1080 帧（读书训练营·书墨棕主题）
+render_frames.py — PIL 渲染每页 1920x1080 帧（读书训练营·白色背景主题）
 读取 <build_dir>/pages_data.py 的 PAGES / DIAGRAMS / TITLE，
 输出 <build_dir>/frames/page_NN.png（每页一帧，字幕另由 render_subs2 烧录）。
 
@@ -11,15 +11,15 @@ import os, sys, glob
 import importlib.util
 from PIL import Image, ImageDraw, ImageFont
 
-# ---- 书墨棕主题 ----
-BG_TOP   = (58, 42, 34)    # 3A2A22
-BG_BOT   = (43, 31, 24)    # 2B1F18
-PANEL    = (78, 56, 44)    # 4E382C 半透明面板底
-ACCENT   = (161, 136, 127) # A1887F 主色
-HILITE   = (215, 204, 200) # D7CCC8 高亮
-TEXT     = (239, 235, 230) # EFEBE6 正文
-SUBTLE   = (176, 166, 158) # 次级文字
-WHITE    = (255, 255, 255)
+# ---- 读书训练营·白色背景主题（非书墨棕：白底 + 深色文字 + 玫红强调，呼应读书营主题色 #8A0B45/#FF3D7F）----
+BG_TOP   = (255, 255, 255) # FFFFFF 纯白
+BG_BOT   = (250, 248, 245) # FAFAF5 极浅暖白（几乎白，留一丝书墨暖意）
+PANEL    = (244, 240, 236) # F4F0EC 浅暖灰卡片底（白底上靠 ACCENT 边框区分）
+ACCENT   = (138, 11, 69)   # 8A0B45 深玫红（读书营主题色：边框/装饰/顶条/强调节点底）
+HILITE   = (199, 21, 99)   # C71563 玫红（高亮强调文字/标题）
+TEXT     = (38, 38, 38)    # 262626 近黑正文
+SUBTLE   = (120, 120, 120) # 787878 中灰次级（白底可读）
+WHITE    = (255, 255, 255) # 仅用于 ACCENT 深玫红节点底上的白字
 
 W, H = 1920, 1080
 FONT_PATH = "/System/Library/Fonts/Hiragino Sans GB.ttc"
@@ -68,7 +68,7 @@ def arrow(draw, x1, y1, x2, y2, color, width=4):
                   fill=color, width=width)
 
 
-def box_text(draw, cx, cy, w, h, title, lines, fill=PANEL, tcolor=WHITE, lcolor=TEXT):
+def box_text(draw, cx, cy, w, h, title, lines, fill=PANEL, tcolor=TEXT, lcolor=TEXT):
     x0, y0 = cx - w // 2, cy - h // 2
     rr(draw, [x0, y0, x0 + w, y0 + h], radius=14, fill=fill, outline=ACCENT, width=2)
     # title：折行/截断，避免溢出节点
@@ -171,7 +171,7 @@ def draw_levels(draw, box, spec):
         shade = tuple(min(255, PANEL[j] + i * 10) for j in range(3))
         rr(draw, [x0 + 20, ry, x0 + w - 20, ry + rh - 14], radius=12, fill=shade, outline=ACCENT, width=2)
         rw = draw.textlength(r, font=F_BODY)
-        draw.text((x0 + w / 2 - rw / 2, ry + rh / 2 - 22), r, font=F_BODY, fill=WHITE)
+        draw.text((x0 + w / 2 - rw / 2, ry + rh / 2 - 22), r, font=F_BODY, fill=TEXT)
     if spec.get("note"):
         nw = draw.textlength(spec["note"], font=F_SMALL)
         draw.text((x0 + w / 2 - nw / 2, y0 + h - 4), spec["note"], font=F_SMALL, fill=HILITE)
@@ -198,10 +198,10 @@ def draw_tree(draw, box, spec):
     for i, lf in enumerate(leaves):
         cx = x0 + 20 + lw / 2 + i * (lw + 20)
         leaf_xs.append(cx)
-        box_text(draw, cx, leaf_cy, lw, 64, None, [lf], fill=(60, 44, 36))
+        box_text(draw, cx, leaf_cy, lw, 64, None, [lf], fill=ACCENT, tcolor=WHITE)
         mi = min(len(mids) - 1, i * len(mids) // max(1, len(leaves)))
         arrow(draw, mid_xs[mi], mid_cy + 34, cx, leaf_cy - 34, ACCENT, 3)
-    box_text(draw, root_cx, root_cy, 200, 64, None, [spec.get("root", "root")], fill=ACCENT)
+    box_text(draw, root_cx, root_cy, 200, 64, None, [spec.get("root", "root")], fill=ACCENT, tcolor=WHITE)
     if spec.get("note"):
         nw = draw.textlength(spec["note"], font=F_SMALL)
         draw.text((x0 + w / 2 - nw / 2, y0 + h + 2), spec["note"], font=F_SMALL, fill=HILITE)
@@ -244,7 +244,7 @@ def draw_tag(draw, box, spec):
         rr(draw, [x0 + 20, ry, x0 + w - 20, ry + rh - 14], radius=10, fill=PANEL, outline=ACCENT, width=2)
         line = f"[{tag}]  {name} : {typ}"
         lw = draw.textlength(line, font=F_MONO)
-        draw.text((x0 + w / 2 - lw / 2, ry + rh / 2 - 18), line, font=F_MONO, fill=WHITE)
+        draw.text((x0 + w / 2 - lw / 2, ry + rh / 2 - 18), line, font=F_MONO, fill=TEXT)
     if spec.get("note"):
         nw = draw.textlength(spec["note"], font=F_SMALL)
         draw.text((x0 + w / 2 - nw / 2, y0 + h + 2), spec["note"], font=F_SMALL, fill=HILITE)
@@ -268,7 +268,7 @@ def draw_schemapair(draw, box, spec):
         for j, it in enumerate(items):
             iy = cy + 40 + j * ih + ih / 2
             iw = draw.textlength(it, font=F_MONO)
-            draw.text((cx - iw / 2, iy - 16), it, font=F_MONO, fill=WHITE)
+            draw.text((cx - iw / 2, iy - 16), it, font=F_MONO, fill=TEXT)
     arrow(draw, x0 + w / 2 - 30, y0 + h / 2, x0 + w / 2 + 30, y0 + h / 2, HILITE, 5)
     if spec.get("note"):
         nw = draw.textlength(spec["note"], font=F_SMALL)
@@ -296,14 +296,14 @@ def draw_topology(draw, box, spec):
         ly = cy - 18 - (len(lbl_lines) - 1) * line_h / 2
         for ln in lbl_lines:
             lw = draw.textlength(ln, font=F_DIAG)
-            draw.text((cx - lw / 2, ly), ln, font=F_DIAG, fill=WHITE)
+            draw.text((cx - lw / 2, ly), ln, font=F_DIAG, fill=(WHITE if nd.get("accent") else TEXT))
             ly += line_h
         if nd.get("sub"):
             sub_lines = get_text(draw, nd["sub"], F_SMALL, max_lw)[:2]
             sy = cy + 6
             for ln in sub_lines:
                 slw = draw.textlength(ln, font=F_SMALL)
-                draw.text((cx - slw / 2, sy), ln, font=F_SMALL, fill=SUBTLE)
+                draw.text((cx - slw / 2, sy), ln, font=F_SMALL, fill=(WHITE if nd.get("accent") else TEXT))
                 sy += 18
     for e in spec.get("edges", []):
         ax, ay = pos[e["from"]]; bx, by = pos[e["to"]]
@@ -353,17 +353,17 @@ def draw_matrix(draw, box, spec):
     rh = (h - 10) / (len(rows) + 1)
     for j, htxt in enumerate(header):
         cx = x0 + cw * j + cw / 2
-        draw.rectangle([x0 + cw * j, y0, x0 + cw * (j + 1), y0 + rh], outline=ACCENT, width=2, fill=(60, 44, 36))
+        draw.rectangle([x0 + cw * j, y0, x0 + cw * (j + 1), y0 + rh], outline=ACCENT, width=2, fill=ACCENT)
         tw = draw.textlength(htxt, font=F_SMALL)
-        draw.text((cx - tw / 2, y0 + rh / 2 - 14), htxt, font=F_SMALL, fill=HILITE)
+        draw.text((cx - tw / 2, y0 + rh / 2 - 14), htxt, font=F_SMALL, fill=WHITE)
     for i, row in enumerate(rows):
         ry = y0 + (i + 1) * rh
         for j, cell in enumerate(row):
             cx = x0 + cw * j + cw / 2
-            fill = (52, 38, 30) if j == 0 else PANEL
+            fill = ACCENT if j == 0 else PANEL
             draw.rectangle([x0 + cw * j, ry, x0 + cw * (j + 1), ry + rh], outline=ACCENT, width=1, fill=fill)
             cw2 = draw.textlength(cell, font=F_SMALL)
-            draw.text((cx - cw2 / 2, ry + rh / 2 - 14), cell, font=F_SMALL, fill=TEXT)
+            draw.text((cx - cw2 / 2, ry + rh / 2 - 14), cell, font=F_SMALL, fill=(WHITE if j == 0 else TEXT))
 
 
 def draw_spectrum(draw, box, spec):
@@ -380,7 +380,7 @@ def draw_spectrum(draw, box, spec):
     for i, b in enumerate(bands):
         bx = x0 + bw * i
         if n > 1:
-            shade = tuple(int(PANEL[k] + (ACCENT[k] - PANEL[k]) * (1 - i / (n - 1))) for k in range(3))
+            shade = tuple(int(HILITE[k] + (ACCENT[k] - HILITE[k]) * (1 - i / (n - 1))) for k in range(3))
         else:
             shade = ACCENT
         draw.rectangle([bx + 4, by, bx + bw - 4, by + bh], fill=shade, outline=HILITE, width=2)
@@ -388,7 +388,7 @@ def draw_spectrum(draw, box, spec):
         draw.text((bx + bw / 2 - lw / 2, by + bh / 2 - 16), b["label"], font=F_DIAG, fill=WHITE)
         if b.get("sub"):
             sw = draw.textlength(b["sub"], font=F_SMALL)
-            draw.text((bx + bw / 2 - sw / 2, by + bh / 2 + 18), b["sub"], font=F_SMALL, fill=SUBTLE)
+            draw.text((bx + bw / 2 - sw / 2, by + bh / 2 + 18), b["sub"], font=F_SMALL, fill=WHITE)
     dw = draw.textlength("强 ←—————————→ 弱", font=F_SMALL)
     draw.text((x0 + w / 2 - dw / 2, y0 + h - 22), "强 ←—————————→ 弱", font=F_SMALL, fill=SUBTLE)
 
@@ -407,7 +407,7 @@ def draw_triangle(draw, box, spec):
     for p, lb in zip(pts, spec["corners"]):
         lw = draw.textlength(lb, font=F_DIAG)
         off = -34 if p[1] < cy else 12
-        draw.text((p[0] - lw / 2, p[1] + off), lb, font=F_DIAG, fill=WHITE)
+        draw.text((p[0] - lw / 2, p[1] + off), lb, font=F_DIAG, fill=HILITE)
     mw = draw.textlength(spec.get("center", "三者等价"), font=F_DIAG)
     draw.text((cx - mw / 2, cy - 18), spec.get("center", "三者等价"), font=F_DIAG, fill=HILITE)
 
@@ -455,7 +455,7 @@ def render_page(page, idx, out_path):
     ty = 96
     for ln in tl:
         lw = draw.textlength(ln, font=F_TITLE)
-        draw.text((110, ty), ln, font=F_TITLE, fill=WHITE)
+        draw.text((110, ty), ln, font=F_TITLE, fill=HILITE)
         ty += 62
     # 要点（收顶 85%，y 直到 ~430）
     py = ty + 26
@@ -486,7 +486,7 @@ def main():
     spec.loader.exec_module(mod)
     global DIAGRAMS, BG_TOP, BG_BOT, PANEL, ACCENT, HILITE, TEXT, SUBTLE, WHITE
     DIAGRAMS = getattr(mod, "DIAGRAMS", {})
-    # 主题色：pages_data.THEME 提供则覆盖（非破坏，缺省保持书墨棕）
+    # 主题色：pages_data.THEME 提供则覆盖（非破坏，缺省保持白色背景主题）
     th = getattr(mod, "THEME", None)
     if isinstance(th, dict):
         BG_TOP = tuple(th.get("BG_TOP", BG_TOP))
