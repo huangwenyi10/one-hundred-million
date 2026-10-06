@@ -99,7 +99,7 @@ def main():
     if os.path.isdir(frames):
         shutil.rmtree(frames)
     os.makedirs(frames)
-    r = run(["ffmpeg", "-y", "-i", a.body, "-vsync", "0",
+    r = run(["ffmpeg", "-y", "-i", a.body, "-fps_mode", "passthrough",
              "-start_number", "0", os.path.join(frames, "f_%06d.png")])
     if r.returncode != 0:
         print("ERROR: 抽 body 帧失败", file=sys.stderr)
