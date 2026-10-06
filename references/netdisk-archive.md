@@ -103,31 +103,32 @@
     - `<视频标题>_PPT.html`（画面源）
     - `<训练营全名>-<视频标题>_口播稿.txt`（口播稿）
     - 整个 `发布/` 目录
-  - **删（其余全部 build 中间产物，均可弃——PPT.html + 口播稿足以日后重生成片，无需异地备份）**：
-    - `build/` 整个目录：`frames/`、`sub_frames/`、`body.mp4`、`final_silent.mp4`、`seg_*.mp3`、`voiceover.mp3`
-    - `build/segments.txt`、`build/subtitles.srt`、`build/segments_durations.json`、`build/pages_data.py`、`build/seg_*.json`、`build/*.py`（合成/渲染脚本）
+  - **删（可再生中间产物，均可弃——PPT.html + 口播稿足以日后重生成片，无需异地备份）**：
+    - `build/` 下的媒体类：`frames/`、`sub_frames/`、`body.mp4`、`body_motion.mp4`、`final_silent.mp4`、`seg_*.mp3`、`voiceover.mp3`
+    - `build/segments*.txt`、`build/segs_concat.txt`、`build/subtitles*.srt`、`build/pages_data.py`、`build/seg_*.json`、`build/*.py`（合成/渲染脚本）
+  - **留（不可再生台账 · 2026-10-06 新增，**体积 <100 KB，不入网盘、只留本地**）**：
+    - `sources.md`、`book_source.md`、`segments_durations.json`、`polyphone_map.json` —— **迁入 `<交付目录>/_archive/`**，不随 `build/` 删除
+    - 理由：内容正确性的审计证据（结论→来源→版本→级别）+ 二次重制的时间轴/读音对齐基准；删了无法自证出处、无法复现重制
+    - **注意**：这四个文件**不计入 10/10 归档复验**，只是本地留档
 - **彻底档（整个标题文件夹删净 · 作者明确确认后执行）**：作者偏好「归档完整后本地零残留」——10/10 复验通过后**经作者明确确认**，`rm -rf` 删整个 `<视频标题>_<YYYYMMDD>-<NN>/` 文件夹（含四样交付物），网盘为唯一副本（四样已作为单文件 + 交付物 zip 双份落网盘）。**必须作者明确确认，不默认、不擅自扩大到整文件夹**（Run 20 实测：作者追问「确定传到网盘后为什么没删整个文件夹」→ 作者明确偏好彻底删净，2026-09-03 固化）。
 
-**执行（build 即时清 · 不需归档 · 交付后立即做 · 2026-09-30 起工具化）**：
+**执行（可再生产物即时清 · 分流留档 · 2026-10-06 起）**：
 ```
-# 前置：成片已过 Step 7 批准，且「成片 + PPT.html + 口播稿 + 发布/」四样已确认落盘
+# 前置（仅此两条，不等作者批准、不等归档）：成片 mp4 已落盘 + check_sync.py exit 0
 
-# 推荐：用技能脚本一次扫全（默认 dry-run，只出「可清 / 保留」清单，不动文件）
+# 推荐：用技能脚本一次扫全（默认 dry-run，只出「可清 / 保留 / 保留台账」清单，不动文件）
 python3 ~/.workbuddy/skills/one-hundred-million/scripts/cleanup_builds.py --workspace <工作区>
-# 复核清单无误后执行（移入系统废纸篓，可恢复；mtime 60 分钟内的构建自动跳过）
+# 复核清单无误后执行：可再生产物移入系统废纸篓（可恢复），台账自动迁入 <交付目录>/_archive/
 python3 ~/.workbuddy/skills/one-hundred-million/scripts/cleanup_builds.py --workspace <工作区> --apply
 
-# 手工路径（等价；`rm` 立即释放空间但**不可恢复**——仅限 build 中间产物）
-du -sh "<标题>/build"          # 先记录，便于回报释放量
-rm -rf "<标题>/build"
-du -sh "<标题>"                # 报占用（此时仅剩四样交付物）
+# 连台账一起清（丢失溯源链，慎用）
+python3 .../cleanup_builds.py --workspace <工作区> --apply --no-archive
 
-# 工作区根孤儿构建目录（判据：不属于本轮进行中的任务 + 对应成片已存在/已归档）
-du -sh build_prev_* build_<tag>_<ts> 2>/dev/null   # 先看体积
-rm -rf build_prev_<...>                            # 一次一批，删后复核
+# 复核：交付目录体积应降到百 MB 以内，台账在 _archive/ 里
+du -sh "<标题>" && ls "<标题>/_archive/"
 ```
 
-**收尾提醒（2026-09-30 实测）**：脚本走**废纸篓**（可恢复）但**不释放磁盘空间**，须在作者确认无误后清空废纸篓才真正回收；要立刻释放空间就用上面的手工 `rm -rf`（仅适用于 build 中间产物，**绝不用于四样交付物**）。
+**⚠ 手工 `rm -rf` 已不推荐（2026-10-06 起）**：`rm -rf` 会把不可再生台账一起带走，且不可恢复。优先用脚本（自动分流 + 废纸篓可恢复 + 台账迁移失败时整build 跳过不删）。确需手工清时**只删列出的可再生产物、逐项确认，绝不整目录 `rm -rf`**。
 
 **执行（默认档，精简 · 需归档复验通过）**：
 ```
