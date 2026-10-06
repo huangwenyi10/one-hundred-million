@@ -258,6 +258,14 @@ def cmd_scan(args):
     if new:
         print("新登记任务 %d 个：%s" % (len(new), "、".join(new)))
     if not open_jobs:
+        # 区分「干净」与「未登记」：台账 jobs 为空意味着本工作区从未跑过 register/scan，
+        # 跨客户端续跑规则（固定规范第 33 条）会失效——必须先 register 再开工。
+        if not s.get("jobs"):
+            print("⚠ 台账为空：本工作区从未登记过任务（未跑过 register + scan）。")
+            print("  跨客户端续跑规则要求开工前先登记客户端与依赖：")
+            print("    python3 scripts/client_preflight.py register <客户端名> --probe --workspace <工作区>")
+            print("  登记后再跑本命令，台账才会非空；否则换客户端时无人能续跑此工作区的活。")
+            return 5
         print("没有未完成任务，工作区干净。")
         return 3
     print("\n可续跑任务 %d 个：" % len(open_jobs))

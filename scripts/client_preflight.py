@@ -296,6 +296,81 @@ def cmd_check(args):
     return 1
 
 
+def cmd_gate(args):
+    """开工硬门禁：本客户端已 register + 额度未耗尽 + 台账已 scan 过。
+
+    任一不满足 → exit 1 并给出具体修复指引。把 Step -3 的「建议跑」升级成「必须过」，
+    防止执行方跳过 register/scan 直接选题，导致跨客户端续跑规则（固定规范第 33 条）
+    失效（台账空、客户端未登记 → 换客户端无人能续跑）。
+    """
+    ws = args.workspace
+    client_key = (args.client or "").strip().lower()
+
+    # ① 核心依赖齐全
+    caps = probe()
+    if not caps["ready"]:
+        print("BLOCK [1/3] 缺核心依赖：", file=sys.stderr)
+        for b in caps["missing_core"]:
+            print("  - %s：%s" % (b, FIX_HINT.get(b, "")), file=sys.stderr)
+        return 1
+
+    # ② 本客户端已 register 且额度未耗尽
+    if not client_key:
+        print("BLOCK [2/3] 未提供 --client <客户端名>，无法校验注册状态。", file=sys.stderr)
+        print("  用法：client_preflight.py gate --client <workbuddy|trae|codex|qoder|kimi> "
+              "--workspace <工作区>", file=sys.stderr)
+        return 1
+    d = load_reg(ws)
+    entry = d.get("clients", {}).get(client_key)
+    if not entry:
+        print("BLOCK [2/3] 客户端 %s 未在本工作区 register（台账里查不到）。" % args.client,
+              file=sys.stderr)
+        print("  先跑：python3 scripts/client_preflight.py register %s --probe --workspace %s"
+              % (args.client, ws or "<工作区>"), file=sys.stderr)
+        return 1
+    if entry.get("quota") == "exhausted":
+        print("BLOCK [2/3] 客户端 %s 额度已耗尽：%s" % (
+            args.client, entry.get("reason") or ""), file=sys.stderr)
+        print("  请换一个未耗尽的客户端接手（固定规范第 33 条）：", file=sys.stderr)
+        print("    python3 scripts/client_preflight.py gate --client <新客户端> --workspace %s"
+              % (ws or "<工作区>"), file=sys.stderr)
+        return 1
+
+    # ③ 台账已 scan 过（jobs 非空 = 本工作区被登记过任务）
+    #     调 jobctl.py scan --json --workspace <ws>，按 exit code 区分：
+    #     exit 3 = 干净但已登记 / exit 4 = 有活可续 / exit 5 = 台账空（未跑过 scan）
+    here = os.path.dirname(os.path.abspath(__file__))
+    jobctl = os.path.join(here, "jobctl.py")
+    try:
+        r = subprocess.run([sys.executable, jobctl, "scan", "--json", "--workspace",
+                            ws or os.getcwd()],
+                           capture_output=True, text=True, timeout=30)
+    except Exception as e:
+        print("BLOCK [3/3] 调 jobctl.py scan 失败：%s" % e, file=sys.stderr)
+        return 1
+    if r.returncode == 5:
+        print("BLOCK [3/3] 台账为空：本工作区从未跑过 scan（无任务登记）。", file=sys.stderr)
+        print("  先跑：python3 scripts/jobctl.py scan --workspace %s" % (ws or "<工作区>"),
+              file=sys.stderr)
+        print("  （若工作区确实空、要开新选题，scan 会登记新建目录后通过；", file=sys.stderr)
+        print("   台账空唯一意味着「无人 register 过这台机器」，跨客户端续跑会断）",
+              file=sys.stderr)
+        return 1
+    # exit 3 或 4 都算「台账已建立」
+    if r.returncode not in (3, 4):
+        print("BLOCK [3/3] jobctl.py scan 异常 exit=%d：%s" % (
+            r.returncode, r.stderr.strip()), file=sys.stderr)
+        return 1
+
+    print("GATE OK：核心依赖齐 + 客户端 %s 已 register 且额度可用 + 台账已建立。" % args.client)
+    if r.returncode == 4:
+        print("  （有未完成任务，可 jobctl.py resume --client %s --workspace %s 续跑）"
+              % (args.client, ws or "<工作区>"))
+    else:
+        print("  （工作区干净，可开新选题）")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="跨客户端开工自检与额度登记")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -329,6 +404,11 @@ def main():
     p = sub.add_parser("check", help="门禁模式：缺核心依赖 exit 1")
     p.add_argument("--workspace", default=None)
     p.set_defaults(func=cmd_check)
+
+    p = sub.add_parser("gate", help="开工硬门禁：register + 额度 + 台账三重校验（exit 0 才可开工）")
+    p.add_argument("--client", required=True, help="当前客户端名（workbuddy/trae/codex/qoder/kimi）")
+    p.add_argument("--workspace", default=None, help="工作区根路径")
+    p.set_defaults(func=cmd_gate)
 
     args = ap.parse_args()
     return args.func(args)
