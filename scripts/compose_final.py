@@ -48,7 +48,36 @@ def load_timeline(build):
 
 
 def build_concat(frames_dir, durations, work):
-    """按每段时长把帧拼成 concat 清单，返回清单路径。"""
+    """按每段时长把帧拼成 concat 清单，返回清单路径。
+
+    兼容两种帧目录：
+      A. 静态帧 `page_001.png`（无字幕版，一页一图）
+      B. 字幕切片 `page_001_000.png` + slices.json（字幕已烧进图里）
+         —— 此时每页按其切片数量与总时长展开，slice = duration / 切片数
+    """
+    if os.path.isfile(os.path.join(frames_dir, "slices.json")):
+        import json as _json
+        sl = _json.load(open(os.path.join(frames_dir, "slices.json"), encoding="utf-8"))
+        lines = []
+        for it in sl:
+            i, n, dur = it["page"], it["slices"], it["duration"]
+            per = dur / n
+            files = []
+            for k in range(n):
+                cand = os.path.join(frames_dir, f"page_{i:03d}_{k:03d}.png")
+                if os.path.isfile(cand):
+                    files.append(cand)
+            if not files:
+                continue
+            for f in files:
+                lines.append(f"file '{f}'")
+                lines.append(f"duration {per:.3f}")
+            lines.append(f"file '{files[-1]}'")   # 末帧重复，防止被 concat 忽略
+        lst = os.path.join(work, "frames_concat.txt")
+        with open(lst, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
+        return lst, len(sl)
+
     files = sorted(f for f in os.listdir(frames_dir) if f.endswith(".png"))
     if not files:
         raise SystemExit(f"帧目录为空: {frames_dir}")
@@ -149,24 +178,9 @@ def main():
         return 2
     print(f"  body 完成 {os.path.getsize(body)//1024//1024}MB（{time.time()-t0:.0f}s）")
 
-    # 2) 烧字幕（若有）
+    # 字幕已在 burn_subs_watermark.py 阶段烧进帧图里（ffmpeg 无 libass，
+    # 无法用 subtitles 滤镜烧录），故此处不再尝试二次烧录。
     final = body
-    if srt:
-        subbed = os.path.join(work, "body_sub.mp4")
-        # 字幕样式：白字 + 黑描边，底部对齐到字幕带
-        style = ("FontName=PingFang SC,FontSize=26,PrimaryColour=&H00FFFFFF,"
-                 "OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,"
-                 "Alignment=2,MarginV=42")
-        esc = srt.replace(":", r"\:").replace("'", r"\'")
-        r = run(["ffmpeg", "-y", "-i", body, "-vf", f"subtitles='{esc}':force_style='{style}'",
-                 "-c:v", "libx264", "-preset", "medium", "-crf", str(a.crf),
-                 "-pix_fmt", "yuv420p", "-c:a", "copy", subbed])
-        if r.returncode == 0:
-            final = subbed
-            print("  字幕已烧录")
-        else:
-            print("  ⚠ 字幕烧录失败，保留无字幕版", file=sys.stderr)
-
     shutil.copy2(final, a.out)
     print(f"\n成片: {a.out}（{os.path.getsize(a.out)//1024//1024}MB，用时 {time.time()-t0:.0f}s）")
     return 0
