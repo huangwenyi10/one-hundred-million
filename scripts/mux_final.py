@@ -93,41 +93,55 @@ def main():
     t0 = time.time()
     work = a.work or os.path.join(a.build, "_mux")
     os.makedirs(work, exist_ok=True)
+    stage = os.path.join(work, "staged")
+    if os.path.isdir(stage):
+        shutil.rmtree(stage)
+    os.makedirs(stage)
 
-    # 1) 抽 body 的所有帧（body 已含镜头运动）
-    frames = os.path.join(work, "body_frames")
-    if os.path.isdir(frames):
-        shutil.rmtree(frames)
-    os.makedirs(frames)
-    r = run(["ffmpeg", "-y", "-i", a.body, "-fps_mode", "passthrough",
-             "-start_number", "0", os.path.join(frames, "f_%06d.png")])
-    if r.returncode != 0:
-        print("ERROR: 抽 body 帧失败", file=sys.stderr)
-        return 2
-    nframes = len([f for f in os.listdir(frames) if f.endswith(".png")])
-    print(f"  body 抽帧 {nframes} 张")
-
-    # 2) 按字幕 cue 烧字幕+水印到每帧
+    # 1) **流式抽帧**：ffmpeg 逐帧输出到管道，Pillow 烧完字幕立刻删除该帧。
+    #    旧实现把 67000 帧全落盘成 PNG，实测占 17GB/部，三部并行直接撑爆磁盘
+    #    （可用空间一度降到 19GB）。改为管道后峰值只存单帧。
+    #    产物是「已烧字幕的帧序列」，再用 concat 拼回视频。
     sub_font = load_font(46, index=1)
     wm_font = load_font(30, index=1)
-    files = sorted(f for f in os.listdir(frames) if f.endswith(".png"))
-    for k, fn in enumerate(files):
-        t = k / FPS
+    proc = subprocess.Popen(
+        ["ffmpeg", "-v", "error", "-i", a.body, "-fps_mode", "passthrough",
+         "-f", "image2pipe", "-vcodec", "png", "-"],
+        stdout=subprocess.PIPE, bufsize=10 ** 8)
+    n, k = 0, 0
+    while True:
+        raw = proc.stdout.read()
+        if not raw:
+            break
+        k += 1
+        t = (k - 1) / FPS
         txt = ""
         if not a.slice_wm_only:
             for c0, c1, tx in cues:
                 if c0 <= t < c1:
                     txt = tx
                     break
-        burn_one(os.path.join(frames, fn), os.path.join(frames, fn), txt,
+        tmp = os.path.join(stage, "s.png")
+        with open(tmp, "wb") as fh:
+            fh.write(raw)
+        burn_one(tmp, os.path.join(stage, f"s_{k:06d}.png"), txt,
                  wm=True, sub_font=sub_font, wm_font=wm_font)
-    print(f"  字幕+水印烧录完成（{time.time()-t0:.0f}s）")
+        os.remove(tmp)
+        n += 1
+        if n % 5000 == 0:
+            print(f"  烧录 {n} 帧（{time.time()-t0:.0f}s）", flush=True)
+    proc.wait()
+    print(f"  字幕+水印烧录完成 {n} 帧（{time.time()-t0:.0f}s）")
+    if n == 0:
+        print("ERROR: 未抽到任何帧", file=sys.stderr)
+        return 2
 
-    # 3) 帧 + 配音 → 成片
+    # 2) 帧 + 配音 → 成片
+    files = sorted(f for f in os.listdir(stage) if f.startswith("s_"))
     lst = os.path.join(work, "body_concat.txt")
     with open(lst, "w", encoding="utf-8") as f:
         for fn in files:
-            f.write(f"file '{os.path.join(frames, fn)}'\n")
+            f.write(f"file '{os.path.join(stage, fn)}'\n")
     audio = concat_audio(a.build, len(durations))
     out = os.path.join(work, "final.mp4")
     cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", lst]
@@ -146,6 +160,8 @@ def main():
     if r.returncode != 0:
         return 2
     shutil.copy2(out, a.out)
+    # 清理暂存帧（67000 张 ≈ 数 GB，不清会长期占盘）
+    shutil.rmtree(stage, ignore_errors=True)
     print(f"\n成片: {a.out}（{os.path.getsize(a.out)//1024//1024}MB，用时 {time.time()-t0:.0f}s）")
     return 0
 
