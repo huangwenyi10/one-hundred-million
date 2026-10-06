@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-gen_ppt.py — 生成交付物 _PPT.html（读书训练营·书墨棕主题，16:9，键盘翻页）
+gen_ppt.py — 生成交付物 _PPT.html（读书训练营·白色背景主题，16:9，键盘翻页）
 直接嵌入 render_frames 产出的页面帧（base64），保证与视频画面一致；
 每页附标题字幕。输出到标题文件夹（build 的上级目录）。
 用法: python3 gen_ppt.py <build_dir>
@@ -8,9 +8,9 @@ gen_ppt.py — 生成交付物 _PPT.html（读书训练营·书墨棕主题，16
 import os, sys, base64, importlib.util
 from PIL import Image
 
-ACCENT = "#A1887F"
-HILITE = "#D7CCC8"
-BG = "#2B1F18"
+ACCENT = "#8A0B45"
+HILITE = "#C71563"
+BG = "#FFFFFF"
 
 
 def main():
