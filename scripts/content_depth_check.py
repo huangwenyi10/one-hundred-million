@@ -58,6 +58,16 @@ PITFALL = re.compile(r"坑|翻车|踩雷|踩过|事故|故障|不适用|边界|�
 
 TOOL_OPS = re.compile(r"控制台|控制面板|配置页|命令行|终端|截图|benchmark|dashboard", re.I)
 
+# 原书图表/架构图引用标记（2026-10-06 新增 · 实战型书籍第 5 形态）
+# 检测口播稿里引用了书中的图/代码/架构——逼执行方把书里实物放进画面
+BOOK_FIG = re.compile(
+    r"据原书|原图.*?《|第[一二三四五六七八九十\d]+[章节].*?图|"  # 引用原书图示
+    r"P\.\s*\d+|第\d+页|"                                        # 标注页码
+    r"架构图|流程图|状态机|时序图|类图|对比图|关系图|示意图|"    # 图表类型词
+    r"重绘|代码清单|代码示例|伪代码|源码|"                       # 代码引用
+    r"见下图|如.*图所示|上图|这张图"                              # 指代图
+)
+
 FUZZY = re.compile(r"某大厂|某公司|某电商|某互联网公司|某头部|某知名企业|某平台|某团队")
 
 ABSTRACT = re.compile(r"能力|体系|机制|维度|方法论|思维|范式|闭环|抓手|赋能|对齐|沉淀|拉通|"
@@ -110,7 +120,7 @@ def split_sents(text):
     return [s.strip() for s in re.split(r"[。！？!?\n]", text) if len(s.strip()) > 3]
 
 
-def analyze(text, camp):
+def analyze(text, camp, book_type=""):
     n = len(text)
     per_k = max(n, 1) / 1000.0
     sents = split_sents(text)
@@ -125,6 +135,7 @@ def analyze(text, camp):
     fuzzy = FUZZY.findall(text)
     ents = [e for e in ENTITIES if e in text]
     vers = VERSION.findall(text)
+    book_figs = BOOK_FIG.findall(text)  # 原书图表/架构图引用（第 5 形态）
 
     # 最长无量化区间（空讲段）
     longest = cur = 0
@@ -153,12 +164,16 @@ def analyze(text, camp):
             break
 
     is_book = any(k in (camp or "") for k in ("读书", "读书训练营"))
+    # 实战型书籍：即使属于读书训练营，也不豁免实战形态检查（2026-10-06 新增）
+    # 根因：之前一刀切豁免所有读书营 → Vue.js/架构整洁之道等实战书变"口水帐"
+    is_practical = is_book and (book_type == "实战型")
 
     forms = {
         "代码/命令/配置片段": len(codes) > 0,
         "工具/平台操作演示": len(tools) > 0,
         "真实案例拆解（具名实体）": len(ents) > 0 and (len(nums) > 0 or len(vers) > 0),
         "真实踩坑与复盘": len(pitfalls) >= 2,
+        "原书图表/架构图引用": len(book_figs) > 0,  # 第 5 形态（实战型书专用）
     }
     forms_hit = [k for k, v in forms.items() if v]
 
@@ -167,7 +182,17 @@ def analyze(text, camp):
     num_density = len(nums) / per_k
     op_signal = len(codes) + len(steps)
 
-    if is_book:
+    if is_practical:
+        # 实战型书籍：不豁免，走与非读书营相同的实战形态检查
+        # 但有 5 种形态（多了"原书图表引用"），让有图表/架构图的书也能通过
+        if len(nums) == 0 and op_signal == 0 and not book_figs:
+            blocks.append("实战型书稿：无量化数据点、无可操作形态、无原书图表引用——纯叙述口水帐")
+        if not forms_hit and num_density < 1.0:
+            blocks.append("实战型书稿：实战五形态（代码/工具/案例/踩坑/原书图表）一个都未满足，"
+                          "且量化密度 <1.0——须把书中代码/图表/架构图按需放进画面")
+        elif not forms_hit:
+            warns.append("实战型书稿：未命中实战五形态，但量化密度充足——人工确认是否把书中实物入画")
+    elif is_book:
         if len(nums) == 0 and not ents:
             blocks.append("读书营稿：全文无任何量化数据点、也无具名实体/案例——不符「替读者把书读透」要求")
     else:
@@ -200,20 +225,25 @@ def analyze(text, camp):
         },
         "signals": {"定义": len(defines), "代码命令": len(codes), "编号步骤": len(steps),
                     "原因": len(reasons), "坑边界": len(pitfalls), "工具操作": len(tools),
-                    "具名实体": len(ents), "版本号": len(vers)},
+                    "具名实体": len(ents), "版本号": len(vers), "原书图表引用": len(book_figs)},
         "num_density": round(num_density, 2),
         "longest_gap": longest, "gap_limit": gap_limit, "gap_at": longest_at,
         "bare_conclusions": bare, "fuzzy": sorted(set(fuzzy)),
         "abstract_density": round(len(ABSTRACT.findall(text)) / per_k, 1),
         "forms": forms, "forms_hit": forms_hit, "is_book": is_book,
+        "is_practical": is_practical, "book_type": book_type,
         "blocks": blocks, "warns": warns, "verdict": verdict,
     }
 
 
 def report(path, r):
     print(f"内容深度自检 · {os.path.basename(path)}")
-    print(f"字数 {r['chars']} → 判定档位 {r['tier']}"
-          f"{'（读书营 · 豁免代码强制）' if r['is_book'] else ''}\n")
+    tag = ""
+    if r.get("is_practical"):
+        tag = "（实战型书 · 不豁免实战形态检查）"
+    elif r["is_book"]:
+        tag = "（读书营 · 豁免代码强制）"
+    print(f"字数 {r['chars']} → 判定档位 {r['tier']}{tag}\n")
 
     if r["is_book"]:
         print("【读书营红线 · 内容忠于原书（固定提示，不影响判定）】")
@@ -260,10 +290,40 @@ def report(path, r):
     print(f"\n【结论】{r['verdict']}")
 
 
+def _detect_book_type(script_path):
+    """从 build/book_source.md 自动读取 book_type 字段（未提供 --book-type 时用）。
+
+    查找路径：script_path 同级的 build/book_source.md → 上一级 build/book_source.md
+    读取 YAML-like frontmatter 或正文里的 `book_type:` 行。
+    返回空字符串 = 未检测到（按叙述型处理，保持向后兼容）。
+    """
+    script_dir = os.path.dirname(os.path.abspath(script_path))
+    for candidate in [
+        os.path.join(script_dir, "build", "book_source.md"),
+        os.path.join(os.path.dirname(script_dir), "build", "book_source.md"),
+    ]:
+        if not os.path.isfile(candidate):
+            continue
+        try:
+            with open(candidate, encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    m = re.match(r"\s*book_type\s*[:：]\s*(实战型|叙述型|practical|narrative)", line, re.I)
+                    if m:
+                        val = m.group(1).strip().lower()
+                        return "实战型" if val in ("实战型", "practical") else "叙述型"
+        except Exception:
+            pass
+        break
+    return ""
+
+
 def main():
     ap = argparse.ArgumentParser(description="口播稿内容深度自检（讲透闭环 + 实战落地）")
     ap.add_argument("script", help="口播稿 .txt 路径")
     ap.add_argument("--camp", default="", help="训练营名（读书训练营豁免代码强制）")
+    ap.add_argument("--book-type", default="", help="书籍类型（实战型/叙述型）·"
+                   "实战型书即使属于读书训练营也不豁免实战形态检查；"
+                   "未提供时从 build/book_source.md 的 book_type 字段自动读取")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--no-fail", action="store_true", help="只报告，不改退出码")
     a = ap.parse_args()
@@ -276,7 +336,12 @@ def main():
         print(f"ERROR: 稿件过短（{len(text)} 字），疑似空文件", file=sys.stderr)
         return 2
 
-    r = analyze(text, a.camp)
+    # book_type 优先级：--book-type 参数 > build/book_source.md 自动检测
+    book_type = (a.book_type or "").strip()
+    if not book_type:
+        book_type = _detect_book_type(a.script)
+
+    r = analyze(text, a.camp, book_type)
     if a.json:
         print(json.dumps({"script": a.script, **r}, ensure_ascii=False, indent=2))
     else:
