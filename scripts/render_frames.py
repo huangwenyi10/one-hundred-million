@@ -11,7 +11,7 @@ import os, sys, glob
 import importlib.util
 from PIL import Image, ImageDraw, ImageFont
 
-# ---- 读书训练营·白色背景主题（非书墨棕：白底 + 深色文字 + 玫红强调，呼应读书营主题色 #8A0B45/#FF3D7F）----
+# ---- 白色背景主题（全营统一白底：白底 + 深色文字 + 各营强调色，呼应白底规则）----
 BG_TOP   = (255, 255, 255) # FFFFFF 纯白
 BG_BOT   = (250, 248, 245) # FAFAF5 极浅暖白（几乎白，留一丝书墨暖意）
 PANEL    = (244, 240, 236) # F4F0EC 浅暖灰卡片底（白底上靠 ACCENT 边框区分）
