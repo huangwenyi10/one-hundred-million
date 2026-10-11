@@ -6,12 +6,11 @@
   ============================================================
   用法（Step 2 生成画面，套模板而非手写）：
     1. 复制本文件为 `<视频标题>PPT.html`；
-    2. 在 :root 里把 --accent / --hilite / --bg / --bg2 换成该训练营主题色
-       （见 SKILL.md「训练营主题色」表，封面渐变 深底→主色）；
-       ⚠️ 读书训练营例外：背景必须纯白，禁止按通用「深底→主色」填成玫红深底！
-          请严格照 SKILL.md「读书训练营白底配色」:root 范本设定（--bg:#FFFFFF，
-          --bg2:#FCE7F0 极浅粉装饰，--accent:#8A0B45 描边，--hilite:#FF3D7F 标题），
-          玫红仅作前景强调，否则视频会呈红背景（已踩坑）。
+    2. 在 :root 里**只把 --accent / --hilite 换成该训练营主色 / 高亮色**
+       （见 SKILL.md「训练营主题色」表）；**--bg 一律保持 #FFFFFF（全营白底，
+       见白底规则）**，禁止把 --bg / --bg2 填成训练营深底色——白底规则要求所有营
+       视频/幻灯片正文背景统一纯白，主色仅作前景强调（边框/文字/节点/装饰）。
+       封面（前 3 秒）仍按各营主题色渐变，不强制白底。
     3. 每页一个 <section class="slide">，从下方「版式组件」选一个骨架，
        替换占位文字与数据即可；有数据/对比/流程的页必须用图表组件，禁止纯文字；
     4. 关键页加 1~2 处 CSS 动画类（.anim-*），让画面有揭示动效；
@@ -31,23 +30,23 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幻灯片</title>
 <style>
-  /* ============ ① 主题变量（按训练营替换，封面渐变 = --bg2 → --accent） ============ */
+  /* ============ ① 主题变量（全营白底；只换 --accent/--hilite 为本营主色/高亮色） ============ */
   :root{
-    --bg:#0B1026;          /* 页面深底 */
-    --bg2:#0A2A6B;         /* 渐变深端（封面主色） */
-    --accent:#0A5CFF;      /* 主色（亮端） */
-    --hilite:#4D8DFF;      /* 高亮/强调色 */
-    --text:#F5F8FF;        /* 主文字 */
-    --muted:#8A97B5;       /* 中性低饱和（衬托） */
-    --panel:#141B33;       /* 卡片/面板底 */
-    --line:#24304F;        /* 分隔线/描边 */
-    --good:#4ADE80;        /* 优/涨（正向） */
-    --bad:#FF6B6B;         /* 劣/降（负向，仅作中性语义色） */
+    --bg:#FFFFFF;          /* 页面白底（全营统一·白底规则） */
+    --bg2:#EEF2F8;         /* 极浅中性灰蓝，封面/页角渐变装饰用，几乎白 */
+    --accent:#0A5CFF;      /* 主色（亮端）·示例=大数据蓝；其他营换成该营主色 */
+    --hilite:#4D8DFF;      /* 高亮/强调色·示例=大数据蓝高亮；其他营换成该营高亮色 */
+    --text:#1A2238;        /* 主文字（深近黑，白底清晰） */
+    --muted:#6B7280;       /* 中性低饱和（衬托） */
+    --panel:#F5F7FA;       /* 卡片/面板底（浅灰） */
+    --line:#E3E8EF;        /* 分隔线/描边 */
+    --good:#1E9E5A;        /* 优/涨（正向） */
+    --bad:#D6336C;         /* 劣/降（负向，仅作中性语义色） */
   }
 
   /* ============ ② 基础画布 ============ */
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:#000}
+  html,body{background:#FFFFFF}
   body{
     font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
     color:var(--text);-webkit-font-smoothing:antialiased;
@@ -72,13 +71,13 @@
 
   /* 安全区提示块（交稿前必须删除，仅排版时参考） */
   .watermark-zone{position:absolute;left:0;top:0;width:25%;height:15%;
-    border:2px dashed rgba(255,255,255,.25);border-radius:0 0 20px 0;
+    border:2px dashed rgba(0,0,0,.18);border-radius:0 0 20px 0;
     display:flex;align-items:center;justify-content:center;
-    font-size:20px;color:rgba(255,255,255,.35);pointer-events:none;z-index:50}
+    font-size:20px;color:rgba(0,0,0,.3);pointer-events:none;z-index:50}
   .subtitle-zone{position:absolute;left:0;right:0;bottom:0;height:12%;
-    border-top:2px dashed rgba(255,255,255,.25);
+    border-top:2px dashed rgba(0,0,0,.18);
     display:flex;align-items:center;justify-content:center;
-    font-size:20px;color:rgba(255,255,255,.35);pointer-events:none;z-index:50}
+    font-size:20px;color:rgba(0,0,0,.3);pointer-events:none;z-index:50}
 
   /* ============ ③ 版式 1：卡片式（要点并列 / 多方案对比） ============ */
   .card-grid{position:absolute;left:120px;right:120px;top:280px;bottom:150px;
