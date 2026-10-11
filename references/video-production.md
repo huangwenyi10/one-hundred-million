@@ -152,7 +152,7 @@ ffmpeg -framerate 1/8 -i frames/slide%02d.png -i voiceover.mp3 \
 
 ```bash
 ffmpeg -i landscape.mp4 -vf "scale=1080:1920:force_original_aspect_ratio=decrease,\
-pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x0B1026" -c:a copy portrait.mp4
+pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0xFFFFFF" -c:a copy portrait.mp4
 ```
 
 同一素材多平台发布时：默认只做 16:9 横屏母版；作者明确要求竖屏时，才在母版基础上派生竖屏版，字幕与水印在两版中各自校准位置。
