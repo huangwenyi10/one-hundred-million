@@ -151,7 +151,7 @@ def cmd_cover(args):
 
 def cmd_portrait(args):
     vf = ("scale=1080:1920:force_original_aspect_ratio=decrease,"
-          "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x0B1026")
+          "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0xFFFFFF")
     run(["ffmpeg", "-y", "-i", args.input, "-vf", vf, "-c:a", "copy", args.out])
     print(f"OK -> {args.out}")
 
