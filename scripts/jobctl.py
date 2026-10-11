@@ -99,7 +99,7 @@ NEXT_ACTION = {
         "4) python3 scripts/polyphone_check.py scan \"<口播稿>\"",
         "5) python3 scripts/content_depth_check.py \"<口播稿>\" --camp <训练营全名>"]),
     "ppt":      ("生成 HTML 幻灯片", [
-        "1) 复制 templates/slide-template.html 改 --accent/--hilite/--bg/--bg2 为训练营主题色",
+        "1) 复制 templates/slide-template.html：--bg 保持 #FFFFFF（全营白底，见白底规则），只把 --accent/--hilite 换成该训练营主色/高亮色（见 SKILL.md「训练营主题色」表）",
         "2) 填 <section class=\"slide\">，每页套 5 大版式之一（见 references/visual-design.md）",
         "3) 内容收在顶部 85% 内，左上角预留水印安全区、底部预留字幕带",
         "4) 页脚/角标不得出现训练营名称与期号（固定规范第 14 条）"]),
