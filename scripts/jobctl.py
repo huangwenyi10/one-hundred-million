@@ -99,8 +99,8 @@ NEXT_ACTION = {
         "4) python3 scripts/polyphone_check.py scan \"<口播稿>\"",
         "5) python3 scripts/content_depth_check.py \"<口播稿>\" --camp <训练营全名>"]),
     "ppt":      ("生成 HTML 幻灯片", [
-        "1) 复制 templates/slide-template.html：--bg 保持 #FFFFFF（全营白底，见白底规则），只把 --accent/--hilite 换成该训练营主色/高亮色（见 SKILL.md「训练营主题色」表）",
-        "2) 填 <section class=\"slide\">，每页套 5 大版式之一（见 references/visual-design.md）",
+        "1) 复制 templates/slide-template.html：--bg 保持浅底（默认 #FFFFFF，正文可读），只把 --accent/--hilite 换成该训练营主色/高亮色；每页顶部主色渐变标题带与封面渐变由模板自动生成，无需手工铺背景",
+        "2) 填 <section class=\"slide\">，封面/开头页加 class=\"cover\"（自动主色渐变+白字）；每页套 5 大版式之一（见 references/visual-design.md）",
         "3) 内容收在顶部 85% 内，左上角预留水印安全区、底部预留字幕带",
         "4) 页脚/角标不得出现训练营名称与期号（固定规范第 14 条）"]),
     "tts":      ["python3 scripts/polyphone_check.py apply \"<口播稿>\" --out build/script_tts.txt "
@@ -115,7 +115,7 @@ NEXT_ACTION = {
     "frames":   ["用无头浏览器把每页导出为 1920×1080 PNG 到 build/frames/page_NN.png",
                  "scripts/render_frames.py 或 render_animated.js（动画增强，Step 6 第 2.1 条）"],
     "body":     ["python3 scripts/compose_motion.py <frames_dir> build/segments_durations.json "
-                 "build/body.mp4（内部先过 video_quality_gate.py，FAIL 即停）"],
+                 "build/body.mp4（默认静态帧+xfade 交叉淡入，画面不晃；加 --motion 才启用 Ken Burns 镜头运动，此时内部先过 video_quality_gate.py，FAIL 即停）"],
     "final":    ["python3 scripts/burn_subtitles.py build/body.mp4 build/subtitles_fixed.srt "
                  "build/voiceover.mp3 \"<标题>_成片.mp4\" --engine fast",
                  "python3 scripts/check_sync.py <字幕> <口播稿> ...（exit 0 才允许交付）",

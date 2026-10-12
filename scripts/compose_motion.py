@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-compose_motion.py — 给静态帧目录加「镜头运动 + 交叉淡入」，消除画面静态感。
+compose_motion.py — 给静态帧目录加「交叉淡入 +（可选）镜头运动」，默认静态帧不晃。
 
 背景：默认管线是「HTML→PNG 静态帧 → ffmpeg 帧拼接（硬切、静止）」，观感偏静态。
-本脚本把合成环节升级为 **Ken Burns 镜头运动（缓慢推拉摇移）+ xfade 交叉淡入**：
+本脚本把合成环节升级为 **xfade 交叉淡入（默认，画面干净不晃）+ 可选 Ken Burns 镜头运动（加 --motion 才启用）**：
   - 不改 HTML / 不重渲帧 / 不动配音与字幕时间轴（帧停留时长仍取 segments_durations.json）
   - 只换「合成」环节 → 四方同频、时长、字幕全部不受影响，但整支视频"活"起来。
 
@@ -133,6 +133,8 @@ def main():
     ap.add_argument("out_video")
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--preset", type=int, default=1, choices=[1, 2, 3])
+    ap.add_argument("--motion", dest="motion", action="store_true", default=False,
+                    help="启用 Ken Burns 镜头运动（默认关闭：静态帧 + 交叉淡入，画面不晃）")
     ap.add_argument("--verify", dest="verify", action="store_true", default=True,
                     help="合成后抽帧复核运动段无停顿帧（默认开启）")
     ap.add_argument("--no-verify", dest="verify", action="store_false")
@@ -165,23 +167,30 @@ def main():
     zoom_max = ZOOM_MAX[args.preset]
     pan_frac = PAN_FRAC[args.preset]
     # 转场以整数帧为单位（避免浮点秒 offset 落在非整数帧 → 转场混合起点在帧中间 → 画面抖）
-    XD = 0.5
+    # 转场交接时长（秒）。★ 2026-10-11 修复：原 0.5s 偏长，已降到 0.3s 以减少段间抢拍
+    # （画面比配音提前切走的幅度）。同时见下方「转场补偿」：每段多生成 XD_FRAMES 帧，
+    # 把 xfade 吃掉的交接时长补回，使 body 总时长 == 音频总时长，根除「结尾冻帧」。
+    XD = 0.3
     XD_FRAMES = max(1, round(XD * args.fps))
 
-    # —— 统一质量总门禁（渲染前自检，强制）——
+    # —— 统一质量总门禁（仅镜头运动模式需要，渲染前自检，强制）——
     # 校验：①运动段逐帧 quad 唯一（无停顿帧）②quad 恒不越界 ③跨段缩放/平移连续
     #       ④xfade offset 整数帧 ⑤编码契约（perspective 亚像素 + 禁用 zoompan）⑥素材合规
-    if _run_quality_gate is None:
-        sys.stderr.write("[质量总门禁] video_quality_gate.py 缺失，无法执行门禁，终止以确保质量。\n")
-        raise SystemExit(2)
-    gate_code = _run_quality_gate(frames, durations, args.fps, args.preset,
-                                 scripts_dir=os.path.dirname(os.path.abspath(__file__)),
-                                 XD=XD, strict=False)
-    if gate_code == 1:
-        sys.stderr.write("[质量总门禁] 未通过（FAIL），终止合成。请先修复上方问题再跑 compose_motion.py。\n")
-        raise SystemExit(1)
-    elif gate_code == 2:
-        sys.stderr.write("[质量总门禁] 存在 WARN（非阻断），继续合成。\n")
+    # （默认静态模式不做镜头运动，跳过本门禁——静态帧 + xfade 不存在量化抖动问题）
+    if args.motion:
+        if _run_quality_gate is None:
+            sys.stderr.write("[质量总门禁] video_quality_gate.py 缺失，无法执行门禁，终止以确保质量。\n")
+            raise SystemExit(2)
+        gate_code = _run_quality_gate(frames, durations, args.fps, args.preset,
+                                     scripts_dir=os.path.dirname(os.path.abspath(__file__)),
+                                     XD=XD, strict=False)
+        if gate_code == 1:
+            sys.stderr.write("[质量总门禁] 未通过（FAIL），终止合成。请先修复上方问题再跑 compose_motion.py。\n")
+            raise SystemExit(1)
+        elif gate_code == 2:
+            sys.stderr.write("[质量总门禁] 存在 WARN（非阻断），继续合成。\n")
+    else:
+        sys.stderr.write("[合成模式] 静态帧 + xfade 交叉淡入（无镜头运动），跳过运动质量门禁。\n")
 
     tmp = tempfile.mkdtemp(prefix="compose_motion_")
     seg_paths = []
@@ -195,39 +204,41 @@ def main():
         if d < 0.5:
             d = 0.5
         n_frames = max(1, int(round(d * fps)))
+        # ★ 2026-10-11 转场补偿：每段（末段除外）额外生成 XD_FRAMES 帧。
+        #   xfade 会把每段尾部 XD_FRAMES 与下段头部重叠（吃掉 XD 秒），导致 body 总时长
+        #   比音频短 (n-1)*XD ≈ 25s，烧录时 tpad 定格末帧撑时长 → 视频结尾 25s 冻帧、
+        #   若末段偏短则出现「画面停末页、声音讲上一页」的错拍。补回 XD_FRAMES 后，
+        #   净时长 = 各段 d_i 之和 = 音频总时长，彻底消除该回归。
+        if i < total - 1:
+            n_frames += XD_FRAMES
         # 运动在 80%（MOTION_TAIL）时长内完成，尾段静止 → xfade 重叠期两段都静止，只做透明度交叉
         if n_frames <= XD_FRAMES + 1:
             N = max(1, n_frames - 1)        # 段过短，压缩运动避免转场占满整段
         else:
             N = max(1, int(n_frames * MOTION_TAIL))
 
-        e = f"min(on/{N},1)"                          # 0→1 线性因子，尾段恒定（=1）
-        # smoothstep 缓动：s = e²(3-2e)，两端速度为 0 → 段首/段尾不出现「起停跳变」，
-        # 且 zoom 与平移用同一个 s，保证合成运动是 C1 连续的（无速度突变）。
-        s = f"({e}*{e}*(3-2*{e}))"
-        fexpr_s = s if i % 2 == 0 else f"(1-{s})"     # 平移因子（smoothstep 缓动后）
-        if i % 2 == 0:
-            zexpr = f"1+({zoom_max-1:.6f})*{s}"                     # 1.0 → Z
+        if args.motion:
+            e = f"min(on/{N},1)"                      # 0→1 线性因子，尾段恒定（=1）
+            s = f"({e}*{e}*(3-2*{e}))"                # smoothstep 缓动：两端速度为 0
+            fexpr_s = s if i % 2 == 0 else f"(1-{s})"
+            zexpr = (f"1+({zoom_max-1:.6f})*{s}" if i % 2 == 0
+                     else f"{zoom_max:.6f}-({zoom_max-1:.6f})*{s}")
+            ux = f"({W}-{W}/({zexpr}))"
+            uy = f"({H}-{H}/({zexpr}))"
+            dx, dy = PAN_DIRS[(i // 2) % 4]
+            w_expr = f"{W}/({zexpr})"
+            h_expr = f"{H}/({zexpr})"
+            x0 = f"({ux})*(0.5+0.5*({dx}*{pan_frac:.4f})*{fexpr_s})"
+            y0 = f"({uy})*(0.5+0.5*({dy}*{pan_frac:.4f})*{fexpr_s})"
+            vf = (f"perspective=x0='{x0}':y0='{y0}':"
+                  f"x1='{x0}+({w_expr})':y1='{y0}':"
+                  f"x2='{x0}':y2='{y0}+({h_expr})':"
+                  f"x3='{x0}+({w_expr})':y3='{y0}+({h_expr})':"
+                  f"sense=source:interpolation=cubic:eval=frame,format=yuv420p")
         else:
-            zexpr = f"{zoom_max:.6f}-({zoom_max-1:.6f})*{s}"        # Z → 1.0
-        # 可用空间（随 zoom 变化）：Ux(z)=W*(1-1/z)、Uy(z)=H*(1-1/z)
-        ux = f"({W}-{W}/({zexpr}))"
-        uy = f"({H}-{H}/({zexpr}))"
-        dx, dy = PAN_DIRS[(i // 2) % 4]
-        # 裁剪窗四角（浮点，亚像素）；|PAN_FRAC|≤1 且 0≤f≤1 ⇒ 恒在 [0,W]×[0,H] 内
-        w_expr = f"{W}/({zexpr})"
-        h_expr = f"{H}/({zexpr})"
-        # f 用 smoothstep 后的 s 才是缓动；奇偶段用 (1-s) 反向回收 → 段尾=段头
-        fexpr_s = s if i % 2 == 0 else f"(1-{s})"
-        x0 = f"({ux})*(0.5+0.5*({dx}*{pan_frac:.4f})*{fexpr_s})"
-        y0 = f"({uy})*(0.5+0.5*({dy}*{pan_frac:.4f})*{fexpr_s})"
+            vf = "format=yuv420p"                     # 静态帧（无镜头运动），仅 xfade 衔接
 
         seg = os.path.join(tmp, f"seg_{i:03d}.mp4")
-        vf = (f"perspective=x0='{x0}':y0='{y0}':"
-              f"x1='{x0}+({w_expr})':y1='{y0}':"
-              f"x2='{x0}':y2='{y0}+({h_expr})':"
-              f"x3='{x0}+({w_expr})':y3='{y0}+({h_expr})':"
-              f"sense=source:interpolation=cubic:eval=frame,format=yuv420p")
         # 中间段用无损暂存（qp 0），仅最终 xfade 一次有损编码（crf 18）→
         # 避免「逐段 crf20 再 xfade crf20」二次有损在渐变背景上产生 H.264 色带/块化。
         # 用 -frames:v 精确锁定段帧数（替代 -t 浮点秒），消除段尾帧差 1 导致的衔接抖。
@@ -270,7 +281,7 @@ def main():
     sys.stdout.write(f"OK -> {out}  (frames={total}, 预估时长≈{est:.1f}s)\n")
 
     # —— 合成后抽帧复核：运动段不得出现「停顿帧阶梯」——
-    if args.verify:
+    if args.verify and args.motion:
         bad = verify_no_dwell(out, seg_frames, XD_FRAMES, fps)
         if bad:
             sys.stderr.write("[合成后复核] 检出运动量化阶梯（画面抖残留）：\n")

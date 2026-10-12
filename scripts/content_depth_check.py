@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""content_depth_check.py -- 口播稿内容深度自检（one-hundred-million · 固定规范第 31 条②配套）
+"""content_depth_check.py -- 口播稿内容深度自检（one-hundred-million · 固定规范第 31 条配套）
 
 把「讲透闭环」与「实战落地」从自觉遵守变成**确定性门禁**。
 对**已定稿口播稿**做本地扫描，输出：讲透闭环五段覆盖 / 实战四形态命中 /
@@ -15,7 +15,7 @@
 
 用法：
   python3 content_depth_check.py <口播稿.txt> [--camp <训练营>] [--json] [--no-fail]
-  --camp 读书训练营  读书营豁免「代码/命令」强制（按第 31 条②末段）
+  --camp 读书训练营  读书营豁免「代码/命令」强制（按第 31 条末段）
   --no-fail          只报告，不改退出码（自动化容错）
 退出码：0 = PASS/WARN；1 = BLOCK；2 = 参数/文件错误
 """
@@ -199,7 +199,7 @@ def analyze(text, camp, book_type=""):
         if len(nums) == 0 and op_signal == 0:
             blocks.append("三无稿：无量化数据点、无可操作形态（代码/命令/配置/编号步骤）——纯理论空转")
         if not forms_hit and num_density < 1.0:
-            blocks.append("实战四形态（第 31 条②）一个都未满足，且量化密度 <1.0 ——证据不足，须改回带实战的选题")
+            blocks.append("实战四形态（第 31 条）一个都未满足，且量化密度 <1.0 ——证据不足，须改回带实战的选题")
         elif not forms_hit:
             warns.append("未命中实战四形态，但量化密度充足——人工确认本期「怎么做」是否讲到可复现颗粒度")
 
@@ -262,7 +262,7 @@ def report(path, r):
           f"{c['数据/案例(量化点)']} 个量化点（{r['num_density']}/千字，历史中位 0.8）")
     print(f"  {'✓' if c['坑/边界'] else '⚠'} 坑/边界       {c['坑/边界']} 处\n")
 
-    print("【实战形态 · 第 31 条② · 至少满足其一】")
+    print("【实战形态 · 第 31 条 · 至少满足其一】")
     for k, v in r["forms"].items():
         print(f"  {'✓' if v else '✗'} {k}")
     print()

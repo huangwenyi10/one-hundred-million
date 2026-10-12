@@ -6,11 +6,10 @@
   ============================================================
   用法（Step 2 生成画面，套模板而非手写）：
     1. 复制本文件为 `<视频标题>PPT.html`；
-    2. 在 :root 里**只把 --accent / --hilite 换成该训练营主色 / 高亮色**
-       （见 SKILL.md「训练营主题色」表）；**--bg 一律保持 #FFFFFF（全营白底，
-       见白底规则）**，禁止把 --bg / --bg2 填成训练营深底色——白底规则要求所有营
-       视频/幻灯片正文背景统一纯白，主色仅作前景强调（边框/文字/节点/装饰）。
-       封面（前 3 秒）仍按各营主题色渐变，不强制白底。
+      2. 在 :root 里**只把 --accent / --hilite 换成该训练营主色 / 高亮色**
+       （见 SKILL.md「训练营主题色」表）；`--bg` 保持浅底（默认 #FFFFFF，正文可读），
+       禁止把 --bg / --bg2 填成训练营深底色——**正文内容区不重铺主色深底**。
+       每页顶部自动带训练营主色渐变「标题带」、封面 / 前 3 秒用主色渐变满铺（见下方 CSS）。
     3. 每页一个 <section class="slide">，从下方「版式组件」选一个骨架，
        替换占位文字与数据即可；有数据/对比/流程的页必须用图表组件，禁止纯文字；
     4. 关键页加 1~2 处 CSS 动画类（.anim-*），让画面有揭示动效；
@@ -30,9 +29,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幻灯片</title>
 <style>
-  /* ============ ① 主题变量（全营白底；只换 --accent/--hilite 为本营主色/高亮色） ============ */
+  /* ============ ① 主题变量（正文浅底；只换 --accent/--hilite 为本营主色/高亮色；标题带/封面自动用主色） ============ */
   :root{
-    --bg:#FFFFFF;          /* 页面白底（全营统一·白底规则） */
+    --bg:#FFFFFF;          /* 正文浅底（标题带/封面另用主色渐变） */
     --bg2:#EEF2F8;         /* 极浅中性灰蓝，封面/页角渐变装饰用，几乎白 */
     --accent:#0A5CFF;      /* 主色（亮端）·示例=大数据蓝；其他营换成该营主色 */
     --hilite:#4D8DFF;      /* 高亮/强调色·示例=大数据蓝高亮；其他营换成该营高亮色 */
@@ -54,18 +53,27 @@
   /* 每页一屏 16:9，交稿按 ?page=N 逐页导出；演示时键盘翻页 */
   .slide{
     position:relative;width:1920px;height:1080px;overflow:hidden;
-    background:
-      radial-gradient(1200px 700px at 78% -10%, color-mix(in srgb,var(--accent) 22%,transparent), transparent 60%),
-      radial-gradient(900px 600px at -5% 108%, color-mix(in srgb,var(--bg2) 55%,transparent), transparent 62%),
-      var(--bg);
+    background:var(--bg);isolation:isolate;z-index:0;   /* 建栈上下文：让 ::before 标题带 z-index:-1 仍落在白底之上 */
     display:none;
   }
   .slide.active{display:block}
-  /* 页头：标题区，整体避开左上角水印区 */
-  .slide-head{position:absolute;left:120px;top:72px;right:120px}
-  .kicker{font-size:26px;letter-spacing:.14em;color:var(--hilite);margin-bottom:14px;font-weight:600}
-  .title{font-size:64px;font-weight:700;line-height:1.18;color:var(--text)}
-  .subtitle{margin-top:18px;font-size:30px;color:var(--muted);line-height:1.5}
+  /* ★ 品牌标题带：每页顶部统一训练营主色渐变带（消除「全白单调」+ 让左上角白色水印在带上有对比、始终可见）*/
+  .slide::before{
+    content:"";position:absolute;left:0;top:0;right:0;height:150px;z-index:-1;
+    background:linear-gradient(90deg,var(--accent),var(--hilite));
+  }
+  /* 封面 / 前 3 秒：主色系渐变满铺（不再白底），白色大字 */
+  .slide.cover{background:linear-gradient(135deg,var(--accent),var(--hilite))}
+  .slide.cover::before{display:none}
+  .slide.cover .hero .lead,.slide.cover .stat .num{color:#fff}
+  .slide.cover .hero .lead em{color:#fff}
+  .slide.cover .hero .sub,.slide.cover .stat .cap{color:rgba(255,255,255,.9)}
+  /* 页头：标题区，落在顶部渐变带上（白字）；左缘让开左上角水印列 */
+  .slide-head{position:absolute;left:260px;right:120px;top:0;height:150px;
+    display:flex;flex-direction:column;justify-content:center}
+  .kicker{font-size:26px;letter-spacing:.14em;color:#fff;opacity:.92;margin-bottom:12px;font-weight:600}
+  .title{font-size:60px;font-weight:700;line-height:1.16;color:#fff}
+  .subtitle{margin-top:12px;font-size:28px;color:rgba(255,255,255,.9);line-height:1.5}
   /* 页脚：仅页码/留空，禁训练营名与期号 */
   .page-num{position:absolute;right:48px;bottom:34px;font-size:22px;color:var(--muted);opacity:.6}
 
@@ -140,6 +148,12 @@
   .diagram-grid{display:flex;flex-direction:column;gap:36px;align-items:center;justify-content:center;height:100%;width:100%}
   .diagram-row{display:flex;align-items:center;justify-content:center;gap:40px;width:100%;flex-wrap:wrap}
   .diagram-row .spacer{min-width:60px;text-align:center;color:var(--hilite);font-size:38px;font-weight:800}
+  /* ★ 带标签的语义连线（图示可读性硬标准·固定规范第 37 条②）：层/节点之间必须用带文字标签
+     的箭头标明关系（调用/数据/返回/触发）。放在两层/两个节点之间即可。 */
+  .link-band{display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0}
+  .link-band .lab{font-size:24px;color:var(--muted);background:var(--panel);
+    border:1px solid var(--line);border-radius:999px;padding:4px 18px;font-weight:600;white-space:nowrap}
+  .link-band .ar{font-size:34px;color:var(--hilite);font-weight:800;line-height:1}
 
   /* ============ ⑦ 版式 5：数字聚焦页（单点强冲击） ============ */
   .stat{position:absolute;inset:0;display:flex;flex-direction:column;
@@ -243,8 +257,8 @@
 </head>
 <body>
 
-<!-- 骨架示例页（复制后替换内容；下列示例仅供结构参考） -->
-<section class="slide active">
+<!-- 封面/开头页：<section class="slide cover active"> + .hero 主视觉（自动主色渐变 + 白字）；正文页：<section class="slide">（自动顶部主色标题带）。复制后替换内容，下列示例仅供结构参考 -->
+<section class="slide cover active">
   <div class="watermark-zone">水印安全区（交稿删除）</div>
   <div class="subtitle-zone">字幕带（交稿删除）</div>
 

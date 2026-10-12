@@ -1,0 +1,13 @@
+{
+  "schema": "ohl-syllabus-state/1",
+  "updated": "2026-10-11",
+  "camps": {
+    "架构师训练营": {
+      "expertGoal": "",
+      "lastTopic": "缓存雪崩的真正解法",
+      "covered": [
+        "高可用与稳定性"
+      ]
+    }
+  }
+}

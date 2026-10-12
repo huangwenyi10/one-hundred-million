@@ -28,7 +28,9 @@
         "aiAngle": "用大模型做缓存失效策略的方案草图与风险扫描",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "reason": "出片完成：缓存雪崩的真正解法（M档·架构师训练营·高可用与稳定性）",
+        "updatedAt": "2026-10-11T23:29:16"
       },
       {
         "id": "ARC-02",

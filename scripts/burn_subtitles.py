@@ -230,6 +230,16 @@ def burn_fast(body, srt, audio, out, font_path, fps, keep, max_seconds=None):
     body_dur = probe_duration(body)
     total_dur = audio_dur if not max_seconds else min(audio_dur, float(max_seconds))
 
+    # ★ 2026-10-11 回归守卫：若 body 明显短于音频（xfade 压缩未补偿），烧录会用 tpad 把末尾
+    #   定格撑到音频时长 → 结尾冻帧 / 「画面停末页、声音讲上一页」错拍。compose_motion.py 已
+    #   用「转场补偿」把 body 总时长补回 == 音频；此处告警以便第一时间发现回归。
+    shrink = audio_dur - body_dur
+    if shrink > 1.0 and not max_seconds:
+        sys.stderr.write(
+            f"[WARN] body({body_dur:.2f}s) 比 audio({audio_dur:.2f}s) 短 {shrink:.2f}s "
+            f"→ 结尾将被定格撑时长（冻帧/错拍风险）。请确认 compose_motion.py 已启用「转场补偿」"
+            f"（每段多生成 XD_FRAMES 帧，使 body 总时长==音频）。\n")
+
     tmp = tempfile.mkdtemp(prefix="burnfast_")
     try:
         wm_png = os.path.join(tmp, "wm.png")
