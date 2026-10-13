@@ -292,7 +292,7 @@ def main():
     if next_pick:
         print(f"  书单 #{next_pick['no']} 《{next_pick['name']}》")
         print(f"  作者 {next_pick['author']} / ISBN {next_pick['isbn']}")
-        print("  从「上部」开始，按一书三分批量出上/中/下")
+        print("  从「上部」开始，按「一轮三部」硬规则在同一轮内出齐上/中/下")
     else:
         print("  书单已全部录完（或状态需订正），按书单规则进入自由选书/荐书")
 
