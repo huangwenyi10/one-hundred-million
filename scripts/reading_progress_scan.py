@@ -109,7 +109,8 @@ def parse_progress(path):
         if isinstance(pb, dict):
             books.append({
                 "book": str(pb.get("book", "")),
-                "parts": ["上", "中", "下"] if "三部" in str(pb.get("status", "")) else [],
+                # 「三部」= 旧口径；「部·节」/「全部」= 部内细分后口径（上1/上2/中1…）
+                "parts": ["上", "中", "下"] if any(k in str(pb.get("status", "")) for k in ("三部", "部·节", "全部")) else [],
                 "finished": "完结" in str(pb.get("status", "")) or "成片" in str(pb.get("status", "")),
                 "status": str(pb.get("status", "")),
                 "by": str(pb.get("by", "")),
@@ -292,7 +293,7 @@ def main():
     if next_pick:
         print(f"  书单 #{next_pick['no']} 《{next_pick['name']}》")
         print(f"  作者 {next_pick['author']} / ISBN {next_pick['isbn']}")
-        print("  从「上部」开始，按「一轮三部」硬规则在同一轮内出齐上/中/下")
+        print("  从「上部」开始，按「一轮一书」硬规则在同一轮内出齐该书全部部·节（默认上/中/下，部内可细分）")
     else:
         print("  书单已全部录完（或状态需订正），按书单规则进入自由选书/荐书")
 
