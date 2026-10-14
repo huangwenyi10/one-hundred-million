@@ -144,8 +144,10 @@ def parse_book_list(path):
                 "name": cells[1],
                 "author": cells[2],
                 "isbn": cells[3],
-                "status": cells[4].replace("**", "").replace("← 当前书目", "").strip(),
+                "status": cells[4].replace("**", "").replace("← 当前书目", "").replace("← 下一本", "").strip(),
                 "current": "当前书目" in cells[4],
+                # 作者指定下一本（状态列加「← 下一本」）：优先于序号顺序，但已完结的不生效
+                "next": ("下一本" in cells[4]) and "已完结" not in cells[4],
             })
     return rows
 
@@ -223,15 +225,20 @@ def main():
                 "sources": actual["sources"],
             })
 
-    # 建议下一本：书单里既非已完结、也未在任何 progress 出现的最小序号
+    # 建议下一本：作者指定的「← 下一本」标记最高优先；否则按序号取第一本未录制的
     next_pick = None
     for r in book_rows:
-        if r["status"] == "已完结":
-            continue
-        if is_actually_recorded(name_key(r["name"]), done_books):
-            continue
-        next_pick = r
-        break
+        if r.get("next"):
+            next_pick = r
+            break
+    if next_pick is None:
+        for r in book_rows:
+            if r["status"] == "已完结":
+                continue
+            if is_actually_recorded(name_key(r["name"]), done_books):
+                continue
+            next_pick = r
+            break
 
     if args.json:
         print(json.dumps({
@@ -255,7 +262,11 @@ def main():
     print(f"{'序号':<4} {'状态':<10} 书名")
     print("-" * 78)
     for r in book_rows:
-        mark = " ← 当前书目" if r["current"] else ""
+        mark = ""
+        if r.get("next"):
+            mark = " ← 下一本（作者指定）"
+        elif r["current"]:
+            mark = " ← 当前书目"
         flag = ""
         if is_actually_recorded(name_key(r["name"]), done_books):
             flag = " (已有产出)"
@@ -291,7 +302,8 @@ def main():
     print("\n【4】建议下一本")
     print("-" * 78)
     if next_pick:
-        print(f"  书单 #{next_pick['no']} 《{next_pick['name']}》")
+        tag = "（作者指定·优先于序号）" if next_pick.get("next") else ""
+        print(f"  书单 #{next_pick['no']} 《{next_pick['name']}》{tag}")
         print(f"  作者 {next_pick['author']} / ISBN {next_pick['isbn']}")
         print("  从「上部」开始，按「一轮一书」硬规则在同一轮内出齐该书全部部·节（默认上/中/下，部内可细分）")
     else:
