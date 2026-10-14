@@ -43,7 +43,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-10-15T00:03:49"
       },
       {
         "id": "ARC-03",
