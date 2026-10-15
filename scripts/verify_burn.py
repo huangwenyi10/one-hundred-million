@@ -13,7 +13,12 @@ FFMPEG = "/usr/local/bin/ffmpeg"
 FONT = "/System/Library/Fonts/Hiragino Sans GB.ttc"
 W, H = 1920, 1080
 WM_X, WM_Y = 36, 30
-WM_SCAN_X = 430          # 水印核验的横向搜索上限（水印列区）
+# 水印核验的搜索区：水印实际占位 x≈28~194 / y≈24~68。
+# 2026-10-15 收紧（原 x<430 / y<162）：标题带（y<150）内的白色 kicker/标题自 x=260 起，
+# 旧扫描区把它们算进亮像素 bbox，导致「水印 FAIL」误报（白底期是整片白底污染、彩底期是白字标题污染）。
+# 收紧到 x<240 / y<110 后：既完整包住水印，又排除幻灯片固有内容，检查恢复真实效力。
+WM_SCAN_X = 240
+WM_SCAN_Y = 110
 SUB_Y = 928
 SUB_BAND_Y0 = 896
 
@@ -71,8 +76,8 @@ def main(mp4, srt, samples):
         d = ImageDraw.Draw(wm_exp_img)
         tw = d.textlength("作者：@Map", font=F_WM)
         d.text((WM_X, WM_Y), "作者：@Map", font=F_WM, fill=(255, 255, 255))
-        exp = bright_bbox(wm_exp_img, 0, 200, 200)
-        got = bright_bbox(img, 0, 162, 200, x1=WM_SCAN_X)
+        exp = bright_bbox(wm_exp_img, 0, WM_SCAN_Y, 200)
+        got = bright_bbox(img, 0, WM_SCAN_Y, 200, x1=WM_SCAN_X)
         wm_ok = got is not None and exp is not None and \
             all(abs(a - b) <= 4 for a, b in zip(exp, got))
         ok &= wm_ok
