@@ -6,10 +6,13 @@
   ============================================================
   用法（Step 2 生成画面，套模板而非手写）：
     1. 复制本文件为 `<视频标题>PPT.html`；
-      2. 在 :root 里**只把 --accent / --hilite 换成该训练营主色 / 高亮色**
-       （见 SKILL.md「训练营主题色」表）；`--bg` 保持浅底（默认 #FFFFFF，正文可读），
-       禁止把 --bg / --bg2 填成训练营深底色——**正文内容区不重铺主色深底**。
-       每页顶部自动带训练营主色渐变「标题带」、封面 / 前 3 秒用主色渐变满铺（见下方 CSS）。
+    2. 在 :root 里把**整个主题块**换成本训练营的配值（见 SKILL.md「训练营主题色」表
+       与下方 :root 注释）——**背景色硬规则（2026-10-15 作者裁定，禁止全营一律白底）**：
+       · 非读书训练营：`--slide-bg` = 本营主题色渐变（深底 → 主色，与封面同色系），
+         文字/面板/描边随主题块切换为「彩底浅字」系（--text 白字、--panel 玻璃拟态、--line 浅描边）；
+       · 读书训练营（唯一例外）：`--slide-bg` = 纯白 `#FFFFFF`（"白色就是白色"），
+         用白底深字系取值（见 :root 内【读书营】注释）。
+       `--accent` / `--hilite` 仍取本营主色 / 高亮色；每页顶部自动带主色渐变「标题带」。
     3. 每页一个 <section class="slide">，从下方「版式组件」选一个骨架，
        替换占位文字与数据即可；有数据/对比/流程的页必须用图表组件，禁止纯文字；
     4. 关键页加 1~2 处 CSS 动画类（.anim-*），让画面有揭示动效；
@@ -29,23 +32,31 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幻灯片</title>
 <style>
-  /* ============ ① 主题变量（正文浅底；只换 --accent/--hilite 为本营主色/高亮色；标题带/封面自动用主色） ============ */
+  /* ============ ① 主题变量（换营 = 整块替换；彩底/白底双模式由本块切换） ============ */
   :root{
-    --bg:#FFFFFF;          /* 正文浅底（标题带/封面另用主色渐变） */
-    --bg2:#EEF2F8;         /* 极浅中性灰蓝，封面/页角渐变装饰用，几乎白 */
-    --accent:#0A5CFF;      /* 主色（亮端）·示例=大数据蓝；其他营换成该营主色 */
-    --hilite:#4D8DFF;      /* 高亮/强调色·示例=大数据蓝高亮；其他营换成该营高亮色 */
-    --text:#1A2238;        /* 主文字（深近黑，白底清晰） */
-    --muted:#6B7280;       /* 中性低饱和（衬托） */
-    --panel:#F5F7FA;       /* 卡片/面板底（浅灰） */
-    --line:#E3E8EF;        /* 分隔线/描边 */
-    --good:#1E9E5A;        /* 优/涨（正向） */
-    --bad:#D6336C;         /* 劣/降（负向，仅作中性语义色） */
+    /* 【营色背景硬规则·2026-10-15 作者裁定】禁止全营一律白底：
+       · 非读书训练营：--slide-bg = 本营主题色渐变（深底 → 主色，与封面同色系），
+         整块用「彩底浅字」系（--text 白字 / --panel 玻璃拟态 / --line 浅描边）；
+       · 读书训练营（唯一例外）：--slide-bg = 纯白 #FFFFFF（"白色就是白色"），
+         用【读书营】注释中的白底深字系取值。
+       完整配值见 SKILL.md「训练营主题色」表；换营后必须过
+       scripts/bg_theme_check.py 门禁（非读书营背景近白 = FAIL）。 */
+    --slide-bg:linear-gradient(155deg,#00572E 0%,#00A651 100%); /* 示例=架构师绿；【读书营改 #FFFFFF】 */
+    --bg:#00572E;        /* 渐变深端（兜底纯色）·示例=架构师深绿 */
+    --bg2:#00A651;       /* 渐变亮端·示例=架构师主色亮端 */
+    --accent:#00C853;    /* 主色（亮端）·示例=架构师；其他营换成该营主色 */
+    --hilite:#4ADE80;    /* 高亮/强调色·示例=架构师高亮；其他营换成该营高亮色 */
+    --text:#FFFFFF;      /* 彩底=白字；【读书营（白底）改 #2A1220 深玫褐】 */
+    --muted:rgba(255,255,255,.78); /* 彩底=浅灰白；【读书营改 #8A6B7A 中灰粉】 */
+    --panel:rgba(255,255,255,.10); /* 彩底=玻璃拟态卡片底；【读书营改 #F6F0F3 浅粉灰】 */
+    --line:rgba(255,255,255,.24);  /* 彩底=浅描边；【读书营改 #E3D2DA】 */
+    --good:#4ADE80;      /* 优/涨（彩底提亮）；【读书营改 #1E9E5A】 */
+    --bad:#FF7A9E;       /* 劣/降（彩底提亮）；【读书营改 #D6336C】 */
   }
 
   /* ============ ② 基础画布 ============ */
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:#FFFFFF}
+  html,body{background:var(--bg)}
   body{
     font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
     color:var(--text);-webkit-font-smoothing:antialiased;
@@ -53,16 +64,16 @@
   /* 每页一屏 16:9，交稿按 ?page=N 逐页导出；演示时键盘翻页 */
   .slide{
     position:relative;width:1920px;height:1080px;overflow:hidden;
-    background:var(--bg);isolation:isolate;z-index:0;   /* 建栈上下文：让 ::before 标题带 z-index:-1 仍落在白底之上 */
+    background:var(--slide-bg);isolation:isolate;z-index:0;   /* 建栈上下文：让 ::before 标题带 z-index:-1 仍落在底色之上 */
     display:none;
   }
   .slide.active{display:block}
-  /* ★ 品牌标题带：每页顶部统一训练营主色渐变带（消除「全白单调」+ 让左上角白色水印在带上有对比、始终可见）*/
+  /* ★ 品牌标题带：每页顶部统一训练营主色渐变带（彩底上界定页头区 + 让左上角白色水印在带上有对比、始终可见）*/
   .slide::before{
     content:"";position:absolute;left:0;top:0;right:0;height:150px;z-index:-1;
     background:linear-gradient(90deg,var(--accent),var(--hilite));
   }
-  /* 封面 / 前 3 秒：主色系渐变满铺（不再白底），白色大字 */
+  /* 封面 / 前 3 秒：主色系渐变满铺，白色大字 */
   .slide.cover{background:linear-gradient(135deg,var(--accent),var(--hilite))}
   .slide.cover::before{display:none}
   .slide.cover .hero .lead,.slide.cover .stat .num{color:#fff}
@@ -245,7 +256,7 @@
   .side-card h4{font-size:26px;color:var(--hilite);margin-bottom:14px;font-weight:600}
   .side-card p{font-size:24px;color:var(--muted);line-height:1.6}
   .side-card p b{color:var(--text);font-weight:600}
-  .code-src{position:absolute;right:120px;bottom:104px;font-size:20px;color:#3C4A6E;
+  .code-src{position:absolute;right:120px;bottom:104px;font-size:20px;color:var(--muted);
     font-family:"SF Mono",Menlo,Consolas,monospace}
   /* 代码页：标题单行化 + 内容区让位 */
   .slide.code-page .title{font-size:54px}
@@ -263,7 +274,7 @@
   <div class="subtitle-zone">字幕带（交稿删除）</div>
 
   <div class="slide-head">
-    <div class="kicker">大数据 · 查询加速</div>
+    <div class="kicker">查询加速</div>
     <div class="title">一条 SQL 的<b style="color:var(--hilite)">加速</b>之旅</div>
   </div>
 
@@ -289,7 +300,7 @@
 
 <!-- ===== 版式 1：卡片式（要点并列） ===== -->
 <section class="slide">
-  <div class="slide-head"><div class="kicker">架构师 · 高并发</div>
+  <div class="slide-head"><div class="kicker">高并发</div>
     <div class="title">三大<span style="color:var(--hilite)">削峰</span>手段</div></div>
   <div class="card-grid">
     <div class="card hot anim-fade-up d1"><div class="ic">⚡</div><h3>缓存</h3>
@@ -304,7 +315,7 @@
 
 <!-- ===== 版式 2：双栏对比 ===== -->
 <section class="slide">
-  <div class="slide-head"><div class="kicker">大数据 · 性能对比</div>
+  <div class="slide-head"><div class="kicker">性能对比</div>
     <div class="title">物化视图 vs 原表扫描</div></div>
   <div class="split">
     <div class="col">
