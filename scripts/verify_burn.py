@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""verify_burn.py — 核验 fast 引擎成片的「水印 + 字幕」与 legacy 引擎逐像素等价
+"""verify_burn.py — 核验成片的「水印 + 字幕」烧录正确性（白底/彩底通用）
 
-做法：对若干采样时刻，从成片抽帧，找出字幕/水印文字像素的 bbox，
-与直接用 PIL（legacy 同坐标同字体）渲染出的期望 bbox 比对；并核验
-无字幕区间确实没有字幕、水印始终存在。
+水印：固定坐标黑胶囊必须存在 + 胶囊内白字 bbox 与期望一致（位置锚定，背景无关）。
+字幕：白字黑描边的「亮像素+暗邻接」bbox 与期望一致（描边锚定，背景无关）。
+并核验无字幕区间确实没有字幕、水印全程存在。
 """
 import os, re, subprocess, sys, tempfile
 from PIL import Image, ImageDraw, ImageFont
@@ -13,10 +13,13 @@ FFMPEG = "/usr/local/bin/ffmpeg"
 FONT = "/System/Library/Fonts/Hiragino Sans GB.ttc"
 W, H = 1920, 1080
 WM_X, WM_Y = 36, 30
-# 水印核验的搜索区：水印实际占位 x≈28~194 / y≈24~68。
-# 2026-10-15 收紧（原 x<430 / y<162）：标题带（y<150）内的白色 kicker/标题自 x=260 起，
-# 旧扫描区把它们算进亮像素 bbox，导致「水印 FAIL」误报（白底期是整片白底污染、彩底期是白字标题污染）。
-# 收紧到 x<240 / y<110 后：既完整包住水印，又排除幻灯片固有内容，检查恢复真实效力。
+# 2026-10-15 二次根治：废弃「扫描区内亮像素 bbox」方案——白底封面/读书营白底下
+# 整片背景都是亮像素，bbox 必然被污染（误报三次：白底期、彩底标题带期、白封面期）。
+# 改为两条与背景无关的检测：
+#   · 水印 = 位置锚定：黑胶囊（fill=(0,0,0,92)，合成后亮度恒 ≤0.64×背景 ≤163）
+#     必须存在于固定坐标，胶囊内亮像素(>230) bbox 须等于期望文字 bbox；
+#   · 字幕 = 描边邻接：白字恒带 2px 黑描边（draw_subtitle 九宫格偏移），
+#     「亮像素且 8 邻域含暗像素(<180)」即文字像素，白底裸背景因无暗邻被剔除。
 WM_SCAN_X = 240
 WM_SCAN_Y = 110
 SUB_Y = 928
@@ -42,11 +45,7 @@ def parse_srt(path):
 
 
 def bright_bbox(img, y0, y1, thr=200, x1=W):
-    """返回 (x0,y0,x1,y1) 亮像素 bbox；x1 限制横向搜索范围。
-
-    水印核验必须把 x 限制在水印列区（x<430）——镜头运动会把幻灯片内容
-    推进 y<162，但那部分位于 x 800+，与水印框并不相交。
-    """
+    """返回 (x0,y0,x1,y1) 亮像素 bbox（仅用于黑底期望图）。"""
     px = img.convert("L").crop((0, y0, x1, y1)).load()
     w, h = x1, y1 - y0
     xs, ys = [], []
@@ -57,6 +56,66 @@ def bright_bbox(img, y0, y1, thr=200, x1=W):
     if not xs:
         return None
     return (min(xs), min(ys) + y0, max(xs), max(ys) + y0)
+
+
+def text_bbox(img, y0, y1, thr=200, x1=W, dark_thr=180):
+    """实拍帧上的文字像素 bbox：亮(>thr) 且 8 邻域含暗(<dark_thr)。
+
+    白底/彩底通吃——白底裸背景四周皆亮被剔除；黑描边字幕（描边恒 0）与
+    黑胶囊水印（合成亮度 ≤163）内的白字被保留。
+    """
+    g = img.convert("L")
+    px = g.load()
+    w, h = g.size
+    X1, Y1 = min(x1, w), min(y1, h)
+    xs, ys = [], []
+    for yy in range(max(1, y0), min(Y1, h - 1)):
+        for xx in range(1, min(X1, w - 1)):
+            if px[xx, yy] <= thr:
+                continue
+            if (px[xx - 1, yy] < dark_thr or px[xx + 1, yy] < dark_thr or
+                    px[xx, yy - 1] < dark_thr or px[xx, yy + 1] < dark_thr or
+                    px[xx - 1, yy - 1] < dark_thr or px[xx + 1, yy - 1] < dark_thr or
+                    px[xx - 1, yy + 1] < dark_thr or px[xx + 1, yy + 1] < dark_thr):
+                xs.append(xx); ys.append(yy)
+    if not xs:
+        return None
+    return (min(xs), min(ys), max(xs), max(ys))  # 整图绝对坐标，无需回加 y0
+
+
+def wm_expected_bbox(F_WM):
+    """黑底期望图上的水印文字 bbox。"""
+    wm_exp_img = Image.new("RGB", (W, 200), (0, 0, 0))
+    d = ImageDraw.Draw(wm_exp_img)
+    d.text((WM_X, WM_Y), "作者：@Map", font=F_WM, fill=(255, 255, 255))
+    return bright_bbox(wm_exp_img, 0, WM_SCAN_Y, 200)
+
+
+def wm_check(img, F_WM, exp):
+    """水印核验：固定坐标黑胶囊存在 + 胶囊内白字 bbox == 期望。背景无关。"""
+    g = img.convert("L")
+    d = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    tw = d.textlength("作者：@Map", font=F_WM)
+    x0, y0 = WM_X - 8, WM_Y - 6                 # 胶囊矩形（与 draw_watermark/render_wm_png 一致）
+    x1, y1 = int(WM_X + tw + 8), WM_Y + 38
+    cp = g.crop((x0, y0, x1, y1)).load()
+    w, h = x1 - x0, y1 - y0
+    n = w * h
+    if n <= 0:
+        return False
+    ndark = 0
+    xs, ys = [], []
+    for yy in range(h):
+        for xx in range(w):
+            v = cp[xx, yy]
+            if v < 190:
+                ndark += 1
+            elif v > 230:
+                xs.append(xx); ys.append(yy)
+    if ndark / n < 0.30 or not xs:              # 胶囊缺失（白底无胶囊=全亮）或文字缺失（彩底无胶囊=无字）
+        return False
+    got = (min(xs) + x0, min(ys) + y0, max(xs) + x0, max(ys) + y0)
+    return exp is not None and all(abs(a - b) <= 6 for a, b in zip(exp, got))
 
 
 def main(mp4, srt, samples):
@@ -71,18 +130,12 @@ def main(mp4, srt, samples):
                        capture_output=True, check=True)
         img = Image.open(out)
 
-        # ---- 水印：应与 legacy 期望 bbox 一致
-        wm_exp_img = Image.new("RGB", (W, 200), (0, 0, 0))
-        d = ImageDraw.Draw(wm_exp_img)
-        tw = d.textlength("作者：@Map", font=F_WM)
-        d.text((WM_X, WM_Y), "作者：@Map", font=F_WM, fill=(255, 255, 255))
-        exp = bright_bbox(wm_exp_img, 0, WM_SCAN_Y, 200)
-        got = bright_bbox(img, 0, WM_SCAN_Y, 200, x1=WM_SCAN_X)
-        wm_ok = got is not None and exp is not None and \
-            all(abs(a - b) <= 4 for a, b in zip(exp, got))
+        # ---- 水印：固定坐标黑胶囊 + 胶囊内白字 bbox（背景无关）
+        exp = wm_expected_bbox(F_WM)
+        wm_ok = wm_check(img, F_WM, exp)
         ok &= wm_ok
 
-        # ---- 字幕：t 落在哪个 cue
+        # ---- 字幕：t 落在哪个 cue（描边邻接检测，背景无关）
         txt = next((x[2] for x in cues if x[0] <= t < x[1]), "")
         if txt:
             ref = Image.new("RGB", (W, 200), (0, 0, 0))
@@ -90,7 +143,7 @@ def main(mp4, srt, samples):
             tw = dr.textlength(txt, font=F_SUB)
             dr.text(((W - tw) / 2, 0), txt, font=F_SUB, fill=(255, 255, 255))
             exp_s = bright_bbox(ref, 0, 200, 200)
-            got_s = bright_bbox(img, SUB_Y - 6, min(SUB_Y + 70, H), 200)
+            got_s = text_bbox(img, SUB_Y - 6, min(SUB_Y + 70, H))
             if exp_s is None:
                 s_ok = True
                 note = "blank(band-clean)"
@@ -104,7 +157,7 @@ def main(mp4, srt, samples):
             ok &= s_ok
             print(f"t={t:7.2f} 水印 {'OK ' if wm_ok else 'FAIL'}  字幕 {'OK ' if s_ok else 'FAIL'}  {note}  「{txt[:18]}」")
         else:
-            got_s = bright_bbox(img, SUB_Y - 6, min(SUB_Y + 70, H), 200)
+            got_s = text_bbox(img, SUB_Y - 6, min(SUB_Y + 70, H))
             gap_ok = got_s is None
             ok &= gap_ok
             print(f"t={t:7.2f} 水印 {'OK ' if wm_ok else 'FAIL'}  字幕片段间隙 {'OK(空)' if gap_ok else 'FAIL'}")
