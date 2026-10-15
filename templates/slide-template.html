@@ -7,11 +7,11 @@
   用法（Step 2 生成画面，套模板而非手写）：
     1. 复制本文件为 `<视频标题>PPT.html`；
     2. 在 :root 里把**整个主题块**换成本训练营的配值（见 SKILL.md「训练营主题色」表
-       与下方 :root 注释）——**背景色硬规则（2026-10-15 作者裁定，禁止全营一律白底）**：
-       · 非读书训练营：`--slide-bg` = 本营主题色渐变（深底 → 主色，与封面同色系），
-         文字/面板/描边随主题块切换为「彩底浅字」系（--text 白字、--panel 玻璃拟态、--line 浅描边）；
-       · 读书训练营（唯一例外）：`--slide-bg` = 纯白 `#FFFFFF`（"白色就是白色"），
-         用白底深字系取值（见 :root 内【读书营】注释）。
+       与下方 :root 注释）——**背景色硬规则（2026-10-15 作者裁定）**：
+       · 内容页背景：非读书营 = 本营主题色渐变（深底 → 主色，彩底浅字系：--text 白字、
+         --panel 玻璃拟态、--line 浅描边）；读书营（唯一例外）= 纯白 #FFFFFF（"白色就是白色"）。
+       · **封面/第一页一律纯白**（全 9 营无例外，白色就是白色，封面不铺主题色）——
+         由下方 `.slide.cover` 规则自动生效，本营主题色只作封面上的前景强调色。
        `--accent` / `--hilite` 仍取本营主色 / 高亮色；每页顶部自动带主色渐变「标题带」。
     3. 每页一个 <section class="slide">，从下方「版式组件」选一个骨架，
        替换占位文字与数据即可；有数据/对比/流程的页必须用图表组件，禁止纯文字；
@@ -34,13 +34,14 @@
 <style>
   /* ============ ① 主题变量（换营 = 整块替换；彩底/白底双模式由本块切换） ============ */
   :root{
-    /* 【营色背景硬规则·2026-10-15 作者裁定】禁止全营一律白底：
-       · 非读书训练营：--slide-bg = 本营主题色渐变（深底 → 主色，与封面同色系），
+    /* 【营色背景硬规则·2026-10-15 作者裁定】
+       · 内容页背景：非读书训练营 = 本营主题色渐变（深底 → 主色），
          整块用「彩底浅字」系（--text 白字 / --panel 玻璃拟态 / --line 浅描边）；
        · 读书训练营（唯一例外）：--slide-bg = 纯白 #FFFFFF（"白色就是白色"），
-         用【读书营】注释中的白底深字系取值。
+         用【读书营】注释中的白底深字系取值；
+       · 封面/第一页全 9 营一律纯白（.slide.cover 规则自动生效，白色就是白色）。
        完整配值见 SKILL.md「训练营主题色」表；换营后必须过
-       scripts/bg_theme_check.py 门禁（非读书营背景近白 = FAIL）。 */
+       scripts/bg_theme_check.py 门禁（非读书营内容页近白 = FAIL）。 */
     --slide-bg:linear-gradient(155deg,#00572E 0%,#00A651 100%); /* 示例=架构师绿；【读书营改 #FFFFFF】 */
     --bg:#00572E;        /* 渐变深端（兜底纯色）·示例=架构师深绿 */
     --bg2:#00A651;       /* 渐变亮端·示例=架构师主色亮端 */
@@ -74,11 +75,18 @@
     background:linear-gradient(90deg,var(--accent),var(--hilite));
   }
   /* 封面 / 前 3 秒：主色系渐变满铺，白色大字 */
-  .slide.cover{background:linear-gradient(135deg,var(--accent),var(--hilite))}
+  /* 首页（封面）= 纯白底（「第一页白」硬规则·2026-10-15 作者裁定：白色就是白色，封面不铺主题色）。
+     本营主题色只作前景（kicker/标题强调/em 用 --accent），正文深字。读书营封面同为白底。 */
+  .slide.cover{background:#FFFFFF}
   .slide.cover::before{display:none}
-  .slide.cover .hero .lead,.slide.cover .stat .num{color:#fff}
-  .slide.cover .hero .lead em{color:#fff}
-  .slide.cover .hero .sub,.slide.cover .stat .cap{color:rgba(255,255,255,.9)}
+  .slide.cover .slide-head .kicker{color:var(--accent);opacity:1}
+  .slide.cover .slide-head .title{color:#16202E}
+  .slide.cover .hero .lead{color:#16202E}
+  .slide.cover .hero .lead em{color:var(--accent)}
+  .slide.cover .hero .sub{color:rgba(22,32,46,.66)}
+  .slide.cover .stat .num{color:var(--accent);-webkit-text-fill-color:var(--accent)}
+  .slide.cover .stat .cap{color:rgba(22,32,46,.66)}
+  .slide.cover .page-num{color:rgba(22,32,46,.5)}
   /* 页头：标题区，落在顶部渐变带上（白字）；左缘让开左上角水印列 */
   .slide-head{position:absolute;left:260px;right:120px;top:0;height:150px;
     display:flex;flex-direction:column;justify-content:center}
@@ -268,7 +276,7 @@
 </head>
 <body>
 
-<!-- 封面/开头页：<section class="slide cover active"> + .hero 主视觉（自动主色渐变 + 白字）；正文页：<section class="slide">（自动顶部主色标题带）。复制后替换内容，下列示例仅供结构参考 -->
+<!-- 封面/开头页：<section class="slide cover active"> + .hero 主视觉（纯白底 + 深字 + 本营色强调，「第一页白」硬规则）；正文页：<section class="slide">（本营主题色彩底浅字 + 自动顶部主色标题带）。复制后替换内容，下列示例仅供结构参考 -->
 <section class="slide cover active">
   <div class="watermark-zone">水印安全区（交稿删除）</div>
   <div class="subtitle-zone">字幕带（交稿删除）</div>
