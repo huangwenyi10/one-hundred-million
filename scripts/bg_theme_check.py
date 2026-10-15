@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-bg_theme_check.py — 营色背景门禁（2026-10-15 作者裁定：禁止全营一律白底）
+bg_theme_check.py — 营色背景门禁（2026-10-15 作者裁定）
 
-背景：历史上所有训练营的视频/幻灯片背景都是纯白，作者多次反馈「弱智的错误」——
-根因是 SKILL.md 旧「白底规则」把 9 营背景写死为 #FFFFFF。2026-10-15 起规则改为：
-  · 非读书训练营：背景 = 本营主题色渐变（深底 → 主色，与封面同色系）；
-  · 读书训练营（唯一例外）：背景 = 纯白 #FFFFFF（"白色就是白色"）。
-本脚本把该规则变成确定性门禁，导帧前 / 交付前必须 PASS。
+规则（两条，均为硬门禁）：
+  1. 内容页背景：非读书营 = 本营主题色渐变（深底 → 主色），禁止近白；
+     读书营（唯一例外）= 纯白 #FFFFFF。
+  2. 封面/第一页：全 9 营一律纯白（「白色就是白色」，封面不铺主题色），
+     本营主题色只作封面前景（kicker/标题强调/em）。
 
 用法：
   python3 scripts/bg_theme_check.py <PPT.html> [--frames <frames_dir>] [--camp <训练营全名>]
@@ -14,14 +14,15 @@ bg_theme_check.py — 营色背景门禁（2026-10-15 作者裁定：禁止全�
 判定（HTML 层）：
   1. 解析 PPT.html :root 的 --slide-bg / --bg / --accent / --hilite / --text；
   2. 推断训练营：--accent/--hilite 与主题色表做 RGB 最近匹配（可用 --camp 显式指定）；
-  3. 非读书营：背景（渐变任一端点 / 兜底纯色）不得近白（亮度>0.90 且饱和度<0.08 → FAIL），
+  3. 非读书营：内容页背景（渐变任一端点 / 兜底纯色）不得近白（亮度>0.90 且饱和度<0.08 → FAIL），
      且背景色相须落在本营主色色相 ±35° 内，否则 FAIL「背景色不是本营主题色」；
-  4. 读书训练营：背景必须为白/近白，否则 FAIL。
+     且必须存在 .slide.cover{background:#FFFFFF…} 白封面规则（缺 → FAIL）；
+  4. 读书训练营：内容页背景必须为白/近白，否则 FAIL。
 
 判定（帧层，--frames 给定时追加）：
-  每帧采样内容区边缘点（避开顶部标题带 y<170、左上角水印区 x<480&y<162、底部字幕带 y>890），
-  取采样点中位数 HSV：非读书营须饱和度 ≥0.12 且色相在本营主色 ±35°；读书营须近白。
-  cover 页（整页渐变）同样满足色相判定。
+  每帧采样内容区边缘点（避开顶部标题带 y<170、左上角水印区、底部字幕带 y>890），
+  取采样点中位数 HSV：非读书营第 1 帧（封面）须近白，其余帧须饱和度 ≥0.12
+  且色相在本营主色 ±35°；读书营全部帧须近白。
 
 退出码：0 = PASS；1 = FAIL（逐条打印原因，返工改 :root 后重跑）。
 """
@@ -150,7 +151,18 @@ def check_html(html, camp_override=None):
                     f"（#{'%02X%02X%02X' % rgb}）——不是{camp}的主题色")
         if ok:
             hs = "/".join(f"#{'%02X%02X%02X' % rgb}" for rgb in bgs)
-            msgs.append(f"{camp}背景=主题色系 {hs} ✓")
+            msgs.append(f"{camp}内容页背景=主题色系 {hs} ✓")
+        # 硬规则 2：封面/第一页必须纯白（.slide.cover 白底规则）
+        cover = re.search(r"\.slide\.cover\s*\{[^}]*\}", html)
+        cover_bg = cover.group(0) if cover else ""
+        if not cover or not re.search(
+                r"background\s*:\s*(#fff\b|#ffffff|white)\b", cover_bg, re.I):
+            ok = False
+            msgs.append(
+                "缺少「封面纯白」规则——非读书营必须有 .slide.cover{background:#FFFFFF}"
+                "（第一页白硬规则：白色就是白色，封面不铺主题色）")
+        elif ok:
+            msgs.append("封面/第一页=纯白 ✓（第一页白硬规则）")
     return ok, camp, msgs
 
 
@@ -170,7 +182,7 @@ def check_frames(frames_dir, camp):
     main_h, _, _ = hsv(hex2rgb(CAMP_COLORS[camp]["main"]))
     bad = []
     checked = 0
-    for fn in files:
+    for idx, fn in enumerate(files):
         im = Image.open(os.path.join(frames_dir, fn)).convert("RGB")
         w, h = im.size
         vals = []
@@ -183,17 +195,23 @@ def check_frames(frames_dir, camp):
         if camp == READING_CAMP:
             if not is_near_white(med):
                 bad.append(f"{fn}: 采样中位 #{'%02X%02X%02X' % med} 非近白（读书营须纯白底）")
+        elif idx == 0:
+            # 第 1 帧 = 封面：必须纯白（第一页白硬规则）
+            if not is_near_white(med):
+                bad.append(f"{fn}: 封面页背景非纯白 #{'%02X%02X%02X' % med}"
+                           f"（第一页白硬规则：封面不铺主题色）")
         else:
             hh, s, v = hsv(med)
             if is_near_white(med):
-                bad.append(f"{fn}: 背景采样为白色/近白 #{'%02X%02X%02X' % med}（V={v:.2f},S={s:.2f}）")
+                bad.append(f"{fn}: 内容页背景采样为白色/近白 #{'%02X%02X%02X' % med}（V={v:.2f},S={s:.2f}）")
             elif s < FRAME_MIN_S or hue_dist(hh, main_h) > HUE_TOL:
                 bad.append(f"{fn}: 背景色相/饱和度不符（#{'%02X%02X%02X' % med} H={hh:.0f}° S={s:.2f}，期望 H≈{main_h:.0f}°）")
     if bad:
         return False, [f"帧层抽检 FAIL（{len(bad)}/{checked} 帧）："] + bad[:12] + (
             ["…"] if len(bad) > 12 else [])
-    return True, [f"帧层抽检 PASS（{checked} 帧，背景均为{camp}主题色）" if camp != READING_CAMP
-                  else f"帧层抽检 PASS（{checked} 帧，背景均为纯白）"]
+    if camp == READING_CAMP:
+        return True, [f"帧层抽检 PASS（{checked} 帧，背景均为纯白）"]
+    return True, [f"帧层抽检 PASS（{checked} 帧：封面纯白 + 内容页均为{camp}主题色）"]
 
 
 def main():
