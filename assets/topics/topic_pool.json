@@ -228,7 +228,8 @@
         "aiAngle": "AI 辅助分析倾斜分布与异常",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-10-16T23:44:21"
       },
       {
         "id": "BIG-02",
