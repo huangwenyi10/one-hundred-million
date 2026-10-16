@@ -7,12 +7,13 @@
   用法（Step 2 生成画面，套模板而非手写）：
     1. 复制本文件为 `<视频标题>PPT.html`；
     2. 在 :root 里把**整个主题块**换成本训练营的配值（见 SKILL.md「训练营主题色」表
-       与下方 :root 注释）——**背景色硬规则（2026-10-15 作者裁定）**：
-       · 内容页背景：非读书营 = 本营主题色渐变（深底 → 主色，彩底浅字系：--text 白字、
-         --panel 玻璃拟态、--line 浅描边）；读书营（唯一例外）= 纯白 #FFFFFF（"白色就是白色"）。
-       · **封面/第一页一律纯白**（全 9 营无例外，白色就是白色，封面不铺主题色）——
-         由下方 `.slide.cover` 规则自动生效，本营主题色只作封面上的前景强调色。
-       `--accent` / `--hilite` 仍取本营主色 / 高亮色；每页顶部自动带主色渐变「标题带」。
+       与下方 :root 注释）——**背景色硬规则（2026-10-16 作者最终裁定·全营白底）**：
+       · 内容页背景：全 9 营（含读书营）一律纯白 #FFFFFF + 白底深字系（--text 深字、
+         --panel 浅灰卡片、--line 浅描边）；强调色用白底可读的加深主色 --accent。
+       · **封面/第一页同样纯白**（与内容页合并，无例外）——
+         由下方 `.slide.cover` 规则自动生效，本营主题色只作前景强调色。
+       `--accent` 取本营白底可读加深主色（如架构师 #00843D）；`--hilite` 仅限
+       渐变填充（标题带/柱状/数字），禁止作白底文字色；每页顶部自动带主色渐变「标题带」。
     3. 每页一个 <section class="slide">，从下方「版式组件」选一个骨架，
        替换占位文字与数据即可；有数据/对比/流程的页必须用图表组件，禁止纯文字；
     4. 关键页加 1~2 处 CSS 动画类（.anim-*），让画面有揭示动效；
@@ -32,27 +33,27 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幻灯片</title>
 <style>
-  /* ============ ① 主题变量（换营 = 整块替换；彩底/白底双模式由本块切换） ============ */
+  /* ============ ① 主题变量（换营 = 整块替换；全营统一白底深字系，只换 --accent/--hilite） ============ */
   :root{
-    /* 【营色背景硬规则·2026-10-15 作者裁定】
-       · 内容页背景：非读书训练营 = 本营主题色渐变（深底 → 主色），
-         整块用「彩底浅字」系（--text 白字 / --panel 玻璃拟态 / --line 浅描边）；
-       · 读书训练营（唯一例外）：--slide-bg = 纯白 #FFFFFF（"白色就是白色"），
-         用【读书营】注释中的白底深字系取值；
-       · 封面/第一页全 9 营一律纯白（.slide.cover 规则自动生效，白色就是白色）。
+    /* 【全营白底硬规则·2026-10-16 作者最终裁定】
+       · 内容页背景：全 9 营（含读书营）一律纯白 #FFFFFF，
+         统一用「白底深字」系（--text 深字 / --panel 浅灰卡片 / --line 浅描边）；
+       · 封面/第一页同样纯白（.slide.cover 规则自动生效，无例外）；
+       · --accent 取本营白底可读加深主色（如架构师 #00843D）；--hilite 仅限
+         渐变填充（标题带/柱状/数字），禁止作白底文字色。
        完整配值见 SKILL.md「训练营主题色」表；换营后必须过
-       scripts/bg_theme_check.py 门禁（非读书营内容页近白 = FAIL）。 */
-    --slide-bg:linear-gradient(155deg,#00572E 0%,#00A651 100%); /* 示例=架构师绿；【读书营改 #FFFFFF】 */
-    --bg:#00572E;        /* 渐变深端（兜底纯色）·示例=架构师深绿 */
-    --bg2:#00A651;       /* 渐变亮端·示例=架构师主色亮端 */
-    --accent:#00C853;    /* 主色（亮端）·示例=架构师；其他营换成该营主色 */
-    --hilite:#4ADE80;    /* 高亮/强调色·示例=架构师高亮；其他营换成该营高亮色 */
-    --text:#FFFFFF;      /* 彩底=白字；【读书营（白底）改 #2A1220 深玫褐】 */
-    --muted:rgba(255,255,255,.78); /* 彩底=浅灰白；【读书营改 #8A6B7A 中灰粉】 */
-    --panel:rgba(255,255,255,.10); /* 彩底=玻璃拟态卡片底；【读书营改 #F6F0F3 浅粉灰】 */
-    --line:rgba(255,255,255,.24);  /* 彩底=浅描边；【读书营改 #E3D2DA】 */
-    --good:#4ADE80;      /* 优/涨（彩底提亮）；【读书营改 #1E9E5A】 */
-    --bad:#FF7A9E;       /* 劣/降（彩底提亮）；【读书营改 #D6336C】 */
+       scripts/bg_theme_check.py 门禁（背景非近白 = FAIL）。 */
+    --slide-bg:#FFFFFF; /* 纯白底（全营硬规则，勿改） */
+    --bg:#FFFFFF;        /* 纯白（兜底纯色） */
+    --bg2:#FFFFFF;       /* 纯白 */
+    --accent:#00843D;    /* 白底可读加深主色·示例=架构师；其他营换成该营加深主色 */
+    --hilite:#4ADE80;    /* 高亮·仅限渐变填充（标题带/柱状/数字）；其他营换成该营高亮色 */
+    --text:#16202E;      /* 白底=深字正文 */
+    --muted:#5A6573; /* 白底=中灰次级文字 */
+    --panel:#F1F4F8; /* 白底=浅灰卡片底 */
+    --line:rgba(22,32,46,.12);  /* 白底=浅描边 */
+    --good:#1E9E5A;      /* 优/涨 */
+    --bad:#D6336C;       /* 劣/降 */
   }
 
   /* ============ ② 基础画布 ============ */
@@ -115,9 +116,9 @@
     display:flex;align-items:center;justify-content:center;font-size:32px}
   .card h3{font-size:40px;font-weight:700;color:var(--text)}
   .card p{font-size:28px;color:var(--muted);line-height:1.55}
-  .card b{color:var(--hilite);font-weight:700}
-  .card.hot{border-color:var(--hilite);background:color-mix(in srgb,var(--accent) 14%,var(--panel));
-    box-shadow:0 0 0 2px color-mix(in srgb,var(--hilite) 35%,transparent)}
+  .card b{color:var(--accent);font-weight:700}
+  .card.hot{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--panel));
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
   .card .seq{position:absolute;top:26px;right:30px;font-size:26px;color:var(--muted);font-weight:600}
 
   /* ============ ④ 版式 2：双栏 / 三栏（对比 / 因果 / 演进） ============ */
@@ -126,7 +127,7 @@
     padding:44px 40px;display:flex;flex-direction:column;gap:24px}
   .split .col h3{font-size:40px;font-weight:700}
   .col-head{display:flex;align-items:center;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--line)}
-  .col-head .dot{width:18px;height:18px;border-radius:50%;background:var(--hilite)}
+  .col-head .dot{width:18px;height:18px;border-radius:50%;background:var(--accent)}
   .col-head.gray .dot{background:var(--muted)}
   .split .row{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:28px;line-height:1.5}
   .split .row .k{color:var(--muted)}
@@ -139,7 +140,7 @@
   .hero{position:absolute;inset:0;display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;padding:0 180px}
   .hero .lead{font-size:88px;font-weight:800;line-height:1.22;letter-spacing:.01em}
-  .hero .lead em{font-style:normal;color:var(--hilite)}
+  .hero .lead em{font-style:normal;color:var(--accent)}
   .hero .sub{margin-top:34px;font-size:36px;color:var(--muted);line-height:1.6}
 
   /* ============ ⑥ 版式 4：图示页（架构 / 流程，占 55%~75%） ============ */
@@ -153,26 +154,26 @@
     overflow-wrap:anywhere;word-break:keep-all;min-width:0;max-width:100%;overflow:hidden}
   .node.dim,.nodebox.dim{border-color:var(--line);background:var(--panel);color:var(--muted)}
   .node.cyl{border-radius:50%/50% 50% 0 0;padding-top:28px}
-  .edge{stroke:var(--hilite);stroke-width:3;fill:none;marker-end:url(#arrow)}
+  .edge{stroke:var(--accent);stroke-width:3;fill:none;marker-end:url(#arrow)}
   .legend{margin-top:auto;font-size:22px;color:var(--muted)}
   /* 流程图横向步骤：自适应宽度、文本自动折行、防止撑破 */
   .flow{display:flex;align-items:stretch;gap:26px;justify-content:center;margin-top:10px;min-width:0;width:100%}
-  .flow .arrow{align-self:center;font-size:46px;color:var(--hilite);font-weight:800;line-height:1;flex-shrink:0}
+  .flow .arrow{align-self:center;font-size:46px;color:var(--accent);font-weight:800;line-height:1;flex-shrink:0}
   .stepcard{background:var(--panel);border:2px solid var(--accent);border-radius:20px;padding:32px 26px;text-align:center;flex:1;display:flex;flex-direction:column;gap:14px;justify-content:center;min-width:0;overflow:hidden}
-  .stepcard.hot{border-color:var(--hilite);background:color-mix(in srgb,var(--accent) 14%,var(--panel))}
+  .stepcard.hot{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--panel))}
   .stepcard .sic{font-size:46px;line-height:1}
   .stepcard .st{font-size:32px;font-weight:700;overflow-wrap:anywhere;word-break:keep-all}
   .stepcard .sd{font-size:24px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
   /* 架构图网格：多层/多列自动分布，避免绝对定位导致箭头错位 */
   .diagram-grid{display:flex;flex-direction:column;gap:36px;align-items:center;justify-content:center;height:100%;width:100%}
   .diagram-row{display:flex;align-items:center;justify-content:center;gap:40px;width:100%;flex-wrap:wrap}
-  .diagram-row .spacer{min-width:60px;text-align:center;color:var(--hilite);font-size:38px;font-weight:800}
+  .diagram-row .spacer{min-width:60px;text-align:center;color:var(--accent);font-size:38px;font-weight:800}
   /* ★ 带标签的语义连线（图示可读性硬标准·固定规范第 37 条②）：层/节点之间必须用带文字标签
      的箭头标明关系（调用/数据/返回/触发）。放在两层/两个节点之间即可。 */
   .link-band{display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0}
   .link-band .lab{font-size:24px;color:var(--muted);background:var(--panel);
     border:1px solid var(--line);border-radius:999px;padding:4px 18px;font-weight:600;white-space:nowrap}
-  .link-band .ar{font-size:34px;color:var(--hilite);font-weight:800;line-height:1}
+  .link-band .ar{font-size:34px;color:var(--accent);font-weight:800;line-height:1}
 
   /* ============ ⑦ 版式 5：数字聚焦页（单点强冲击） ============ */
   .stat{position:absolute;inset:0;display:flex;flex-direction:column;
@@ -189,7 +190,7 @@
   /* ============ ⑧ 图表：柱状 / 条形 ============ */
   .bars{display:flex;align-items:flex-end;gap:28px;height:100%;padding-top:20px}
   .bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:14px;height:100%}
-  .bar .val{font-size:30px;font-weight:700;color:var(--hilite)}
+  .bar .val{font-size:30px;font-weight:700;color:var(--accent)}
   .bar .col{width:100%;max-width:120px;border-radius:12px 12px 0 0;
     background:linear-gradient(180deg,var(--hilite),var(--accent));transform-origin:bottom}
   .bar .col.muted{background:linear-gradient(180deg,var(--line),var(--panel))}
@@ -203,14 +204,14 @@
   table.cmp td .ok{color:var(--good);font-weight:700}
   table.cmp td .no{color:var(--bad)}
   table.cmp tr.hl td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
-  table.cmp tr.hl td:first-child{color:var(--hilite);font-weight:700}
+  table.cmp tr.hl td:first-child{color:var(--accent);font-weight:700}
 
   /* ============ ⑩ 图表：时间线 ============ */
   .timeline{display:flex;align-items:flex-start;gap:0;position:relative;padding-top:30px}
   .timeline::before{content:"";position:absolute;left:0;right:0;top:52px;height:3px;background:var(--line)}
   .tl{flex:1;text-align:center;position:relative;padding:0 12px}
   .tl .node{width:26px;height:26px;border-radius:50%;background:var(--panel);border:3px solid var(--muted);margin:0 auto 20px;position:relative;z-index:2}
-  .tl.now .node{background:var(--hilite);border-color:var(--hilite);box-shadow:0 0 0 8px color-mix(in srgb,var(--hilite) 25%,transparent)}
+  .tl.now .node{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 8px color-mix(in srgb,var(--accent) 25%,transparent)}
   .tl .t{font-size:28px;font-weight:700}
   .tl .d{font-size:22px;color:var(--muted);margin-top:8px;line-height:1.4}
   .tl.future .node{border-style:dashed}
@@ -218,10 +219,10 @@
   /* ============ ⑪ CSS 动画类（关键页 1~2 处，克制） ============ */
   @keyframes fadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
   @keyframes pop{0%{opacity:0;transform:scale(.82)}70%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
-  @keyframes highlight{from{border-color:var(--line)}to{border-color:var(--hilite)}}
+  @keyframes highlight{from{border-color:var(--line)}to{border-color:var(--accent)}}
   @keyframes draw{to{stroke-dashoffset:0}}
   @keyframes fillBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-  @keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 26px color-mix(in srgb,var(--hilite) 65%,transparent))}}
+  @keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 26px color-mix(in srgb,var(--accent) 65%,transparent))}}
 
   .anim-fade-up{opacity:0;animation:fadeUp .6s ease-out forwards}
   .anim-pop{opacity:0;animation:pop .55s cubic-bezier(.2,.7,.3,1.2) forwards}
@@ -241,7 +242,7 @@
   .code-main{flex:1;display:flex;flex-direction:column;min-width:0}
   .code-file{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:22px;color:var(--muted);
     padding:0 4px 12px;display:flex;align-items:center;gap:12px}
-  .code-file::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--hilite)}
+  .code-file::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--accent)}
   .code-block{background:#0A0E1F;border:1px solid var(--line);border-radius:20px;
     padding:28px 36px;overflow:hidden;flex:1;position:relative}
   .code-block::before{content:"";position:absolute;left:0;top:28px;bottom:28px;width:4px;
@@ -249,19 +250,19 @@
   .code-line{display:flex;gap:22px;line-height:1.62;font-size:27px;
     font-family:"SF Mono",Menlo,Consolas,monospace;color:#D7E0F5;white-space:pre}
   .code-line .ln{flex:0 0 44px;text-align:right;color:#3C4A6E;user-select:none}
-  .code-line.hi{background:color-mix(in srgb,var(--hilite) 20%,transparent);
-    border-radius:8px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hilite) 45%,transparent)}
-  .code-line.hi .ln{color:var(--hilite)}
+  .code-line.hi{background:color-mix(in srgb,var(--accent) 20%,transparent);
+    border-radius:8px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent)}
+  .code-line.hi .ln{color:var(--accent)}
   .ck{color:#7AA2FF}   /* 关键字 */
   .cs{color:#9ECE6A}   /* 字符串 */
   .cc{color:#5C6A8F;font-style:italic}  /* 注释 */
   .cf{color:#7DCFFF}   /* 函数名 */
   .cn{color:#FF9E64}   /* 数字 */
   .code-note{margin-top:14px;font-size:24px;color:var(--muted);line-height:1.5}
-  .code-note b{color:var(--hilite);font-weight:600}
+  .code-note b{color:var(--accent);font-weight:600}
   .code-side{flex:0 0 400px;display:flex;flex-direction:column;gap:22px}
   .side-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:30px 28px}
-  .side-card h4{font-size:26px;color:var(--hilite);margin-bottom:14px;font-weight:600}
+  .side-card h4{font-size:26px;color:var(--accent);margin-bottom:14px;font-weight:600}
   .side-card p{font-size:24px;color:var(--muted);line-height:1.6}
   .side-card p b{color:var(--text);font-weight:600}
   .code-src{position:absolute;right:120px;bottom:104px;font-size:20px;color:var(--muted);
@@ -283,7 +284,7 @@
 
   <div class="slide-head">
     <div class="kicker">查询加速</div>
-    <div class="title">一条 SQL 的<b style="color:var(--hilite)">加速</b>之旅</div>
+    <div class="title">一条 SQL 的<b style="color:var(--accent)">加速</b>之旅</div>
   </div>
 
   <!-- 版式 4：图示页（架构/流程），推荐用 .diagram-grid / .flow 组件，禁止手写绝对定位+SVG坐标（易错位/溢出） -->
@@ -309,7 +310,7 @@
 <!-- ===== 版式 1：卡片式（要点并列） ===== -->
 <section class="slide">
   <div class="slide-head"><div class="kicker">高并发</div>
-    <div class="title">三大<span style="color:var(--hilite)">削峰</span>手段</div></div>
+    <div class="title">三大<span style="color:var(--accent)">削峰</span>手段</div></div>
   <div class="card-grid">
     <div class="card hot anim-fade-up d1"><div class="ic">⚡</div><h3>缓存</h3>
       <p>热点数据前置，<b>命中率 95%+</b>，DB 压力降一个量级</p><span class="seq">01</span></div>
@@ -335,9 +336,9 @@
     <div class="vs">VS</div>
     <div class="col">
       <div class="col-head"><span class="dot"></span><h3>优化后</h3></div>
-      <div class="row"><span class="k">查询耗时</span><span class="v" style="color:var(--hilite)">2.3 秒</span></div>
-      <div class="row"><span class="k">扫描行数</span><span class="v" style="color:var(--hilite)">3 万</span></div>
-      <div class="row"><span class="k">CPU 占用</span><span class="v" style="color:var(--hilite)">12%</span></div>
+      <div class="row"><span class="k">查询耗时</span><span class="v" style="color:var(--accent)">2.3 秒</span></div>
+      <div class="row"><span class="k">扫描行数</span><span class="v" style="color:var(--accent)">3 万</span></div>
+      <div class="row"><span class="k">CPU 占用</span><span class="v" style="color:var(--accent)">12%</span></div>
     </div>
   </div>
   <div class="page-num">03</div>
@@ -347,7 +348,7 @@
 <section class="slide">
   <div class="stat">
     <div class="anim-pop"><span class="num js-count" data-count="2.3">2.3</span><span class="unit">秒</span></div>
-    <div class="delta"><span class="old">74 秒</span><span style="color:var(--hilite)">查询提速 32 倍</span></div>
+    <div class="delta"><span class="old">74 秒</span><span style="color:var(--accent)">查询提速 32 倍</span></div>
     <div class="cap">数据仓库物化视图 · 从全表扫描到增量预计算</div>
   </div>
   <div class="page-num">04</div>
