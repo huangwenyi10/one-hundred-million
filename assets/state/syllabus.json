@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-10-16",
+  "updated": "2026-10-17",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -15,6 +15,13 @@
       "lastTopic": "数据倾斜的现场表现",
       "covered": [
         "批处理与离线计算"
+      ]
+    },
+    "AI 训练营": {
+      "expertGoal": "",
+      "lastTopic": "RAG 跑通之后为什么还是不准",
+      "covered": [
+        "RAG 与知识库"
       ]
     }
   }
