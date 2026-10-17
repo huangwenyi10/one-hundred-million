@@ -426,7 +426,8 @@
         "aiAngle": "本题即 AI 主线",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-10-17T23:39:27"
       },
       {
         "id": "AIX-02",
