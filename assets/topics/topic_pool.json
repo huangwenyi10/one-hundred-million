@@ -624,7 +624,8 @@
         "aiAngle": "AI 辅助反馈聚类与情感分析",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-10-18T23:36:30"
       },
       {
         "id": "PRD-02",
