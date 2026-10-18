@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-10-17",
+  "updated": "2026-10-18",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -22,6 +22,13 @@
       "lastTopic": "RAG 跑通之后为什么还是不准",
       "covered": [
         "RAG 与知识库"
+      ]
+    },
+    "产品经理训练营": {
+      "expertGoal": "",
+      "lastTopic": "留存掉在哪一步",
+      "covered": [
+        "数据驱动与增长"
       ]
     }
   }
