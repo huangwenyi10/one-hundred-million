@@ -94,6 +94,10 @@ ENTITIES = [
     "比亚迪", "蔚来", "理想", "小鹏", "特斯拉", "Tesla", "SpaceX", "波音",
     "麦肯锡", "波士顿咨询", "贝恩", "德勤", "普华永道", "安永", "毕马威",
     "海底捞", "胖东来", "名创优品", "瑞幸", "蜜雪冰城", "农夫山泉", "元气森林",
+    # 产品/增长圈常引具名案例（2026-10-18 补·PRD-01 留存选题实测：白名单未收录致具名案例判空）
+    "TikTok", "Pinterest", "Slack", "Clubhouse", "Duolingo", "Notion", "Figma",
+    "Spotify", "Dropbox", "Zoom", "Canva", "Instagram", "Reddit", "微信",
+    "Lenny Rachitsky", "Casey Winters", "微信公众号", "视频号",
 ]
 VERSION = re.compile(r"\b\d+\.\d+(?:\.\d+)?\b")
 
