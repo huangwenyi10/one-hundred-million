@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-10-18",
+  "updated": "2026-10-20",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -29,6 +29,13 @@
       "lastTopic": "留存掉在哪一步",
       "covered": [
         "数据驱动与增长"
+      ]
+    },
+    "前端训练营": {
+      "expertGoal": "",
+      "lastTopic": "首屏指标优化实测",
+      "covered": [
+        "性能与体验"
       ]
     }
   }
