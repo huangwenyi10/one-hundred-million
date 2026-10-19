@@ -821,7 +821,8 @@
         "aiAngle": "AI 辅助定位性能瓶颈",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-10-20T00:00:50"
       },
       {
         "id": "FED-02",
