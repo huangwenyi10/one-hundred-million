@@ -1010,7 +1010,7 @@
     "测试训练营": [
       {
         "id": "TST-01",
-        "title": "Flaky 用例怎么根治",
+        "title": "Flaky用例根治：让红灯重新可信",
         "dimension": "团队与实战",
         "angle": "同一个用例时好时坏，从复现到定位根因的完整过程",
         "tier": "M",
@@ -1019,7 +1019,9 @@
         "aiAngle": "AI 辅助日志分析与根因定位",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "reason": "2026-10-20 测试训练营期号14成片293.23s，全门禁PASS，待作者Step7审核",
+        "updatedAt": "2026-10-20T23:45:02"
       },
       {
         "id": "TST-02",
