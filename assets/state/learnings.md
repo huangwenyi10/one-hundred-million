@@ -85,3 +85,15 @@
 ## 观察项（未构成问题，登记备查）
 
 - O1（2026-10-25）：字幕母版 30fps 整帧量化与 srt 边界存在 ≤122ms 有界漂移（不累积、音频由 check_sync 权威把关）——**已知公差，不是缺陷**；若未来漂移越过 ±0.5s 或开始累积，升级为 `脚本bug` 类登记并修烧录引擎。
+
+---
+
+## 2026-10-25 · 读书训练营 · 停工待料轮（#2《迈向AGI时代》原书文件未提供）
+
+### L009 [流程缺口] update_catalog.py 在技能仓库根执行会把「目录/」误写进技能仓库 → gate FAIL → **fixed / verified（已加脚本守卫）**
+
+- **现象**：2026-10-25 23:01 定时轮转开工，`client_preflight.py gate` 报 FAIL「技能目录有未提交改动（1 项）」——技能仓库根出现未跟踪的 `目录/`（00_总览.md + 09_读书训练营.md，mtime 2026-10-22 23:50）。
+- **根因**：`update_catalog.py` 的 `--workspace` 缺省值 = `os.getcwd()`。此前某次交互会话在技能仓库根目录（`cd ~/.workbuddy/skills/one-hundred-million`）直接跑了 `python3 scripts/update_catalog.py ...`，目录索引被写进技能仓库。内容经 diff 确认是 10-22 过期残留（工作区 `目录/` 为权威且更新更全：软技能 10-25 21:46、读书 #10 10-24 已入）。
+- **修复**：① 残留 `目录/` 移出技能仓库至 `/tmp/skill_repo_stray_catalog_20261025`（可恢复，未硬删）；② **当轮自主修复脚本**——`update_catalog.py` 加防复发守卫：`--workspace` 解析到含 `SKILL.md` 的目录（= 技能仓库自身）即报错 exit 1 并提示显式传 `--workspace`。修完即验：cwd=技能仓库跑 → exit 1 报错；临时空目录跑 → exit 0 正常写入（最小复现双向验证）。
+- **防复发点**：脚本守卫已生效；`client_preflight gate` 的「技能版本最新」检查仍是兜底（能发现、不静默）。
+- **状态**：fixed / verified（脚本守卫已随本轮 commit 推送）。
