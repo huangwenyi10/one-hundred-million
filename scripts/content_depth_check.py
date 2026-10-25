@@ -98,6 +98,11 @@ ENTITIES = [
     "TikTok", "Pinterest", "Slack", "Clubhouse", "Duolingo", "Notion", "Figma",
     "Spotify", "Dropbox", "Zoom", "Canva", "Instagram", "Reddit", "微信",
     "Lenny Rachitsky", "Casey Winters", "微信公众号", "视频号",
+    # 软技能/管理类常引：学术研究 + 行业薪酬报告（2026-10-25 补·SFT-01 谈薪选题实测：
+    # 口播引 Thorsteinson 2011 锚定效应实验 + 脉脉高聘春招报告，白名单未收录致具名案例判空）
+    "索尔斯坦森", "Thorsteinson", "爱达荷大学", "哈佛", "Kahneman", "卡尼曼",
+    "应用社会心理学杂志", "职业行为杂志", "锚定效应",
+    "脉脉", "脉脉高聘", "OfferShow", "猎聘", "前程无忧", "36氪", "人民网",
 ]
 VERSION = re.compile(r"\b\d+\.\d+(?:\.\d+)?\b")
 
