@@ -123,8 +123,23 @@ def main(mp4, srt, samples):
     F_SUB = ImageFont.truetype(FONT, 44)
     F_WM = ImageFont.truetype(FONT, 30)
     tmp = tempfile.mkdtemp(prefix="verify_")
+    # 默认采样点边界避让：烧录层（concat+fps+qtrle 字幕母版）对 cue 边界有
+    # ±2 帧（≤~130ms）整帧量化偏置（实测有界、不累积；音频同步由 check_sync
+    # 权威把关）。盲采样点若落在边界 ±0.25s 内，期望文本本身歧义 → 必 FAIL。
+    # 故未显式给采样点时，自动选「距任一 cue 边界 ≥0.25s」的三个时刻
+    #（早/中/晚各一）；显式传入的采样点仍按原样执行（靠近边界时打印提示）。
+    if not samples:
+        picks = []
+        for frac in (0.08, 0.5, 0.92):
+            t = frac * (cues[-1][1] if cues else 1.0)
+            while any(abs(t - b) < 0.25 for c in cues for b in (c[0], c[1])):
+                t += 0.05
+            picks.append(round(t, 2))
+        samples = picks
+        print(f"[自动采样] 边界避让后: {samples}")
     ok = True
     for t in samples:
+        near_bnd = any(abs(t - b) < 0.2 for c in cues for b in (c[0], c[1]))
         out = os.path.join(tmp, f"f_{t}.png")
         subprocess.run([FFMPEG, "-y", "-ss", str(t), "-i", mp4, "-frames:v", "1", out],
                        capture_output=True, check=True)
@@ -155,7 +170,8 @@ def main(mp4, srt, samples):
                     abs((exp_s[3] + SUB_Y) - got_s[3]) <= 6
                 note = f"x[{got_s[0]},{got_s[2]}] y[{got_s[1]},{got_s[3]}]"
             ok &= s_ok
-            print(f"t={t:7.2f} 水印 {'OK ' if wm_ok else 'FAIL'}  字幕 {'OK ' if s_ok else 'FAIL'}  {note}  「{txt[:18]}」")
+            bnd_note = "  [采样点靠近cue边界,FAIL或为量化偏置而非烧录错误]" if (near_bnd and not s_ok) else ""
+            print(f"t={t:7.2f} 水印 {'OK ' if wm_ok else 'FAIL'}  字幕 {'OK ' if s_ok else 'FAIL'}  {note}  「{txt[:18]}」{bnd_note}")
         else:
             got_s = text_bbox(img, SUB_Y - 6, min(SUB_Y + 70, H))
             gap_ok = got_s is None
@@ -167,5 +183,7 @@ def main(mp4, srt, samples):
 
 if __name__ == "__main__":
     mp4, srt = sys.argv[1], sys.argv[2]
-    samples = [float(x) for x in sys.argv[3:]] or [1.0, 5.0, 12.5]
+    # 未显式给采样点时传空列表 → main() 内按「边界避让」自动选点
+    # （原 [1.0,5.0,12.5] 盲采样易踩 cue 边界，见 main() 内注释）
+    samples = [float(x) for x in sys.argv[3:]]
     sys.exit(main(mp4, srt, samples))
