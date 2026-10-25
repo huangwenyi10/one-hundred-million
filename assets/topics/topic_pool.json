@@ -1416,7 +1416,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-10-25T21:45:45"
       },
       {
         "id": "SFT-02",
