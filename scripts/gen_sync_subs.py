@@ -149,9 +149,13 @@ def ffprobe_dur(path):
 
 
 def pad_audio(src, dst, min_dur):
+    # 坑（2026-10-25 修复）：apad 是音频过滤器，与 -c:a copy 冲突
+    # （Filtering and streamcopy cannot be used together），ffmpeg 直接失败、
+    # pad 文件不生成，后续 concat 引用缺失文件 → voiceover.mp3 静默缺失、
+    # durations[0]=0 且字幕时间轴整体前移。必须重编码（libmp3lame）。
     subprocess.run(
         ["/usr/local/bin/ffmpeg", "-y", "-i", src, "-af",
-         f"apad=whole_dur={min_dur:.3f}", "-c:a", "copy", dst],
+         f"apad=whole_dur={min_dur:.3f}", "-c:a", "libmp3lame", "-b:a", "128k", dst],
         capture_output=True)
     return dst
 
@@ -262,10 +266,19 @@ def main():
         for p in seg_paths:
             f.write(f"file '{p}'\n")
     voiceover = os.path.join(args.out_dir, "voiceover.mp3")
-    subprocess.run(
+    r = subprocess.run(
         ["/usr/local/bin/ffmpeg", "-y", "-f", "concat", "-safe", "0",
          "-i", concat_list, "-c:a", "copy", voiceover],
-        capture_output=True)
+        capture_output=True, text=True)
+    if r.returncode != 0 or not os.path.exists(voiceover):
+        # 防静默失败：concat 引用缺失文件（如 pad 未生成）时此前无感知，
+        # 成片会缺配音。显式报错退出。
+        print("ERROR: voiceover.mp3 拼接失败：", file=sys.stderr)
+        print((r.stderr or "")[-2000:], file=sys.stderr)
+        for p in seg_paths:
+            if not os.path.exists(p):
+                print(f"  缺失分段文件: {p}", file=sys.stderr)
+        sys.exit(1)
 
     # 写 SRT
     srt_path = os.path.join(args.out_dir, "subtitles.srt")
