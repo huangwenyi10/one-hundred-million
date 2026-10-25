@@ -90,6 +90,14 @@
 
 ## 2026-10-25 · 读书训练营 · 停工待料轮（#2《迈向AGI时代》原书文件未提供）
 
+### L010 [流程缺口] 10-15 的 capture_book_figs.py 修复版遗漏推送，远端长期持旧版（gate 联网时才暴露） → **fixed / verified（已补推 + 本地远端对齐）**
+
+- **现象**：本轮 gate 的 `git fetch` 联网成功，报「本地落后 origin/main 59 个提交」；排查发现远端 `scripts/capture_book_figs.py` 是 10-13 旧版（364 行，无 `get_image_info` 图区判定修复），本地却是 10-15 晚 `66efb02` 修复版（523 行，含三类排除 + 文字密度门禁）。
+- **根因**：①10-15 晚轮次自报「已推送」（远端 5870132），但该文件实际未落远端（疑当轮 `FILES_JSON` 未含它，或后续某客户端以旧版覆盖）；②API 推送按文件逐个生成新 commit，本地 commit 对象永远不在远端 → 慢性分叉；③此前各轮 gate 的 fetch 均超时走离线 WARN 通道，分叉一直不暴露，本轮联网才炸。
+- **修复**：① API 补推修复版（PUSH_OK，commit 300979c）；② `git merge origin/main` 解 add/add 冲突取本地修复版；③ `git reset --hard origin/main` 对齐（reset 前已验证 `git diff HEAD origin/main` 为空，两树内容一致，不丢任何内容）；④ gate 复跑 PASS。
+- **防复发点**：gate 在线时分叉必现（已有兜底）；**新增纪律（替代「PUSH_OK 即完事」）：每轮 API 推送后 `git fetch` + `git diff HEAD origin/main` 必须为空，非空即当轮 merge/reset 处理**。
+- **状态**：fixed / verified。
+
 ### L009 [流程缺口] update_catalog.py 在技能仓库根执行会把「目录/」误写进技能仓库 → gate FAIL → **fixed / verified（已加脚本守卫）**
 
 - **现象**：2026-10-25 23:01 定时轮转开工，`client_preflight.py gate` 报 FAIL「技能目录有未提交改动（1 项）」——技能仓库根出现未跟踪的 `目录/`（00_总览.md + 09_读书训练营.md，mtime 2026-10-22 23:50）。
