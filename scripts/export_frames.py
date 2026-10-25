@@ -104,7 +104,7 @@ def main():
 
     if a.dry_run:
         for i in targets:
-            print(f"  将导出 page_{i:03d}.png")
+            print(f"  将导出 page_{i:02d}.png")
         return 0
 
     os.makedirs(a.out, exist_ok=True)
@@ -118,7 +118,10 @@ def main():
         # 目标页强制显示；其余页不渲染进同一文件
         one = (head + "\n" + pg + "\n</body></html>").replace(
             "</head>", "<style>.slide{display:block!important}</style></head>")
-        out_png = os.path.join(a.out, f"page_{i:03d}.png")
+        # 命名必须与流水线约定一致：page_NN.png（两位数，见 SKILL.md 导帧段 /
+        # jobctl.py frames 阶段扫描 build/frames/page_*.png）。曾误用 {i:03d}
+        # 产出 page_011.png，与既有 page_11.png 并存导致下游按两位找不到新帧。
+        out_png = os.path.join(a.out, f"page_{i:02d}.png")
         good, err = render_one(chrome, one, out_png, a.width, a.height)
         if not good:
             failed.append((i, err))
