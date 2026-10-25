@@ -165,6 +165,17 @@ def main():
     ap.add_argument("--workspace", default=os.getcwd())
     args = ap.parse_args()
 
+    # 防复发守卫（2026-10-25 L009）：--workspace 缺省 = 运行时 cwd，若在技能仓库
+    # 根目录执行本脚本（cd 技能目录后跑 scripts/update_catalog.py），会把「目录/」
+    # 误写进技能仓库 → 变成未跟踪杂物，下一轮 client_preflight gate 必 FAIL。
+    # 技能仓库以 SKILL.md 为特征文件；解析到它即报错退出，要求显式传 --workspace。
+    ws = os.path.abspath(args.workspace)
+    if os.path.isfile(os.path.join(ws, "SKILL.md")):
+        sys.stderr.write(
+            f"ERROR: --workspace 解析到了技能仓库自身（{ws}）。\n"
+            "      目录索引属于视频工作区，不是技能仓库；请显式传 --workspace <工作区路径>。\n")
+        sys.exit(1)
+
     camp = norm_camp(args.camp)
     if not camp:
         sys.stderr.write(f"类别无法归入 9 大类：'{args.camp}'。可归入：{', '.join(CATEGORIES)}\n")
