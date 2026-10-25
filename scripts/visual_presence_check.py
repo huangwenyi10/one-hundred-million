@@ -126,8 +126,10 @@ def read_plan(plan_path):
         if "段号" in cells[0] or "口播要点" in cells[0]:
             continue
         rows += 1
-        # 载体列（第4 列）非空且非 "—" 即视为声明了载体
-        if len(cells) >= 4 and cells[3] and cells[3] not in ("—", "-", "无"):
+        # 载体列（第4 列）为空、或以「—」开头（含「—（说明）」带后缀写法）、或为「无」→ 未声明载体
+        # （2026-10-25 蒸馏·learnings L007：期号12/18 两次因「—（说明）」被计入声明数致 BLOCK，
+        #  精确相等判定太脆，改为前缀判断）
+        if len(cells) >= 4 and cells[3] and not cells[3].startswith(("—", "-", "无")):
             carriers += 1
     return {"rows": rows, "carriers": carriers}
 
