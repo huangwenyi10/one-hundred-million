@@ -1287,7 +1287,7 @@
       },
       {
         "id": "MGT-07",
-        "title": "技术债和业务需求抢排期",
+        "title": "技术债抢排期：把利息算给业务看",
         "dimension": "技术管理",
         "angle": "怎么把技术债折成业务能听懂的语言换取排期",
         "tier": "M",
@@ -1296,7 +1296,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-10-25T19:12:39"
       },
       {
         "id": "MGT-08",
