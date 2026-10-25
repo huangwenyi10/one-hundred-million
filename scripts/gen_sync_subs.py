@@ -183,6 +183,12 @@ def main():
         print("ERROR: segments.txt 为空", file=sys.stderr)
         sys.exit(2)
 
+    # 防闪页检查（2026-10-25 蒸馏·learnings L008）：过短段配音 <10s 会闪页
+    # （期号17 段仅 26 字、期号18 段仅 12 字两次踩坑后固化为脚本提示）。
+    short = [(i + 1, len(s)) for i, s in enumerate(segs) if len(s) < 40]
+    if short:
+        print(f"  [WARN] 短段（<40字≈10s，有闪页风险）：{short} —— 建议平衡切分点扩句", flush=True)
+
     durations = []
     starts = []
     ends = []
