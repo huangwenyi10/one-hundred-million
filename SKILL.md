@@ -378,6 +378,14 @@ disable-model-invocation: false
     - **④ 蒸馏纪律（同类 2 次即固化）**：同一根因的问题第 2 次出现时，必须固化为 **SKILL.md 固定规范条款或脚本硬门禁**（能脚本化的优先脚本化——像素门禁比文字条款更难被绕过，参考 `bg_theme_check.py` / `subtitle_band_check.py` 式），并在 learnings.md 标注「已蒸馏 → 条款号」；已成规范的记录移入 `references/craft-quality.md` 归档，SKILL.md 只留指针，防无限膨胀。
     - **⑤ 三级沉淀模型**：L1 单轮修复（当轮改掉 + 登记）→ L2 复发固化（同根因 ≥2 次 → 规范条款 / 脚本门禁）→ L3 归档（`references/craft-quality.md`）。定时轮转模式同样适用（「产出后写回」清单已含登记项）。
 
+41. **技能更新必推送 GitHub（强制·2026-10-25 起·作者决策「更新了技能要提交到 GitHub」）**：本技能的**任何改动**——SKILL.md 条款增改、`scripts/` 脚本修复或新增、`assets/`（`topic_pool.json` / `syllabus.json` / `learnings.md`）写回、`templates/` 调整、`references/` 更新——**当轮必须提交并推送到 GitHub 仓库**（`huangwenyi10/one-hundred-million`），不等作者提醒、不攒批、不留在本地。推送是改动的收尾步骤，不是可选项。六条执行规则：
+    - **① 触发范围**：凡 `git status` 有改动（含 untracked 的新脚本 / 新资产），本轮结束前必须 commit + push。定时轮转模式下「产出后写回」清单的 assets 写回项 = 改动 = 必推；**「只改了没推」视为本轮未完成**。
+    - **② 本地提交先行**：先 `git add <改动文件>` + `git commit -m "<类型>: <摘要>"`（提交信息写清改了什么、为什么、关联期号 / 踩坑编号，如 `fix(scripts): …` / `feat(learning): …`），再推送——本地 commit 是推送失败时的兜底存档，不许只推不commit。
+    - **③ 推送通道（本机实测约束·勿走 git push）**：出口代理对 `github.com` 的 **git 协议（smart-HTTP / ssh）返回 502 / CONNECT aborted，常规 `git push` 走不通**；默认 `HTTPS_PROXY` 对 `api.github.com` 可通。推送一律走 GitHub REST API 脚本 `~/.workbuddy/scripts/push_github_api.py`：`TOKEN=$(printf 'protocol=https\nhost=github.com\nusername=huangwenyi10\n' | git credential-osxkeychain get | sed -n 's/^password=//p')` 从 macOS 钥匙串取 classic PAT → `COMMIT_MSG="<提交信息>" FILES_JSON='{"<repo内相对路径>":"<本地绝对路径>", ...}' GH_TOKEN="$TOKEN" python3 ~/.workbuddy/scripts/push_github_api.py`，**每个文件输出 `PUSH_OK` 才算成功**（远程内容相同则 NOOP 跳过）。PAT 需 `repo`  scope。
+    - **④ 凭据安全红线**：PAT 只从钥匙串读取，**严禁把明文 PAT 写进任何会提交进仓库的文件**（SKILL.md / 脚本 / references 都不行）——repo 级密钥随仓库公开泄露；钥匙串与 `.git/config` 均不入库，满足「写进技能能自动推」又不泄密。
+    - **⑤ 推送后同步**：REST API 推送完成后本地执行 `git update-ref refs/remotes/origin/main HEAD`，保持 `origin/main` 与 HEAD 一致，避免下次误判 ahead/behind 或重复推。
+    - **⑥ 失败不静默**：推送失败（网络 / PAT 失效 / 文件冲突）必须在本轮日志与 `metrics.csv` 备注记录失败原因与待推送清单，**下次开工第一件事重试推送**——技能改动滞留本地 = 其他客户端 clone 不到，直接违反第 40 条「跨轮生效」的前提。
+
 ### 定时轮转生产模式（自动化任务驱动 · 每 2 小时一大类）
 
 定时任务（自动化）对本技能的调用方式极简：仅「加载技能 one-hundred-million，每 2 小时执行一次」。**本技能的完整生产逻辑内建于此，定时任务不携带任何流程细节**——技能每次被定时调用时，按以下机制自行决定本次做哪一大类、做成什么样。**自动化每次执行前必须重新完整加载本 SKILL.md 并严格按其当前 Step 0～Step 8 全流程执行；若自动化自身历史记忆中的流程要点与本 SKILL.md 不一致，一律以本 SKILL.md 为准，禁止沿用旧管线**（旧 PIL 管线 `render_frames.py`/`gen_ppt.py` 出 base64 图片式 PPT 已废弃；Step 2 已改强制套 `templates/slide-template.html`，Step 6 已改用 `compose_motion.py`/`render_animated.js`）。
@@ -424,6 +432,7 @@ disable-model-invocation: false
 5. 写回 `one-hundred-million-rotation.json`（本次类别下标 + 类别名 + 标题 + 时间）。
 6. **抖音合规自检（无人值守必跑 · 固定规范第 30 条）**：进入 Step 7 前跑 `python3 scripts/douyin_compliance_check.py "<标题>/<训练营全名>-<标题>_口播稿.txt" --title "<标题>"`，**BLOCK 必须清零**；命中即改写话术 → 重跑 Step 3/5（配音 / 字幕）→ 再扫，结论（命中项、改写处、最终 exit 码）记入本轮日志与 `metrics.csv` 备注。无人值守时**不得**把带 BLOCK 的成片标为「可发布」。
 7. **学习登记簿写回（强制 · 固定规范第 40 条①）**：把本轮发现的全部问题（门禁 FAIL 整改 / 返工 / 脚本 bug / 目检异常 / 作者打回）逐条登记进技能 **`assets/state/learnings.md`**（五元组：现象→根因→修复→防复发点→状态；四类归档：脚本bug / 排版规则 / 流程缺口 / 门禁失效）——**只写 metrics.csv 备注不算登记**；同根因第 2 次出现的按第 40 条④强制执行蒸馏（固化条款或脚本门禁）。
+8. **技能改动推送 GitHub（强制 · 固定规范第 41 条）**：本轮凡改过技能仓库（SKILL.md / scripts / assets / templates / references——含上面第 2、7 条的 assets 写回），**收尾必须 commit + 推送**（走 REST API 通道 `~/.workbuddy/scripts/push_github_api.py`，逐文件 PUSH_OK 后 `git update-ref` 同步）；失败则记录待推送清单，下次开工首事重试。**只改没推 = 本轮未完成。**
 
 **7. 纪律**
 
@@ -723,6 +732,7 @@ disable-model-invocation: false
 - **镜头运动自检**：正文合成已采用 Ken Burns 镜头运动 + 交叉淡入（`compose_motion.py`）或明确说明不用运动的原因；无整片全程静止 / 一帧一帧硬切的现象；运动强度默认轻微、未致观感眩晕；帧停留时长仍取自 `segments_durations.json`、四方同频未受影响。**画面不抖（强制）**：镜头运动走 `perspective` 亚像素采样（`interpolation=cubic` + `eval=frame`），`video_quality_gate.py` 的 MOTION 组判定「运动段无零位移帧 + 裁剪窗不越界 + 跨段连续」全部通过，且合成后复核（`[合成后复核] 运动段逐帧位移均匀、无停顿帧 ✅`）无停顿帧告警——**出现「相邻帧裁剪窗相同 / 逐帧差异 max/min > 8」即为运动量化抖动，必须回炉**（历史教训：zoompan 整数裁剪会让 37% 的运动帧与前一帧像素完全相同，肉眼即「一顿一顿」）。
 - **字幕带内容零侵入（强制·固定规范第 15 条配套·2026-10-25 起）**：导帧后已跑 `python3 scripts/subtitle_band_check.py build/frames` 且 **exit 0**（y 918~1001 字幕带区域无非白像素，排除右下页码区）；未跑或 FAIL 不得进入烧录。人眼排版会漏 flex 陷阱（封面 hero 被 flex-end+padding 推入字幕带的事故原型见 `assets/state/learnings.md` L004），此门禁是确定性兜底。
 - **学习登记簿已写回（强制·固定规范第 40 条）**：Step 8 收尾已把本轮全部问题（门禁整改/返工/脚本 bug/目检异常/作者打回）逐条登记进 `assets/state/learnings.md`（五元组齐备）；下轮 Step 0 第 0 条开工回顾可读到。**只写 metrics.csv 备注 = 未登记**；同根因第 2 次出现的已执行蒸馏（条款/脚本门禁）。
+- **技能改动已推送 GitHub（强制·固定规范第 41 条）**：本轮凡改过技能仓库（SKILL.md / scripts / assets / templates / references）均已完成 `git commit` + REST API 推送（逐文件 PUSH_OK）并 `git update-ref` 同步；无「只改没推」的滞留改动；推送失败的已记录待推送清单并排入下次开工首事。
 - **发布关卡：作者审核通过前不发布**（本关卡不适用固定规范第 16 条超时续跑）。任何平台发布动作前，必须留有作者明确批准的记录。
 - **选题发布价值已判断**：开工前已对作者初始标题做过 7 维发布价值判断（垂直相关性/受众规模/传播钩子/获客漏斗价值/事实可核实性/数据反哺/体系归属）；判为无价值的标题未直接照做，已用绑定技能与连接器检索并产出 3–5 个替代选题、作者确认后才开工；判断结论有记录。
 - **选题已体系定位（强制）**：本期选题落在 `references/syllabus.md` 中该训练营的**开放能力地图某维度**上（如「架构师·高并发」「前端·性能」），非游离体系的孤立零散点；开工顺序为「先定体系位置 → 再出题目」；该维度已讲过的主题已换角度 / 新数据或顺延到未覆盖维度；因热点切入的维度已记录。
