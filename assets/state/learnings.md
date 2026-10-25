@@ -54,6 +54,34 @@
 
 ---
 
+## 2026-10-25 · 软技能训练营 · 期号 18《被问期望薪资，区间别报死》
+
+### L006 [门禁失效] visual_presence_check 误把 CSS 注释里的 section 示例文本解析成幻灯片页 → **fixed / verified（模板根因已修）**
+
+- **现象**：visual_presence_check 报「幻灯片总数 17」（实际 16 页），页码整体错位——载体页列表 [4..15]、纯文字页 [1,2,3,16,17] 与真实页序不符。
+- **根因**：`SLIDE_SPLIT_RE` 按 `<section[^>]*class="[^"]*\bslide\b` 匹配，而 `templates/slide-template.html` 头部使用注释里写着「每页一个 `<section class="slide">`，从下方『版式组件』选一个骨架」——每个套模板的 PPT 都会带这段注释，于是每期都会被误解析出 1 个「假页」排在真实页前面。
+- **修复**：模板注释中的 `<section class="slide">` 字样改为「slide 章节块」（不触发正则）；本期 PPT 同步删除该字样。修复后复跑 16 页、页码归位 PASS。
+- **防复发点**：模板根因已修（`templates/slide-template.html`），后续所有套模板产出的 PPT 不再带该误匹配源；`split_slides` 行为不变。
+- **状态**：fixed / verified。
+
+### L007 [流程缺口] visual_plan 载体列「—（说明）」带后缀被计入声明数致 BLOCK（期号12 同款复发） → **distilled（脚本门禁已加固）**
+
+- **现象**：plan 有 4 个非载体段（封面/split/卡片/CTA），载体列写「—（封面 hero 版式页）」，visual_presence_check 报「声明载体 16 段 / 落实 12 页」BLOCK。
+- **根因**：`read_plan` 对「未声明载体」的判定是**精确相等**（`cells[3] not in ("—","-","无")`），任何带后缀的说明文字都会逃过判定被计为声明。**期号12（2026-10-18）已踩过同款坑并记入 metrics 备注，但未沉淀为登记簿条目、未修脚本——本轮复发，属第 2 次同根因。**
+- **修复**：① 本期 plan 四行改精确「—」；② **蒸馏**——`visual_presence_check.py` 的 `read_plan` 判定改为 `startswith(("—","-","无"))` 前缀判断，带后缀说明也不再误计（已复跑验证 PASS）。
+- **防复发点**：脚本门禁已加固；SKILL.md 侧无需再文字提醒。
+- **状态**：distilled → `scripts/visual_presence_check.py` read_plan。
+
+### L008 [流程缺口] segments 段过短致闪页（期号17 同款复发） → **distilled（脚本提示已加固）**
+
+- **现象**：本期 segments 段7「具体怎么落地？记住三步。」仅 12 字，配音约 3 秒，对应页会闪页。
+- **根因**：按页切分时为对齐 PPT 页留了过渡段，未校验段长下限；M 档单页停留 10-15 秒，<10s 即闪。**期号17（2026-10-25 管理营）踩过同款（段仅 26 字），当时只在本期 metrics 备注记录、未固化——本轮复发，属第 2 次同根因。**
+- **修复**：① 本期口播稿/segments 同步扩充段7 至 40 字（≈10s），重新校验「拼接==原文」；② **蒸馏**——`gen_sync_subs.py` 读取 segments 后增加短段 WARN（<40 字列出段号与字数，提示平衡切分点）。
+- **防复发点**：脚本提示已加固；切分 segments 后跑 gen_sync_subs 即会暴露短段。
+- **状态**：distilled → `scripts/gen_sync_subs.py` 短段 WARN。
+
+---
+
 ## 观察项（未构成问题，登记备查）
 
 - O1（2026-10-25）：字幕母版 30fps 整帧量化与 srt 边界存在 ≤122ms 有界漂移（不累积、音频由 check_sync 权威把关）——**已知公差，不是缺陷**；若未来漂移越过 ±0.5s 或开始累积，升级为 `脚本bug` 类登记并修烧录引擎。
