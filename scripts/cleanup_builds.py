@@ -18,7 +18,7 @@
 
   不可再生（保留） 溯源与复现台账，体积 <100 KB——
                   `sources.md` `book_source.md`
-                  `segments_durations.json` `polyphone_map.json`
+                  `segments_durations.json` `polyphone_map.json` `visual_plan.md`
                   → 删了无法自证内容出处、无法二次重制对齐，故**迁入交付目录 `_archive/`**
                     随交付物一起走，而不是留在 build 里等下次连坐删除
 
@@ -65,7 +65,9 @@ SKIP_TOP = {"scripts", "templates", "目录", "发布", "assets", "node_modules"
 TS_SUFFIX_RE = re.compile(r"_\d{8}-\d{2,}$")
 
 # 不可再生的溯源/ 复现台账 —— 清理时迁入<交付目录>/_archive/，不删
-KEEP_FILES = ("sources.md", "book_source.md", "segments_durations.json", "polyphone_map.json")
+# visual_plan.md（固定规范第34条载体台账）2026-11-01 补入（learnings L017 二次复发→蒸馏）：
+# 它记录了「每一页为什么这样排」，与 sources.md 同属审计证据，删了每期都要手工找回。
+KEEP_FILES = ("sources.md", "book_source.md", "segments_durations.json", "polyphone_map.json", "visual_plan.md")
 
 # 保留台账的迁入目录名（放在交付目录内，随交付物走）
 ARCHIVE_DIR = "_archive"
