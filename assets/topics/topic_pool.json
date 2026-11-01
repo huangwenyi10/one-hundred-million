@@ -1037,7 +1037,8 @@
         "aiAngle": "AI 生成测试用例与边界探索",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-01T22:23:13"
       },
       {
         "id": "TST-03",
