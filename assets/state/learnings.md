@@ -124,7 +124,7 @@
 - **根因**：模板为给代码区腾位置写了 `.slide.code-page .slide-head{top:64px}`，而标题带 `.slide::before` 只有 150px 高、标题色为白 —— 头部下移 64px 后标题越过 150px 边界，白字压在白底上。
 - **修复（本期）**：PPT 内覆盖 `.slide.code-page .slide-head{top:0}`（标题回到带内）。
 - **防复发点**：**属模板级缺陷，建议把模板该条改为 `top:0`**（本期未改模板，避免影响其他期次已有版式）；后续任何用模板做代码页的期次都要加这条覆盖，第二次再撞即按第 40 条④ 直接修模板。
-- **状态**：fixed（本期）/ open（模板待修）。
+- **状态**：distilled（2026-11-01 期号24 二次复发 → 模板已改 `.slide.code-page .slide-head{top:0}`，模板级根治）。
 
 ### L013 [排版规则] 代码页右侧三张 `.side-card` 溢出压入字幕带（3 帧 FAIL） → **fixed / verified**
 
@@ -164,4 +164,25 @@
 - **根因**：脚本的不可再生台账白名单写死为 4 个文件，`visual_plan.md` 不在其中；但它同样是「页面为什么这样排」的审计证据。
 - **修复（本期）**：按交付时内容重建一份存入 `_archive/visual_plan.md` 并在文件头注明来源。
 - **防复发点**：**建议把 `visual_plan.md` 加入 `cleanup_builds.py` 的归档白名单**（与 sources.md 同级），否则每期都要手工找回。
-- **状态**：open（脚本未改；本期已手工补档）。
+- **状态**：distilled（2026-11-01 期号24 二次复发 → `cleanup_builds.py` 的 `KEEP_FILES` 已加入 `visual_plan.md`，此后自动迁 `_archive/`）。
+
+
+---
+
+## 2026-11-01 · 测试训练营 · 期号 24《拦不住历史bug的用例，错在哪》
+
+### L018 [脚本bug] 字幕把英文文献标题硬断成碎片 → 观众看到「ange-Detector Tests Considered H」 → **fixed / verified**
+
+- **现象**：成片 t≈116s 字幕显示 `ange-Detector Tests Considered H`，前后 cue 各截一段，英文单词被切断、整句读不通。
+- **根因**：`gen_sync_subs.py` 的 `split_lines()` 只在中文标点处断句，超长就直接按 `max_chars=32` 硬断——遇到长英文标题（《Change-Detector Tests Considered Harmful》）必然把单词切成两半。
+- **修复**：①脚本加 `_safe_cut()`——切点落在 ASCII 单词内部时回退到最近空格（回退距离 ≤ max_chars/2），切分只改位置不增删字符，`sum(片段)==原文` 与 `pos_map` 连续性不变；②本期口播把英文标题改为中文译名（「变更检测型用例有害」），双保险。
+- **防复发点**：口播避免念长英文标题（用中文译名，画面上再标英文原名）；脚本层面的回退已固化，任何含英文/版本号的长句都不再断词。
+- **状态**：fixed / verified（单测：切分后拼接与原句完全一致，单词完整）。
+
+### L019 [排版规则] `.diagram-grid` 三个宽 nodebox 挤在一行 → 折行塌陷成竖排文字 → **fixed（本期改版式）/ open（组件待根治）**
+
+- **现象**：P13 用 `diagram-grid` 放三个节点（单元层/集成层/端到端层），导出帧里三个节点竖着堆成一段文字，箭头也串成纵向，整页不可读。
+- **根因**：`.diagram-row` 是 `flex-wrap:wrap`，三个节点各约 520px + 两个 `spacer` 60px 超过可用宽 1600px → 每个节点独占一行；`.nodebox` 没有 `flex`，宽度按内容塌缩。
+- **修复（本期）**：改用 `.flow + .stepcard`（与 P2/P12 同款，横向三等分稳定）。`visual_plan.md` 同步改载体名。
+- **防复发点**：**横排三节点以上一律优先 `.flow + .stepcard`**；确需 `diagram-grid` 时给 `.nodebox` 加 `flex:1` 或把节点压到 2 个以内。第二次再撞即按第 40 条④ 直接改模板。
+- **状态**：fixed（本期）/ open（组件）。
