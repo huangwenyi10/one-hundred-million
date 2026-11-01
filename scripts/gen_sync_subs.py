@@ -22,6 +22,25 @@ MAX_CHARS = 32  # 单行最大中文字符数（render 端仍会按需缩字号�
 COVER_MIN = 2.0  # 封面最短显示秒数（不足则补静音，保持画面可读且时间轴一致）
 
 
+def _safe_cut(text, max_chars):
+    """计算本轮切点；若切点落在英文/数字单词内部，回退到最近的空格（learnings L018）。
+
+    背景（2026-11-01 期号24 实测）：口播里出现长英文标题（《Change-Detector Tests
+    Considered Harmful》）时，硬断把单词切断，字幕出现「ange-Detector Tests Considered H」
+    这种碎片。回退到空格可保持单词完整；切点只影响切分位置，不增删任何字符，
+    因此 sum(片段) == 原文、pos_map 仍严格连续。
+    """
+    cut = max_chars
+    if cut >= len(text):
+        return cut
+    prev_c, next_c = text[cut - 1], text[cut]
+    if prev_c.isascii() and prev_c.isalnum() and next_c.isascii() and next_c.isalnum():
+        sp = text.rfind(' ', 0, cut)
+        if sp != -1 and 0 < cut - (sp + 1) <= max_chars // 2:
+            cut = sp + 1
+    return cut
+
+
 def split_lines(text, max_chars=MAX_CHARS):
     """把一句拆成多个单行显示片段（在标点处断，否则硬断）。返回 [(line_text, char_start, char_end)]。"""
     # 先按句末标点切成子句，再在子句内按 max_chars 硬断
@@ -31,10 +50,11 @@ def split_lines(text, max_chars=MAX_CHARS):
     for p in pieces:
         if not p:
             continue
-        # 若单子句超长，按 max_chars 硬断
+        # 若单子句超长，按 max_chars 硬断（英文/数字单词内部优先回退到空格）
         while len(p) > max_chars:
-            out.append(p[:max_chars])
-            p = p[max_chars:]
+            cut = _safe_cut(p, max_chars)
+            out.append(p[:cut])
+            p = p[cut:]
         out.append(p)
     # 合并过碎的尾部
     lines = []
