@@ -850,7 +850,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-01T16:54:31"
       },
       {
         "id": "FED-04",
