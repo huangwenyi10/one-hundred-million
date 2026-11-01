@@ -652,7 +652,8 @@
         "aiAngle": "AI 辅助需求挖掘与优先级排序",
         "handsOn": false,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-01T12:38:50"
       },
       {
         "id": "PRD-04",
