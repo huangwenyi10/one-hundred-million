@@ -269,7 +269,8 @@
     font-family:"SF Mono",Menlo,Consolas,monospace}
   /* 代码页：标题单行化 + 内容区让位 */
   .slide.code-page .title{font-size:54px}
-  .slide.code-page .slide-head{top:64px}
+  /* 2026-11-01 修正（learnings L012 二次复发→蒸馏）：原 top:64px 会把白色标题推出 150px 标题带、压到白底上看不见 */
+  .slide.code-page .slide-head{top:0}
   .slide.code-page .code-wrap{top:268px;bottom:158px}
   .slide.code-page .code-note{font-size:23px;margin-top:12px}
   .slide.code-page .code-line{font-size:26px;line-height:1.58}
