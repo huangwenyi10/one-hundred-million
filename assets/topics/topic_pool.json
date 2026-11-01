@@ -479,7 +479,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "成本数字须实测或标来源",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-01T11:19:46"
       },
       {
         "id": "AIX-06",
