@@ -1235,7 +1235,8 @@
         "aiAngle": "AI 辅助 OKR 拆解与风险扫描",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-02T12:23:18"
       },
       {
         "id": "MGT-03",
