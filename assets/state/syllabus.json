@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-11-01",
+  "updated": "2026-11-02",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -52,9 +52,10 @@
     },
     "管理训练营": {
       "expertGoal": "",
-      "lastTopic": "技术债抢排期：把利息算给业务看",
+      "lastTopic": "OKR 打分别随手填",
       "covered": [
-        "技术管理"
+        "技术管理",
+        "目标与计划"
       ]
     },
     "软技能训练营": {
