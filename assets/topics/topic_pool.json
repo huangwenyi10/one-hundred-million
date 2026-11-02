@@ -1435,7 +1435,8 @@
         "aiAngle": "AI 辅助整理汇报结构",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-02T21:25:49"
       },
       {
         "id": "SFT-03",
