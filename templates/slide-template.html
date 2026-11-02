@@ -152,6 +152,9 @@
     border:2px solid var(--accent);border-radius:18px;padding:20px 28px;
     font-size:30px;font-weight:600;text-align:center;white-space:normal;
     overflow-wrap:anywhere;word-break:keep-all;min-width:0;max-width:100%;overflow:hidden}
+  /* 2026-11-02 蒸馏（learnings L019/L023 同根因二次出现）：diagram-row 内节点按内容塌缩 →
+     双节点偏窄、三节点折行塌陷。统一给等分宽度 + 允许收缩，此后无需逐页写内联 min-width。 */
+  .diagram-row .nodebox{flex:1;min-width:0}
   .node.dim,.nodebox.dim{border-color:var(--line);background:var(--panel);color:var(--muted)}
   .node.cyl{border-radius:50%/50% 50% 0 0;padding-top:28px}
   .edge{stroke:var(--accent);stroke-width:3;fill:none;marker-end:url(#arrow)}
