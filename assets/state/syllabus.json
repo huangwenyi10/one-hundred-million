@@ -1,13 +1,14 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-11-02",
+  "updated": "2026-11-03",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
-      "lastTopic": "容量估算翻车复盘",
+      "lastTopic": "成本优化先动哪一层",
       "covered": [
         "高可用与稳定性",
-        "高并发"
+        "高并发",
+        "云原生与成本"
       ]
     },
     "大数据训练营": {
