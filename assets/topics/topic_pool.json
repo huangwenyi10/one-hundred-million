@@ -122,7 +122,8 @@
         "aiAngle": "AI 辅助识别成本异常与闲置资源",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-03T12:23:32"
       },
       {
         "id": "ARC-09",
