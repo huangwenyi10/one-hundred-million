@@ -334,7 +334,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-03T22:17:51"
       },
       {
         "id": "BIG-10",
