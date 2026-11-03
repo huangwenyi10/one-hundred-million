@@ -236,3 +236,51 @@
 ### 本轮其他（无需改规则，记备查）
 - **水印与页头间距实测**：水印胶囊右缘约 x=228，模板 `.slide-head{left:260px}` 的 kicker 起点 x=260，余量约 32px——**刚好不压字但余量偏小**。若后续把页头左缘再往左调，必须同步检查水印胶囊（作者：@Map，6 字 × 30px）。
 - **合规脚本无 `--copy` 参数**（本机版本），文案复检一律用位置参数多文件 + `--title`，与既有记忆一致。
+
+---
+
+## 2026-11-03 · 架构师训练营 · 期号 27《降本第一步不是砍机器》
+
+### L025 [排版规则] 拼装模板时 head 出现两次 `</head>` → 覆盖 `<style>` 落到 body → 覆盖样式全部失效，P3 流程页布局崩 → **fixed / verified**
+
+- **现象**：`export_frames` 出的 page_03 里，四张流程卡贴在画面最顶部、压住标题带，`legend` 紧跟其后；而 `.stage{position:absolute;top:250px;bottom:214px}` 明明已写进 HTML。
+- **根因**：生成器用 `tpl.split("<body>")[0]` 取前缀——该前缀本身已含 `</head>`，再拼 `OVERRIDE + "</head>"` 就变成两个 `</head>`，覆盖用的 `<style>` 落在 body 之后，未生效（`.stage` 类不存在 → div 退回文档流）。
+- **修复**：`tpl.split("<body>")[0].rsplit("</head>", 1)[0] + OVERRIDE + "</head>"`；改后重导帧，15 帧全部正常。
+- **防复发点**：**凡「取模板前缀 + 追加样式」的生成器，必须先剥掉前缀里原有的 `</head>`**；生成后 `grep -c "</head>"` 必须等于 1，否则一定失效。另：`.stage` 这类自定义容器没生效时，画面特征就是「内容贴顶、被绝对定位元素压住」，先查样式是否真进了 head。
+- **状态**：fixed / verified。
+
+### L026 [排版规则] 模板 `.legend{margin-top:auto}` 在自定义 flex 容器里把正文顶到页头 → **fixed / verified**
+
+- **现象**：P3/P14 的流程图与说明行分别贴住画面最上与最下，中间大片空白。
+- **根因**：模板 `.legend` 用 `margin-top:auto` 在 `.diagram-stage`（flex column，内容独占）里把说明推到底部；搬到 `.stage`（同样是 flex column）后 auto 又把上方内容压到顶部。
+- **修复**：覆盖 `.stage .legend{margin-top:0}`，内容随 `justify-content:center` 居中。
+- **防复发点**：**复用模板组件到自定义容器时，`margin:auto` 类定位必须一并覆盖**；`grep "margin-top:auto" templates/slide-template.html` 可一次找全。
+- **状态**：fixed / verified。
+
+### L027 [排版规则] 终端块行数多时溢出，压住下方 `.code-note` 注释 → **fixed / verified**
+
+- **现象**：P10 终端块第 12 行（高亮行）被 `code-note` 文本压住半行，实际视频 t≈200s 帧可见。
+- **根因**：12 行 × 26px × line-height 1.58 ≈ 493px，加内边距与 code-file/code-note 共约 673px，超过可用高 598px（top:268 / bottom:214）。
+- **修复**：该页 `.code-line{line-height:1.4}`（≈437px）+ `code-note` 压成单行，重导帧后 12 行完整可见。
+- **防复发点**：**终端块按「行数 × 字号 × 行高 + 内边距 + 注释 ≈ 可用高」先算再排**；13 行以上一律先降行高到 1.4，或拆两页，不要靠目检才发现。
+- **状态**：fixed / verified。
+
+### L028 [门禁失效] `visual_presence_check` 不把 `.card-grid` 当载体 → 计划里写「指标卡」会被判 BLOCK → **fixed（口径纠正）**
+
+- **现象**：P7（三张指标卡）、P13（三张边界卡）用 `.card-grid`，门禁判为「纯文字页」，声明 13 载体只落实 11 页 → BLOCK。
+- **根因**：脚本只认 `code-block/terminal/diagram-grid/nodebox/flow/timeline/bars/cmp/stat/svg`，`card-grid` 不在其内；卡片页只算排版版式、不算视觉载体。
+- **修复**：P7 改 `.bars`（P95 12% / 内存 35% / 45 台）、P13 改 `.diagram-stage + flow`（nodebox），复跑 13 载体页 87% PASS。
+- **防复发点**：**计划表里「指标卡 / 卡片式」不能当载体写**——要么改 `stat`/`bars`/`table.cmp`，要么在 plan 里标「—」。Step 1 写 visual_plan 时就按脚本认的 9 类组件选，别等门禁打回。
+- **状态**：fixed / verified（口径已纠正到计划侧）。
+
+### L029 [排版规则] 发布封面按 `w*0.20` 定字号 → 4:3 竖排两行后副标题被裁 → **fixed / verified**
+
+- **现象**：`封面_4x3.png` 副标题「云账单省钱，顺序错了白省」贴到画幅下沿被裁掉一截。
+- **根因**：字号按宽度 20% 取（384px），两行主标题就吃掉 0.16h+2×1.24×384≈1126px，剩余高度不足。
+- **修复**：字号改 `w*0.15`（4:3）/ `w*0.185`（3:4），主标题定锚 `y=0.16h`、行距 1.24、副标题 `0.042w`，两版均留足下边距。
+- **防复发点**：**封面排版先算「行数 × 字号 × 行距 + 锚点 ≤ 0.86h」再定字号**；L022 的「定锚」原则保留，但字号必须与画幅高度联动，不能只按宽度。
+- **状态**：fixed / verified。
+
+### 本轮其他（无需改规则，记备查）
+- **合规命中属真命中非误报**：口播「那是理想情况的天花板」被 `天花板` 判绝对化 → 改「那是理论上限」；公众号文案「100% 基线」判 WARN → 改「全量基线」。两处均是话术问题，不是脚本误报。
+- **改写单段后的最小返工链**：改稿 → `build_segments` → 重建 `segments_tts` → `rm seg_08.*` → `gen_sync_subs`（其余段复用缓存）→ restore → sub_clean → check_sync → compose_motion → burn。**只重配改动段，别整篇重跑**。
