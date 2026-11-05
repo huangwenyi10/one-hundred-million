@@ -456,7 +456,9 @@
         "aiAngle": "本题即 AI 主线",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "reason": "出片完成：Agent 为什么会死循环（M档·AI 训练营·Agent与工具调用维度·2026-11-05）",
+        "updatedAt": "2026-11-05T13:00:56"
       },
       {
         "id": "AIX-04",
