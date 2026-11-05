@@ -335,7 +335,8 @@
         "handsOn": true,
         "risk": "",
         "status": "done",
-        "updatedAt": "2026-11-03T22:17:51"
+        "reason": "2026-11-03 物化视图成片已交付(成片9.2MB)，本轮补登记关闭",
+        "updatedAt": "2026-11-04T12:12:24"
       },
       {
         "id": "BIG-10",
