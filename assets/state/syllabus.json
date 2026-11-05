@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-11-04",
+  "updated": "2026-11-05T13:00:56",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -22,10 +22,11 @@
     },
     "AI 训练营": {
       "expertGoal": "",
-      "lastTopic": "推理成本怎么压下来",
+      "lastTopic": "Agent 为什么会死循环",
       "covered": [
         "RAG 与知识库",
-        "推理工程化与部署"
+        "推理工程化与部署",
+        "Agent 与工具调用"
       ]
     },
     "产品经理训练营": {
