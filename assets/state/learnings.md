@@ -292,3 +292,11 @@
 ### 本轮其他（无需改规则，记备查）
 - **合规命中属真命中非误报**：口播「那是理想情况的天花板」被 `天花板` 判绝对化 → 改「那是理论上限」；公众号文案「100% 基线」判 WARN → 改「全量基线」。两处均是话术问题，不是脚本误报。
 - **改写单段后的最小返工链**：改稿 → `build_segments` → 重建 `segments_tts` → `rm seg_08.*` → `gen_sync_subs`（其余段复用缓存）→ restore → sub_clean → check_sync → compose_motion → burn。**只重配改动段，别整篇重跑**。
+
+### L031 [脚本bug] `polyphone_check.py cmd_restore` 门控 `count` 漏还原已用代理字（给→己）致字幕残代理字、check_sync FAIL → **open（本地无条件还原兜底·待作者决策是否修脚本）**
+
+- **现象**：本轮回填 `check_sync` 报 `[①字幕≠口播稿] 首差@62: script='今天把这股流式拆给你看…' subs='今天把这股流式拆己你看…'`——字幕里代理字 `己` 没还原成 `给`；`polyphone_check.py restore` 只报「已还原 11 处」，漏了 4 处 `己→给`。
+- **根因**：`cmd_restore` 仅对 `v.get("count")` 非 0 的 map 条目做 `proxy→char` 还原（`if v.get("count"): srt=srt.replace(p, v["char"])`）。但 `polyphone_map.json` 里 `给→己` 的 `count` 被记为 0（scan 阶段未把「给」计入需代理命中，或 apply 实际替换集与 scan count 脱节），而口播稿确有 4 处「给」、且 `apply`/`make_segments` 实际把 给 替换成 己 进了 TTS 输入与字幕时间轴——restore 因 `count==0` 跳过该条目，字幕残留代理字。
+- **修复（本轮本地兜底·未改脚本）**：用「不门控 count 的无条件 `proxy→char` 还原」重跑 restore（遍历 map 全部 16 个代理字→原字替换），得到 `subtitles_fixed.srt`；复跑 `check_sync` PASS（84 cues / 245.52s / 字幕==口播稿 / 偏差 0.07s）。原始口播稿经核验不含任何 16 个代理字，故无条件替换不会误伤真实文本。
+- **防复发点**：根因是 `cmd_restore` 的 count 门控与「代理字实际被使用」脱节。建议二选一（待作者确认是否改脚本，保守偏好·改动前先问）：①`cmd_restore` 不论 count 均替换（与 apply 实际覆盖集对齐）；②map 生成时把「被 apply 实际替换」的条目 `count` 记为 ≥1。**本轮不擅自改脚本**，仅本地兜底；下个视频若再触发，按本条目复现。
+- **状态**：open（本地兜底·待作者决策是否修脚本）。
