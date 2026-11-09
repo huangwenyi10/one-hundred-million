@@ -1108,7 +1108,9 @@
         "aiAngle": "",
         "handsOn": false,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "reason": "2026-11-09 测试训练营期号6成片241.37s全门禁PASS，待作者Step7审核（未批准不发布不归档）",
+        "updatedAt": "2026-11-09T12:33:54"
       },
       {
         "id": "TST-08",
