@@ -1220,7 +1220,7 @@
     "管理训练营": [
       {
         "id": "MGT-01",
-        "title": "1:1 复盘表怎么用",
+        "title": "1:1复盘表：事实和判断分开",
         "dimension": "一对一与沟通",
         "angle": "一问一答式沟通为什么没用，一张表把事实和判断分开",
         "tier": "S",
@@ -1229,7 +1229,8 @@
         "aiAngle": "AI 辅助整理 1:1 纪要与行动项",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-10T12:22:44"
       },
       {
         "id": "MGT-02",
