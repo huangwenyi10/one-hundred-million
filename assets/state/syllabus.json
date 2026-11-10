@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-11-09T12:33:54",
+  "updated": "2026-11-10",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -58,10 +58,11 @@
     },
     "管理训练营": {
       "expertGoal": "",
-      "lastTopic": "OKR 打分别随手填",
+      "lastTopic": "1:1复盘表：事实和判断分开",
       "covered": [
         "技术管理",
-        "目标与计划"
+        "目标与计划",
+        "一对一与沟通"
       ]
     },
     "软技能训练营": {
