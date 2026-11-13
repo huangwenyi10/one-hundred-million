@@ -215,6 +215,19 @@
         "handsOn": false,
         "risk": "",
         "status": "unused"
+      },
+      {
+        "id": "ARC-16",
+        "title": "分库分表：分片键为什么不能选错",
+        "dimension": "数据架构（分库分表/分布式事务）",
+        "angle": "分片键选错如何拖垮整库：数据倾斜/跨分片查询/分布式事务三坑，以及怎么选与真实 ShardingSphere 配置",
+        "tier": "M",
+        "reach": "高",
+        "hook": "踩坑",
+        "aiAngle": "",
+        "handsOn": true,
+        "risk": "多音字代理（片→骗/行→航/为→未）须还原；ShardingSphere 配置须与口播一致",
+        "status": "done"
       }
     ],
     "大数据训练营": [
