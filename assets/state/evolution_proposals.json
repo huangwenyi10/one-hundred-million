@@ -1,5 +1,23 @@
 {
   "schema_version": 1,
-  "next_id": 1,
-  "proposals": []
+  "next_id": 2,
+  "proposals": [
+    {
+      "id": "P001",
+      "type": "distill",
+      "created_at": "2026-11-16",
+      "episode": "37",
+      "summary": "发布封面生成器必须用 d.textbbox 实测行高累加纵向位置，并内置相邻块不重叠与末行不出画幅断言",
+      "detail": "同根因第 2 次出现（固定规范第 40 条④）。建议固化为 固定规范第 25 条 / Step 8 封面生成：新增『实测行高累加 + 出画幅断言』硬门禁；能脚本化的优先脚本化。",
+      "evidence": "L029（期号25·4x3 副标题被裁）+ L035（期号37·4x3 主副标题重叠）同根因两次复发；本轮 make_cover.py 改为实测 bbox 累加后三张封面目检通过",
+      "status": "pending_author",
+      "approved_at": null,
+      "approved_note": null,
+      "verification": {
+        "result": null,
+        "evidence": null,
+        "at": null
+      }
+    }
+  ]
 }
