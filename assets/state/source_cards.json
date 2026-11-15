@@ -1,5 +1,51 @@
 {
   "schema_version": 1,
-  "next_id": 1,
-  "cards": []
+  "next_id": 4,
+  "cards": [
+    {
+      "id": "SC001",
+      "claim": "Apache Flink 事件时间窗口下迟到事件默认丢弃，allowedLateness 默认为 0",
+      "source": "https://nightlies.apache.org/flink/flink-docs-release-2.3/docs/learn-flink/streaming_analytics/",
+      "level": "L1",
+      "version": "docs release-2.3 · 2026-11-16 核实",
+      "conditions": "Apache Flink 官方英文文档 Streaming Analytics · Late Events 节",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号37"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC002",
+      "claim": "Watermark(t) 是流大概率已完整至 t 的断言；跟在水位线之后且时间戳 ≤ t 的事件为 late",
+      "source": "https://nightlies.apache.org/flink/flink-docs-release-2.3/docs/learn-flink/streaming_analytics/",
+      "level": "L1",
+      "version": "docs release-2.3 · 2026-11-16 核实",
+      "conditions": "Apache Flink 官方英文文档 · Watermarks / Lateness 节",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号37"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC003",
+      "claim": "有界乱序策略官方示例 forBoundedOutOfOrderness(Duration.ofSeconds(20))，水位线 = 已观测最大事件时间 − 20 秒",
+      "source": "https://nightlies.apache.org/flink/flink-docs-release-2.3/docs/learn-flink/streaming_analytics/",
+      "level": "L1",
+      "version": "docs release-2.3 · 2026-11-16 核实",
+      "conditions": "Apache Flink 官方英文文档 · Working with Watermarks 节；示例数值随版本可能调整",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号37"
+      ],
+      "review_history": []
+    }
+  ]
 }
