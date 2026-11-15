@@ -15,22 +15,23 @@
         "delivery": 8.0
       },
       "evidence": {
-        "content": "content_depth_check PASS（1686字·22量化点12.44每千字·讲透闭环五段齐·实战形态命中具名案例+踩坑复盘）；双源核验 Apache Flink 官方英文 L1 两页 + 本机最小模型实跑真实数字",
-        "visual": "bg_theme PASS（HTML+15帧全近白）｜visual_presence PASS（13/15载体页87%·纯文字2页13%·plan声明13=落实13）｜subtitle_band 15/15 OK｜抽帧目检 t=1/150/295 三点全过；扣分点：大数字230用hilite渐变填充在白底上偏淡（符合规范但可读性一般）",
-        "audio": "edge-tts 7.3.1 zh-CN-YunxiNeural·15段逐段真实TTS·300.65s·多音字需代理0/抽检11（A档词级已实测读对）·check_sync 总时长偏差0.06s",
-        "subtitle": "104 cues｜字幕==口播稿逐字一致｜restore 零代理残留｜sub_clean 条末去标点｜单行显示｜verify_burn 三处边界避让采样水印+字幕全OK｜无遮挡无错字",
-        "delivery": "成片300.63s/9.8MB/1920×1080 h264+aac｜发布就绪包齐（封面4x3/3x4/16x9+三平台文案+标题标签含B站真实时间轴+抖音发布设置）；扣分点：字幕带返工1次+合规元数据误报8项改写"
+        "content": "content_depth_check PASS（1686字·22量化点12.44每千字·讲透闭环五段齐）；双源 Apache Flink 官方英文 L1 两页 + 本机最小模型实跑真实数字",
+        "visual": "bg_theme PASS（HTML+15帧全近白）｜visual_presence PASS（13/15载体页87%）｜subtitle_band 15/15 OK｜抽帧三点全过；扣分：大数字渐变偏淡 + 发布封面主副标题重叠返工（L035 已修）",
+        "audio": "edge-tts 7.3.1 YunxiNeural·15段真实TTS·300.65s·多音字零代理·check_sync 偏差0.06s",
+        "subtitle": "104 cues｜字幕==口播稿逐字一致｜restore 零残留｜sub_clean｜单行｜verify_burn 三点 PASS",
+        "delivery": "成片300.63s/9.8MB/1920×1080 h264+aac｜发布就绪包9件齐；扣分：字幕带返工1次 + 合规元数据误报1次 + 封面重叠返工1次"
       },
-      "rework_count": 1,
+      "rework_count": 2,
       "author_rejections": 0,
-      "gate_failures": 2,
+      "gate_failures": 3,
       "learning_ids": [
         "L033",
-        "L034"
+        "L034",
+        "L035"
       ],
       "no_issues": false,
       "regression_dims": [],
-      "notes": "好：官方L1双源+本机实跑让三板斧数字全部可复现；零代理字规避L031。坑：模板.code-src默认bottom104px侵字幕带（L033）、合规脚本把后台元描述当发布内容（L034）。下次改：用独立来源行必覆写定位；合规复检范围限定为真正发布内容。"
+      "notes": "好：官方L1双源+本机实跑数字可复现；零代理字规避L031。坑：模板.code-src侵字幕带(L033)、合规脚本扫后台元描述(L034)、封面固定比例累加致文字重叠(L035·L029第2次复发)。蒸馏提议L029+L035已生成待作者拍板。"
     }
   ]
 }
