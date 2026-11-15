@@ -325,7 +325,7 @@
       },
       {
         "id": "BIG-08",
-        "title": "CDC 链路的最小实现",
+        "title": "CDC接上binlog，账还是对不上",
         "dimension": "数据采集与接入",
         "angle": "不做CDC 的时候上游改字段下游怎么炸，搭一条最小链路看一致性问题",
         "tier": "M",
@@ -334,7 +334,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-15T08:41:53"
       },
       {
         "id": "BIG-09",
