@@ -1,6 +1,6 @@
 {
   "schema": "ohl-topic-pool/1",
-  "updated": "2026-10-04",
+  "updated": "2026-11-16",
   "note": "各客户端共享的主题候选池。Step 0 选题引擎的第一来源：本池有条目时先从池里挑（pick_topic.py），池内耗尽或需追热点时才自主生成新候选并回写本池。字段含义见 references/topic-pool.md。",
   "fieldSpec": {
     "id": "稳定标识，格式 <营缩写>-<序号>，一经发布不得复用给别的选题",
@@ -429,6 +429,20 @@
         "handsOn": true,
         "risk": "需真实案例，失败也如实讲",
         "status": "unused"
+      },
+      {
+        "id": "BIG-16",
+        "title": "窗口关了，迟到的数据去哪了",
+        "dimension": "实时与流计算",
+        "angle": "水位线越过窗口边界后到达的事件，官方默认丢弃；allowedLateness 重算与 sideOutputLateData 旁路三条路径，本机最小模型实跑对比",
+        "tier": "M",
+        "reach": "高",
+        "hook": "反直觉",
+        "aiAngle": "",
+        "handsOn": true,
+        "risk": "",
+        "status": "done",
+        "updatedAt": "2026-11-16T06:17:28"
       }
     ],
     "AI 训练营": [
