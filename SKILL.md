@@ -392,6 +392,14 @@ disable-model-invocation: false
     - **③ 采信纪律（与第 7 条联动）**：**项目官方仓库本身 = L1 一手来源**（README / docs / releases / 官方 benchmark，分级见 `references/authoritative-sources.md`）；但 **awesome 列表、star 榜单站、第三方镜像仓库、中文搬运号 = L5 线索**，一律回溯官方仓库确认后才可用；口播与 `build/sources.md` 引用须带「项目名 + star 量级 + 版本 + 日期」——star 数随时间变，**注明抓取日期**。
     - **④ 版权与合规红线（与第 14 / 36 条联动）**：GitHub 项目截图 / README 图 / 架构图上屏前，按 Step 2 第 5 条清掉第三方水印、URL、无关 Logo；遵守仓库 LICENSE（MIT / Apache-2.0 等）并保留必要的许可证标注，讲解项目本身时其官方 Logo 属正常引用可保留；**禁止把未授权的付费 / 专有组件冒充开源项目讲，禁止照抄 README 原文成段念稿**（须消化为中文口语 + 自己的实战拆解）。
 
+43. **双环自我进化（强制·2026-11-15 起·作者决策「让技能自己提升视频质量与内容资料」）**：第 40 条解决「错了不再犯」（**A 环·纠错**），本条补上「没错也要变得更好」（**B 环·提升**）——两环共用跨轮事实，明确覆盖**视频质量**与**内容资料**两条线。完整规范、字段定义、命令速查与反模式见 `references/self-evolution.md`，执行靠 `scripts/evolution.py`（纯标准库、不联网、不删除文件、确定性）。**本条不适用第 16 条自主决策**：凡「改技能自己」的动作一律等作者确认。六条硬规则：
+   - **① 每轮三命令（不可跳过）**：Step 0 第 0 条跑 `python3 scripts/evolution.py --workspace <工作区> brief --episode <期号>`（一次产出防复发清单 + 本轮提升目标 + 到期资料 + 待拍板 / 待验证提议）；Step 1 取材前跑 `source find --keyword <主题词>`；Step 8 收尾成对跑 `score ...`（录五维评分，逐维必带当轮真实证据）与 `check`（**exit 0 才允许结束本轮**）。`--workspace` 必须显式指向本轮视频工作区，指向技能仓库自身脚本直接 `exit 1`（`learnings.md` L009 同款坑）。
+   - **② A 环加固（把第 40 条纸面条款变确定性门禁）**：`brief` 自动列出 `learnings.md` 未闭环 LID 与待验证项；`check` 校验「开工回顾已跑 / 五维评分已录 / 问题已登记」——`--learning-ids` 中每个 LID 必须在登记簿真实存在，或显式声明 `--no-issues`；**只写 metrics.csv 备注、或本轮有维度退步却声明无问题，一律 BLOCK**。同根因复发用 `distill --lids ...` 生成蒸馏提议，不再靠人记得「这是第 2 次」。
+   - **③ B 环·视频质量提升**：每轮录 `content / visual / audio / subtitle / delivery` 五维 0–10 评分 + **逐维当轮真实证据** + 返工 / 作者打回 / 门禁 FAIL 计数（锚点见 `self-evolution.md` §3.1；评分是结构化复盘工具，不是客观测量仪，**无证据不录分、不推断缺失值**）。某维 ≤ 近 10 期均值 −1.5 判退步 → 下轮列为重点改进项、本轮强制登记 learnings；**连续 3 期某维 ≥9 且零返工 / 零打回 / 零门禁 FAIL → 生成 1 条阈值提档提议**（初始常量写在脚本顶部，不在对话里随口改）。
+   - **④ B 环·内容资料进化**：`assets/state/source_cards.json` 存跨期事实卡片（结论 / 来源 / L1–L5 / 版本 / 测试条件 / 核实日 / 复核到期 180 天 / `valid`-`stale`-`retired`）。Step 1 先 `source find` 查已核实结论，命中 `valid` **仍须按第 7 条双源核验并确认版本未变**，`stale` 必须先回源 `verify`，`retired` 禁止复用；Step 8 把本期新核实且可复用的结论 `source add` 入库。官方改版 / 数据修订即使未到期也要主动复核或停用，并反查 `used_in` 里已用过该结论的视频。`build/sources.md` 仍是每期审计台账，两者**不互相替代**。
+   - **⑤ 自治权限红线（作者 2026-11-15 拍板）**：脚本**只自动提议，作者确认后才写入规则**——`score` / `distill` 生成的 `threshold_raise` / `distill` 提议状态为 `pending_author`，脚本**绝不自动修改 SKILL.md / scripts / references / templates 的任何条款或常量**。作者 `approve` 后 AI 才执行固化并按第 41 条推送 GitHub；`reject` 则规则原样。**下一轮必须 `verify <id> --result ... --evidence ...` 验证是否真生效**（`recurred` → 提级重新蒸馏；提档导致连续 BLOCK 须回滚），把「改完就忘」补成闭环。
+   - **⑥ 台账留痕与纪律**：四份技能内台账（`quality_scores.json` / `source_cards.json` / `evolution_proposals.json` / `evolution_log.md`）与工作区 `.evolution_state.json` 均为跨轮事实，按第 33 条放技能内共享、按第 41 条当轮推送 GitHub；**禁止回填历史评分 / 事实卡片、禁止编造证据、禁止把 `pending_author` 说成已生效**。既有 42 条固定规范与全部硬门禁地位不变，本条只叠加进化层，不替代任何质量合格证。
+
 ### 定时轮转生产模式（自动化任务驱动 · 每 2 小时一大类）
 
 定时任务（自动化）对本技能的调用方式极简：仅「加载技能 one-hundred-million，每 2 小时执行一次」。**本技能的完整生产逻辑内建于此，定时任务不携带任何流程细节**——技能每次被定时调用时，按以下机制自行决定本次做哪一大类、做成什么样。**自动化每次执行前必须重新完整加载本 SKILL.md 并严格按其当前 Step 0～Step 8 全流程执行；若自动化自身历史记忆中的流程要点与本 SKILL.md 不一致，一律以本 SKILL.md 为准，禁止沿用旧管线**（旧 PIL 管线 `render_frames.py`/`gen_ppt.py` 出 base64 图片式 PPT 已废弃；Step 2 已改强制套 `templates/slide-template.html`，Step 6 已改用 `compose_motion.py`/`render_animated.js`）。
@@ -438,7 +446,8 @@ disable-model-invocation: false
 5. 写回 `one-hundred-million-rotation.json`（本次类别下标 + 类别名 + 标题 + 时间）。
 6. **抖音合规自检（无人值守必跑 · 固定规范第 30 条）**：进入 Step 7 前跑 `python3 scripts/douyin_compliance_check.py "<标题>/<训练营全名>-<标题>_口播稿.txt" --title "<标题>"`，**BLOCK 必须清零**；命中即改写话术 → 重跑 Step 3/5（配音 / 字幕）→ 再扫，结论（命中项、改写处、最终 exit 码）记入本轮日志与 `metrics.csv` 备注。无人值守时**不得**把带 BLOCK 的成片标为「可发布」。
 7. **学习登记簿写回（强制 · 固定规范第 40 条①）**：把本轮发现的全部问题（门禁 FAIL 整改 / 返工 / 脚本 bug / 目检异常 / 作者打回）逐条登记进技能 **`assets/state/learnings.md`**（五元组：现象→根因→修复→防复发点→状态；四类归档：脚本bug / 排版规则 / 流程缺口 / 门禁失效）——**只写 metrics.csv 备注不算登记**；同根因第 2 次出现的按第 40 条④强制执行蒸馏（固化条款或脚本门禁）。
-8. **技能改动推送 GitHub（强制 · 固定规范第 41 条）**：本轮凡改过技能仓库（SKILL.md / scripts / assets / templates / references——含上面第 2、7 条的 assets 写回），**收尾必须 commit + 推送**（走 REST API 通道 `~/.workbuddy/scripts/push_github_api.py`，逐文件 PUSH_OK 后 `git update-ref` 同步）；失败则记录待推送清单，下次开工首事重试。**只改没推 = 本轮未完成。**
+8. **技能改动推送 GitHub（强制 · 固定规范第 41 条）**：本轮凡改过技能仓库（SKILL.md / scripts / assets / templates / references——含上面第 2、7、9 条的 assets 写回），**收尾必须 commit + 推送**（走 REST API 通道 `~/.workbuddy/scripts/push_github_api.py`，逐文件 PUSH_OK 后 `git update-ref` 同步）；失败则记录待推送清单，下次开工首事重试。**只改没推 = 本轮未完成。**
+9. **自我进化收尾（强制 · 固定规范第 43 条 · 定时轮转同样适用）**：成片交付后跑 `python3 scripts/evolution.py --workspace <工作区> score --episode <期号> ...`（五维评分 + 逐维当轮真实证据 + 返工 / 打回 / 门禁 FAIL 三计数）→ `python3 scripts/evolution.py --workspace <工作区> check`，**`check` exit 0 才允许结束本轮**；本期新核实且可复用的结论 `source add` 入 `assets/state/source_cards.json`。**无人值守场景一律不得自行 `approve` 提议、不得改动任何 SKILL.md / 脚本常量**——`pending_author` 提议只在日志里向作者提请拍板，留到下轮交互式会话处理（第 43 条⑤）；上轮已 `approved` 的提议本轮须 `verify` 回填生效结论。开工侧对应 Step 0 第 0 条的 `brief`，本清单不重复列。
 
 **7. 纪律**
 
@@ -553,7 +562,7 @@ disable-model-invocation: false
 
 #### Step 0：选题引擎（Step -2 / -1 通过后的第一步，不可跳过）
 
-0. **开工回顾上轮问题（强制·固定规范第 40 条②·最先于体系定位）**：先读技能 **`assets/state/learnings.md`**（open/fixed 未归档记录）与上轮 `metrics.csv` 备注，把上轮踩过的坑列成本轮「防复发检查清单」——逐条确认「已修复且已验证 / 需本轮规避 / 需本轮跟进」，清单随本轮日志走。**上轮已登记的问题在本轮复发 = 门禁 FAIL 同级事故**：当场停工整改 + 登记簿提级（强制蒸馏）。
+0. **开工回顾上轮问题（强制·固定规范第 40 条②·最先于体系定位）**：先读技能 **`assets/state/learnings.md`**（open/fixed 未归档记录）与上轮 `metrics.csv` 备注，把上轮踩过的坑列成本轮「防复发检查清单」——逐条确认「已修复且已验证 / 需本轮规避 / 需本轮跟进」，清单随本轮日志走。**上轮已登记的问题在本轮复发 = 门禁 FAIL 同级事故**：当场停工整改 + 登记簿提级（强制蒸馏）。**2026-11-15 起本步由脚本确定性执行（固定规范第 43 条）**：先跑 `python3 scripts/evolution.py --workspace <工作区> brief --episode <期号>`——一次产出「未闭环 LID + 上轮退步维度 + 到期 / 停用事实卡片 + 待拍板提议 + 待验证提议」并写本轮执行凭证；**再读 `learnings.md` 原文逐条核对**，两者缺一不可，上轮 `metrics.csv` 备注仍按原口径读。
 1. **体系定位（强制·先定体系位置再出题）**：**先读 `references/syllabus.md`** 中本期训练营的能力维度（示例提示，非固定章节），再读进度文件 **`assets/state/syllabus.json`**（技能内共享真相源，跨客户端一致）中该训练营的 `camps.<训练营>.covered`（已覆盖主题节点），**确定本期要往哪个尚未充分覆盖的能力维度延展**——优先 `covered` 未覆盖的维度；当期热点 / 新数据能映射到某维度时切入该维度（仍属体系内，须记录）；不重复已讲主题。读书训练营不查此文件，改读 `reading_camp_progress.json` 按书中章节推进——**且定书目前必须先跑 `python3 scripts/reading_progress_scan.py`**（选书前必查清单，见读书训练营专项「作者书单优先」；防跨客户端重复录制，2026-10-05 事故后固化：只信书单状态或只看当前工作区会误取已录完的书）。后续所有候选选题**只能围绕这一体系位置（结合当期热点）**展开，游离体系之外的孤立零散点一律不进入清单。详见「训练营体系化选题（开放体系）」小节。**旧的工作区文件 `assets/state/syllabus.json` 已不再作为真相源**（换客户端会丢、导致重复选题），如工作区仍有历史文件，用 `python3 scripts/migrate_syllabus_state.py --workspace <工作区> --apply` 并入技能内（合并不覆盖、幂等），详见 `references/asset-index.md` §4。
 2. **先读历史数据（强制·数据反哺门禁）**：**必须读取 `metrics.csv`**（不存在则本期权重按保守档——S/M 优先、L 限长 ≤15 分钟、钩子密度上调），按 `references/multi-platform-repack.md` 反哺规则提取爆款钩子类型、高效档位、Top 选题方向作为本期选题依据；**若历史完播率 < 20% 的选题类型，本期直接禁产同类**（掉速定位前置到选题端，不再事后补救）。
 3. **热点检索**：用 `cn-last30days` 技能（近 30 天小红书/抖音/公众号跨平台热点）或 WebSearch 检索主题相关热点、行业事件、新版本发布；**同时留意正面社会热点事件**（民生改善、政策红利、行业正向案例等）——命中时按「训练营体系化选题」第 6 条「正面热点事件融入」评估能否作为本期切口（四条判定全过才用，读书营除外）。**GitHub 高赞项目雷达（固定项·固定规范第 42 条）**：GitHub Trending（日/周/月榜）+ `topic:` 高星仓库 + 领域 awesome 列表 + 高星项目重大 Release——新项目爆火 / 大版本 breaking change / 官方新组件发布均按「新版本发布」类热点评估入清单。
@@ -581,7 +590,7 @@ disable-model-invocation: false
 
 #### Step 1：获取素材并生成口播稿
 
-1. **双重来源获取素材（强制）**：项目资产是素材起点，但**不能只依赖资产**——即使资产中已有对应内容（文档/PPT/PDF/视频），也必须再到公网权威渠道（官网/官方文档/官方博客/官方论文/权威技术媒体；**国内外权威渠道同等，主题源自国外技术/产品/标准/论文时须核到英文一手原文，见第 1.1 条**）获取同一主题的官方内容进行**核对与补充**，以公网权威来源校准资产资料的正确性与时效性（版本号、数据、性能结论一律以官方最新为准，资产与官方冲突时以官方为准并说明差异）。获取方式：资产用 `tdrive.search_file` / `tdrive.search_content` 检索关键词、`tdrive.file_download` 拿到下载链接后 curl 下载（docx 用 python-docx 或 zipfile 解析 `word/document.xml` 提取正文；pdf 用 pymupdf 提取文本）；公网用 WebSearch 定位权威渠道后下载原文。有价值的配图（架构图、对比图）一并提取裁切备用。
+1. **双重来源获取素材（强制）**：项目资产是素材起点，但**不能只依赖资产**——即使资产中已有对应内容（文档/PPT/PDF/视频），也必须再到公网权威渠道（官网/官方文档/官方博客/官方论文/权威技术媒体；**国内外权威渠道同等，主题源自国外技术/产品/标准/论文时须核到英文一手原文，见第 1.1 条**）获取同一主题的官方内容进行**核对与补充**，以公网权威来源校准资产资料的正确性与时效性（版本号、数据、性能结论一律以官方最新为准，资产与官方冲突时以官方为准并说明差异）。获取方式：资产用 `tdrive.search_file` / `tdrive.search_content` 检索关键词、`tdrive.file_download` 拿到下载链接后 curl 下载（docx 用 python-docx 或 zipfile 解析 `word/document.xml` 提取正文；pdf 用 pymupdf 提取文本）；公网用 WebSearch 定位权威渠道后下载原文。有价值的配图（架构图、对比图）一并提取裁切备用。**资料复用前置（固定规范第 43 条）**：动笔前先跑 `python3 scripts/evolution.py source find --keyword <主题词>` 查跨期事实卡片——命中 `valid` **仍按本条双源核验并确认版本未变**（复用不豁免第 7 条），`stale` 须先回源 `source verify`，`retired` 禁止复用；本期新核实且可复用的结论在 Step 8 `source add` 入库。
    - **读书训练营特例（素材 = 原书本身）**：读书训练营的素材不是项目资产、也不是通用网页，而是**当期《书名》的原文内容**——其获取与理解按读书训练营专项「原文内容获取（作者提供原书文件优先·未提供则网络抓取·二选一）」+「制作视频前置门禁（原书内容须先获取并读懂·强制·不强制要求作者提供文件）」执行：动笔写口播稿前，**必须先获取并读懂当期《书名》的原文内容**——**作者提供原书文件（PDF / EPUB / MOBI / 实体书扫描件）时优先解析文件**；**作者未提供文件则回退网络抓取**（WebSearch / WebFetch 把该书的目录、样章、精读笔记等原文或近原文材料从网络找齐、整理进 `build/book_source.md` 并读懂），二者都满足开工条件、**不强制作者必须给文件**；**严禁仅凭书单元数据（书名+作者+ISBN）凭记忆开写**（详见读书训练营专项该条）。
    1.1 **国外权威来源检索（强制·2026-09-05 起）**：公网核验**不限国内站点**，凡主题源自国外技术/产品/标准/论文，**必须主动到国外权威网站核到一手原文**——英文官方站与官方英文文档、官方 GitHub 仓库（`docs/`、README、release notes、官方 benchmark）、官方白皮书 PDF、官方大会 slides、标准机构（IETF RFC / W3C / WHATWG / ECMA / NIST / OWASP / TPC / SPEC）、学术论文原文（arXiv / USENIX / VLDB PV LDB / SIGMOD / ICDE / ACM DL / IEEE Xplore）、国际大厂官方工程博客与云厂商官方 docs（AWS / GCP / Azure）。执行要求：
       - **中英双语检索（强制）**：中文关键词 + 英文原名并行搜（例：`Doris 读写分离` ↔ `Apache Doris compute-storage separation`；`缓存雪崩` ↔ `cache stampede`），只搜中文会漏掉大量一手资料；可用 `site:` 限定提精度（`site:apache.org`、`site:arxiv.org`、`site:docs.aws.amazon.com`）。
@@ -719,6 +728,18 @@ disable-model-invocation: false
    - **② 项目资产副本（手动场景同步 / 自动场景跳过）**：把本地 `目录/*.md`（10 个）同步到 **tdrive 项目资产**根级 `短视频目录/`（与 `We-Media`、`InfoQ` 平级），让「每个训练营的标题目录」在项目资产里长期留存、跨会话可查。完整 SOP 见 `references/catalog-sync.md`（首次启用需建 `短视频目录/` 并配置 dir_id 到 `scripts/sync_catalog_tdrive.py` 顶部 `TDRIVE_DIR_ID`；同步按 §3 步骤用 tdrive MCP 工具执行，幂等：内容相同则跳过）。触发：作者在场（交互式）→ AI 在 Step 8 末尾询问后执行；cron/定时轮转 → 默认跳过并在日志标注「项目资产同步待手动触发」，下次交互式会话一次性补同步。
    - **用途**：作者日后按大类（如「架构师训练营」）查看已生成过哪些视频、各期讲的是什么能力维度，配合 `assets/state/syllabus.json`（`covered`）掌握体系覆盖进度——这是与 9 大类对齐的「已产出目录资产位」，**两层都要维护好**：本地保证脚本可读可补录，tdrive 保证跨会话长期可查。
 3. 按反哺规则更新选题策略（爆款复制、掉速定位、档位校验、选题收敛、平台侧重），供下一期 Step 0 使用；每 10 期做一次小结。
+4. **自我进化收尾（强制·固定规范第 43 条·与第 2 / 2.1 / 2.2 条及第 41 条推送并列）**：本轮成片交付后，成对执行——
+
+   ```
+   python3 scripts/evolution.py --workspace <工作区> score --episode <期号> --title "<标题>" --camp <训练营全名> --tier <S|M|L|读书长篇> \
+     --scores content=8 visual=9 audio=9 subtitle=10 delivery=8 \
+     --evidence content="<当轮门禁输出>" visual="..." audio="..." subtitle="..." delivery="..." \
+     --rework <N> --rejections <N> --gate-failures <N> \
+     --learning-ids L033,L034     # 本轮确无问题才改用 --no-issues
+   python3 scripts/evolution.py --workspace <工作区> check
+   ```
+
+   `check` **exit 0 才允许结束本轮**（校验开工回顾 / 五维评分 / 问题登记三项）。同步把本期新核实且可复用的结论 `source add` 入事实卡片库（带版本 + 测试条件 + `used-in`）；`proposals --status pending_author` 若有提议，向作者提请拍板，**未 `approve` 不得改动任何技能规则**。字段、命令与退出码见 `references/self-evolution.md` §2 / §6。
 
 ### Quality Gates（交付前自检）
 
@@ -739,6 +760,8 @@ disable-model-invocation: false
 - **镜头运动自检**：正文合成已采用 Ken Burns 镜头运动 + 交叉淡入（`compose_motion.py`）或明确说明不用运动的原因；无整片全程静止 / 一帧一帧硬切的现象；运动强度默认轻微、未致观感眩晕；帧停留时长仍取自 `segments_durations.json`、四方同频未受影响。**画面不抖（强制）**：镜头运动走 `perspective` 亚像素采样（`interpolation=cubic` + `eval=frame`），`video_quality_gate.py` 的 MOTION 组判定「运动段无零位移帧 + 裁剪窗不越界 + 跨段连续」全部通过，且合成后复核（`[合成后复核] 运动段逐帧位移均匀、无停顿帧 ✅`）无停顿帧告警——**出现「相邻帧裁剪窗相同 / 逐帧差异 max/min > 8」即为运动量化抖动，必须回炉**（历史教训：zoompan 整数裁剪会让 37% 的运动帧与前一帧像素完全相同，肉眼即「一顿一顿」）。
 - **字幕带内容零侵入（强制·固定规范第 15 条配套·2026-10-25 起）**：导帧后已跑 `python3 scripts/subtitle_band_check.py build/frames` 且 **exit 0**（y 918~1001 字幕带区域无非白像素，排除右下页码区）；未跑或 FAIL 不得进入烧录。人眼排版会漏 flex 陷阱（封面 hero 被 flex-end+padding 推入字幕带的事故原型见 `assets/state/learnings.md` L004），此门禁是确定性兜底。
 - **学习登记簿已写回（强制·固定规范第 40 条）**：Step 8 收尾已把本轮全部问题（门禁整改/返工/脚本 bug/目检异常/作者打回）逐条登记进 `assets/state/learnings.md`（五元组齐备）；下轮 Step 0 第 0 条开工回顾可读到。**只写 metrics.csv 备注 = 未登记**；同根因第 2 次出现的已执行蒸馏（条款/脚本门禁）。
+- **自我进化收尾已过门禁（强制·固定规范第 43 条）**：本轮已跑 `evolution.py brief`（Step 0）→ `score`（五维 + 逐维当轮真实证据 + 返工/打回/FAIL 三计数）→ `check` **exit 0**；`--learning-ids` 里的 LID 全部真实存在于 `learnings.md`，或显式 `--no-issues` 且本轮无维度退步；本期可复用结论已 `source add`；`pending_author` 提议已提请作者拍板，**无「脚本自动改 SKILL.md / 脚本常量」的情形**。上轮 `approved` 提议已 `verify` 回填生效结论。
+- **内容资料时效已核（强制·固定规范第 43 条）**：本期主题已跑 `source find`；`stale` 卡片已回源复核、`retired` 结论未复用、`valid` 卡片仍按第 7 条做了双源核验与版本确认；官方改版 / 数据修订已触发 `source verify` 或 `source retire`；事实卡片带版本与测试条件，无回填历史、无编造结论。
 - **技能改动已推送 GitHub（强制·固定规范第 41 条）**：本轮凡改过技能仓库（SKILL.md / scripts / assets / templates / references）均已完成 `git commit` + REST API 推送（逐文件 PUSH_OK）并 `git update-ref` 同步；无「只改没推」的滞留改动；推送失败的已记录待推送清单并排入下次开工首事。
 - **发布关卡：作者审核通过前不发布**（本关卡不适用固定规范第 16 条超时续跑）。任何平台发布动作前，必须留有作者明确批准的记录。
 - **选题发布价值已判断**：开工前已对作者初始标题做过 7 维发布价值判断（垂直相关性/受众规模/传播钩子/获客漏斗价值/事实可核实性/数据反哺/体系归属）；判为无价值的标题未直接照做，已用绑定技能与连接器检索并产出 3–5 个替代选题、作者确认后才开工；判断结论有记录。
@@ -812,6 +835,7 @@ disable-model-invocation: false
 - `diagram-generation.md` — **架构图生成技能接入（可选增强 · 与 `contextweave-interactive-architecture` 对接）**：用专门的架构图生成技能产出高质量可编辑 SVG/HTML 架构/流程/拓扑/思维导图，嵌入视频图示页（`.diagram-stage`），替代/增强手写 SVG 与纯 HTML/CSS 重绘；含调用接口、外发授权、映射到 `visual-design.md` §1.4/§2.6/§8 的约束、回退路径与反模式。供 Step 2.4（图示来源优先级链的可选增强）使用。
 
 - `enhance-skills.md` — **视频质量增强技能清单与接入（封面 / 素材去水印增强 / 画质 / 动效）**：已接入 `video-cover-designer`（封面方案，安全零依赖）与 `buddy-image-processing`（图片去水印/增强）；登记候选 `byted-mediakit-video`（画质增强/超分/硬字幕擦除，需 mediakit-cli）、`xeon-smartupscale`、爆款拆解类（需凭据）、`remotion-video-toolkit`（本地可用）；含选用决策树与边界。供 Step 2（素材去侵权）、Step 6（封面设计/合成）按需使用。
+- `self-evolution.md` — **双环自我进化机制（固定规范第 43 条 · 强制 · 2026-11-15 起）**：A 环纠错加固（`brief` / `check` / `distill` 把第 40 条变确定性门禁）+ B 环主动提升（五维质量评分卡、跨期事实卡片库、阈值提档提议、下轮验证）。含数据与文件分层、评分锚点与初始阈值、事实卡片字段与 `valid`→`stale`→`retired` 生命周期、**「脚本只提议、作者确认后才写入」权限红线与提议状态机**、命令速查与退出码、与既有第 7/25/31/33/34/40/41/42 条的关系、8 条反模式、Step 0/1/8 自检清单。供 Step 0 开工、Step 1 取材、Step 8 收尾与作者拍板时使用。配套脚本 `scripts/evolution.py`，台账在 `assets/state/`。
 
 #### scripts/
 - `camp_switch.py` — **训练营生成开关管理（固定规范第 32 条配套 · Step -2 强制执行）**：控制 9 大训练营哪些允许产出。**默认策略 = 只开读书训练营**（状态文件不存在时即按此执行，无需预建文件）。子命令：`status`（打印 9 营开关表，`--json` 机器可读）、`list-enabled`（逐行启用营）、`check <营名>`（门禁：启用 `exit 0` / 暂停 `exit 3` / 营名无法识别 `exit 2`）、`on <营名|--all>`、`off <营名|--all>`、`next [--rotation FILE]`（依「启用集合 + 轮转状态」算本期应做的营；启用集合为空 `exit 4`）、`reset`（恢复默认，只开读书训练营）。状态文件 `<工作区>/camp_switches.json`（`enabled` 列表 + `updatedAt` + 最近 30 条 `history`）。支持简称别名（架构师/大数据/ai/产品/前端/测试/管理/软技能/读书）。**仅依赖标准库**；状态文件损坏时回落默认策略并告警，不会放开全部营。用法：`python3 camp_switch.py <cmd> [--workspace <工作区>] [--note "<说明>"]`。完整语义见 `references/camp-switches.md`。
@@ -835,6 +859,7 @@ disable-model-invocation: false
 - `assets/state/learnings.md` — **自主学习登记簿（固定规范第 40 条配套 · Step 0 开工必读 / Step 8 收尾必写）**：「发现问题 → 自主迭代 → 作用于下个视频」的跨轮唯一事实来源。追加式登记本轮全部问题（门禁整改/返工/脚本 bug/目检异常/作者打回），四类归档（脚本bug/排版规则/流程缺口/门禁失效），五元组（现象→根因→修复→防复发点→状态）；同根因第 2 次出现必须蒸馏为 SKILL.md 条款或脚本门禁（第 40 条④）。首批记录为 2026-10-25 期号 17 的五条踩坑（L001~L005）。
 
 - `content_depth_check.py` — **内容深度自检（固定规范第 31 条配套 · Step 1 第 4.2 条强制执行）**：对**定稿口播稿**做本地确定性扫描，把「讲透闭环」与「实战落地」从自觉遵守变成门禁。输出五块：**讲透闭环五段覆盖**（是什么/为什么/怎么做/数据案例/坑边界，各带命中数）、**实战四形态命中**（代码命令 / 工具平台操作 / 具名实体案例 / 踩坑复盘，对应第 31 条）、**空转信号**（最长无量化区间、无原理结论句、抽象行话密度、模糊主体「某大厂」）、**档位判定**（按字数 S/M/L/读书长篇）、**量化密度**。判定三级：`BLOCK`（三无稿＝无量化点且无可操作形态；或实战四形态全未命中且量化密度 <1.0）/ `WARN` / `PASS`，**`BLOCK` 时 exit 1**。阈值由 **47 份历史稿件实测校准**（2026-10-01：量化密度中位 0.8 个/千字、仅 6 份含代码形态、最长无量化区间中位 1453 字），非拍脑袋。**仅依赖标准库**。用法：`python3 content_depth_check.py "<口播稿.txt>" [--camp <训练营>] [--json] [--no-fail]`；**读书训练营须传 `--camp 读书训练营`** 以豁免代码强制（读书营以「把书讲透」为实战形态）。判定标准见 `references/content-formats.md`「讲透闭环」，写作要求见 `references/script-writing-guide.md`。
+- `evolution.py` — **双环自我进化门禁（固定规范第 43 条配套 · 强制 · 2026-11-15 起）**：纯标准库、不联网、不删除文件。子命令 `brief`（开工清单）/ `score`（五维评分，逐维必带当轮真实证据）/ `check`（收尾三项门禁，exit 0 才允许结束本轮）/ `source add|find|list|verify|retire|expire|stats`（跨期事实卡片库）/ `distill`（同根因蒸馏提议）/ `proposals|approve|reject|verify`（提议状态机与下轮验证）/ `status`（状态总览）。退出码 `0` 成功 / `1` 校验失败或 BLOCK / `2` 参数错或台账损坏（不静默重建）/ `3` 查询无数据。**脚本只写台账与提议，绝不自动修改 SKILL.md / scripts / references / templates 的条款或常量**；提议须作者 `approve` 后 AI 才固化。全局选项 `--workspace` 必须显式指向本轮视频工作区（指向技能仓库自身 `exit 1`），`--assets-dir` 仅供测试隔离。用法：`python3 scripts/evolution.py --workspace <工作区> <子命令> ...`；完整参数 `python3 scripts/evolution.py <子命令> --help`。完整规范见 `references/self-evolution.md`。
 - `render_frames.py` — PIL 渲染每页 1920×1080 帧（读书训练营自绘示意图管线）：读 `pages_data.py` 的 PAGES/DIAGRAMS/TITLE，输出 `build/frames/page_NN.png`。**自动折行/防溢出**：`box_text()` 与 `draw_topology()` 已内置按节点宽度折行、字号自适应、超长截断，避免节点文字撑破框/圆。**坑（已踩）**：diagram box 必须传 `[x0, y0, 宽, 高]`，**勿传两角坐标 `[x0,y0,x1,y1]`**——所有 `draw_*` 按 `(x0,y0,w,h)` 解包，传两角坐标会把 `x1`/`y1` 当宽高，导致图示从 `y0` 向下画到 `y0+y1`（≈1338，裁到 1080）**溢出压入字幕带（y=928）**。正确值 `[100,470,W-200,398]`，图示底部收在 y≈868，与字幕带（918+）留白。用法：`python3 render_frames.py <build_dir>`。
 - `fetch_book_cover.py` — **原书封皮抓取（读书训练营封面底图 · Step 6 配套）**：按 `references/author-book-list.md` 的 ISBN 自动抓取原书封皮，作发布封面底图。回退链：Open Library → Google Books → 本地 `作者书籍库/<书名>/封面.jpg` → 仍失败退出码 2（提示作者手动提供）。仅依赖标准库（urllib/ssl/json），校验返回确为图片（content-type + 体积过滤，规避 Open Library 1×1 占位图）；超时 / TLS / 网络异常均被捕获继续回退，沙箱无外网时自动落本地。用法：`python3 fetch_book_cover.py <ISBN> <out_path> [--local <本地封皮路径>] [--timeout 8]`。
 - `rebuild_timeline.py` — 字幕时间轴精确对齐（Step 5 第 2.1 条配套）：对配音用 faster-whisper 词级时间戳做强制对齐，把长 cue 拆片后的每个子片映射到真实发音起止时刻，解决按字符宽度线性分配时间导致的字幕与声音错位。依赖 faster-whisper 词级 JSON。用法：`python3 rebuild_timeline.py <subs_clean.vtt> <whisper_words.json> <out.vtt> [max_w]`。
