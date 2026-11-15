@@ -32,6 +32,10 @@ pick_topic.py — 从共享主题候选池挑选题（跨客户端一致的去�
   # 校验池与进度一致性（ids 唯一、必填字段齐、状态合法）
   python3 pick_topic.py verify
 
+防重复录制（2026-11-15 起 · 门禁前置）:
+  `pick` 与 `add` 都会先查 recorded_index.py 的多源已录索引，命中即过滤 / 拒绝，
+  不再依赖「执行者记得跑 Step 0 第 5.5 条」。门禁不可用时直接报错，不静默放行。
+
 设计约束:
   - 仅标准库。任一客户端（不限WorkBuddy）都能跑，不连任何私有 API。
   - 状态回写为原子替换（临时文件 + os.replace），避免写到一半被另一客户端读到。
@@ -46,6 +50,10 @@ import tempfile
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+import recorded_index  # 多源已录主题索引（防重复录制门禁）
+
 SKILL_ROOT = os.path.dirname(HERE)
 POOL_PATH = os.path.join(SKILL_ROOT, "assets", "topics", "topic_pool.json")
 STATE_PATH = os.path.join(SKILL_ROOT, "assets", "state", "syllabus.json")
@@ -144,6 +152,19 @@ def cmd_pick(args, pool):
     if args.ids_only:
         items = [x for x in items if x.get("id") in set(args.ids_only)]
 
+    # 防重复录制门禁（多源聚合）：任一来源命中已录主题即过滤，门禁不可用则报错不放行
+    if not args.include_recorded:
+        try:
+            rec_entries, _, _ = recorded_index.build_index()
+            before = len(items)
+            items = [x for x in items
+                     if not recorded_index.find_hits(x.get("title", ""), rec_entries)]
+            if before != len(items):
+                print(f"[防重复录制] 过滤掉 {before - len(items)} 条已录制候选"
+                      f"（来源：目录 / 交付文件夹 / metrics / jobs / 网盘 / 项目资产 / 技能状态）\n")
+        except Exception as e:
+            die(f"防重复录制门禁不可用：{e}——不得绕过门禁选题")
+
     if args.uncovered_only:
         state = load_state().get(camp, {})
         covered = state.get("covered", [])
@@ -230,6 +251,16 @@ def write_state(st):
 
 
 def cmd_add(args, pool):
+    # 新增候选也要过门禁：自主生成的「新」主题最容易撞上历史已录主题
+    try:
+        rec_entries, _, _ = recorded_index.build_index()
+        hits = recorded_index.find_hits(args.title, rec_entries)
+    except Exception as e:
+        die(f"防重复录制门禁不可用：{e}——不得绕过门禁新增候选")
+    if hits:
+        die(f"候选「{args.title}」已录制过（命中 {hits[0]['source']}："
+            f"{hits[0]['title']}），不得回写池；请换题", 3)
+
     camp = args.camp
     if camp not in pool["pools"]:
         norm = camp.replace("训练营", "")
@@ -335,6 +366,8 @@ def main():
     p.add_argument("--hands-on", action="store_true", help="只要动手型")
     p.add_argument("--uncovered-only", action="store_true", help="过滤与 covered 维度重合的")
     p.add_argument("--all", action="store_true", help="含已出片/弃用条目")
+    p.add_argument("--include-recorded", action="store_true",
+                   help="调试用：不过滤已录制主题（默认强制过滤）")
     p.add_argument("--ids-only", nargs="*", help="只取指定 id（调试/复用用）")
     p.set_defaults(fn=cmd_pick)
 
