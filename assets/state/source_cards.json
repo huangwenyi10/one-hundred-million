@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 7,
+  "next_id": 10,
   "cards": [
     {
       "id": "SC001",
@@ -89,6 +89,51 @@
       "status": "valid",
       "used_in": [
         "期号38"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC007",
+      "claim": "scikit-learn 1.9.1 官方 §2.3.2 K-means：该算法要求预先指定簇的数量；给定足够时间总会收敛，但可能收敛到局部极小值、高度依赖初始质心；高维稀疏的词袋文本上质心可能落在极孤立的点上",
+      "source": "https://scikit-learn.org/stable/modules/clustering.html",
+      "level": "L1",
+      "version": "scikit-learn 1.9.1 · 2026-11-16 抓取",
+      "conditions": "官方文档英文原文 §2.3.2 K-means；定性机制表述，非性能数字",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号39"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC008",
+      "claim": "scikit-learn 官方文本聚类示例：3387 篇文档、4 个真实类别，5 个随机种子中某次 KMeans 分出 1/1/1/3384（几乎全挤进一堆），而真实类别分布为 799/973/987/628——同一批语料只换随机种子结果就会变",
+      "source": "https://scikit-learn.org/stable/auto_examples/text/plot_document_clustering.html",
+      "level": "L1",
+      "version": "scikit-learn stable 官方示例 · 2026-11-16 抓取",
+      "conditions": "官方示例页真实输出数字；用于说明 KMeans 初始质心随机性，不代表普遍性能",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号39"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC009",
+      "claim": "Nielsen Norman Group 官方主题分析方法论：主题分析含 6 个阶段，第二步是从头到尾读完全部数据，第六步要评估主题是否被数据支撑并主动寻找不支持该主题的数据；主题应在多个参与者或多个来源里反复出现",
+      "source": "https://www.nngroup.com/articles/thematic-analysis/",
+      "level": "L1",
+      "version": "NN/g 官方文章 · 2026-11-16 抓取",
+      "conditions": "定性研究方法论，非量化基准；用于支撑『聚类结果须回原话复核』",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号39"
       ],
       "review_history": []
     }
