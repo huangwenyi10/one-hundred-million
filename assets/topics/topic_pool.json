@@ -539,7 +539,9 @@
         "aiAngle": "用评测集给两个模型打分",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "reason": "期号38 出片《模型换三版，效果全凭感觉》· M 档 · AI 应用产品化维度 · 2026-11-16",
+        "updatedAt": "2026-11-16T15:27:35"
       },
       {
         "id": "AIX-08",
