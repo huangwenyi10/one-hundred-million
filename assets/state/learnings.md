@@ -414,6 +414,7 @@
 - **档位自主裁定**：主题池 PRD-09 建议 M 档，1943 字按讲透优先与期号 38 先例自主裁定 **M 档**；成片 401.97s ≈ 6 分 42 秒。
 - **TTS 瞬时异常**：第 8 段 edge-tts 报 `NoAudioReceived`，脚本自动 retry（wait 2s）成功，16 段总配音 401.98s / 135 cues，非门禁问题，未改脚本。
 - **audit_recorded 遗留**：`--apply` exit 3，1 条历史争议「迈向AGI时代：AI产品经理方法论」（文件夹标题与成片基名不一致）按规则未自动写入，非本轮产物，留待人工确认。
-- **返工计数**：本轮 3 次返工（首版稿双门禁重写 / `make_ppt.py` StopIteration / 载体门禁 3 页改造），门禁 FAIL 2 次（合规 BLOCK、visual_presence FAIL）+ 脚本异常 1 次，作者打回 0 次。
+- **GitHub 通道事故（本轮新增 · L038 变体）**：REST API 6 个文件全部 `PUSH_OK` 后，按 L038 口径做 `git fetch origin main` 时被沙箱代理拒答（两次超时 / `Empty reply from server`）；紧接着 `git reset --hard origin/main` 因 tracking ref 仍指向旧提交 `5ffb567`，**把刚写回的 6 个资产文件全部回退**，本地与远端内容不一致。**修复（本轮已落地）**：改用 `api.github.com` 的 `/commits` + `/git/trees` + `/git/blobs` 逐对象重建远端提交链（先用本地已存在的 `5ffb567` 校验重建算法字节级一致，`hash-object` 结果完全相同），写回 blob / tree / commit 对象后 `git update-ref refs/remotes/origin/main <远端HEAD>` + `git reset --hard <远端HEAD>`；最终 `HEAD == origin/main == 3636ea5`，本地内容核验 L039 / SC009 / PRD-09 done / covered 全部回位，工作区干净。**防复发点**：`git fetch` 失败时**禁止**直接 `reset --hard origin/main`（tracking ref 是旧的，会静默丢弃本地已写回内容）；必须先确认 fetch 成功，或走「接口重建对象 → 对齐到远端真实 HEAD」。本次属环境网络限制，未改任何技能脚本 / 规则。
+- **返工计数**：本轮 3 次返工（首版稿双门禁重写 / `make_ppt.py` StopIteration / 载体门禁 3 页改造）+ 1 次推送通道事故处置，门禁 FAIL 2 次（合规 BLOCK、visual_presence FAIL）+ 脚本异常 1 次，作者打回 0 次。
 
 
