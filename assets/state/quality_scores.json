@@ -32,6 +32,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：官方L1双源+本机实跑数字可复现；零代理字规避L031。坑：模板.code-src侵字幕带(L033)、合规脚本扫后台元描述(L034)、封面固定比例累加致文字重叠(L035·L029第2次复发)。蒸馏提议L029+L035已生成待作者拍板。"
+    },
+    {
+      "episode": "38",
+      "date": "2026-11-16",
+      "title": "模型换三版，效果全凭感觉",
+      "camp": "AI 训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS（22量化点12.15/千字·讲透闭环五段齐·实战形态具名案例+踩坑复盘）；OpenAI 官方仓库 README 与 build-eval.md 英文 L1 双源核验；本机 eval_demo.py 真实输出支撑全部数字",
+        "visual": "bg_theme PASS（HTML+14帧全白）；visual_presence PASS（12/14载体页86%·plan声明12=落实12）；subtitle_band 14帧 PASS；L036 返工后 3/7/14 页大数字清晰可读，抽帧目检4点通过",
+        "audio": "edge-tts zh-CN-YunxiNeural 14段真实时长339.31s；多音字需代理6处·restore 实还原7处·代理字零残留；ffprobe aac 128k；三处抽听无爆音",
+        "subtitle": "check_sync PASS（115cues·字幕==口播稿·cue无重叠间隙·总时长偏差0.07s）；sub_clean 末尾标点清洗；verify_burn 三处采样字幕 OK·单行不压内容",
+        "delivery": "成片339.30s/12.4MB/1920x1080 h264+aac 30fps；verify_burn PASS；抖音合规0BLOCK/0WARN（口播稿+标题+三平台文案+设置清单全量）；返工1次(L036)·门禁FAIL1次(L038)·作者打回0；发布就绪包齐备待Step7审核"
+      },
+      "rework_count": 1,
+      "author_rejections": 0,
+      "gate_failures": 1,
+      "learning_ids": [
+        "L036",
+        "L037",
+        "L038"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：官方 L1 原文+本机可复算实跑支撑结论，24条全量翻转有说服力；坑：CSS 动画静态导出停在初始态致大数字发虚(L036)、jobctl resume 命令参数过期(L037)、gate 历史分叉(L038)；下次改：导帧前把动效终点态常显做成确定性兜底"
     }
   ]
 }
