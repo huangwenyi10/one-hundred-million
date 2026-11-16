@@ -346,4 +346,38 @@
 - **防复发点**：**凡发布封面生成器，一律用实测 bbox 行高累加纵向位置，禁止用画幅比例固定偏移**；生成器内必须带「相邻文本块不重叠 + 末行不出画幅」断言，把人眼目检变成确定性门禁。按第 40 条④ 同根因 ≥2 次须蒸馏为技能内条款/脚本门禁，已生成 `distill` 提议（状态 `pending_author`）；**按第 43 条⑤ 不自动改技能规则，等作者拍板**。
 - **状态**：fixed / verified（本轮脚本已修并复检）；蒸馏提议待作者确认。
 
+---
+
+## 2026-11-16 · AI 训练营 · 期号 38《模型换三版，效果全凭感觉》
+
+### L036 [排版规则] 静态帧导出时 CSS 动画停在初始态 → 核心大数字 opacity≈0 几乎不可见 → **fixed / verified**
+
+- **现象**：首版成片抽帧 t=145 / t=335，页面核心大数字「3 / 3 / 3」与「1 把尺子」呈极浅粉、几乎不可见；回查源帧 `page_07.png` / `page_14.png` 同样发虚。`bg_theme_check` / `subtitle_band_check` / `visual_presence_check` 三项确定性门禁均 PASS，靠人眼抽帧才发现。
+- **根因**：本期 PPT 自定义 `.anim-pop{opacity:0;animation:pop .55s ... forwards}`，Chrome 静态截图在动画未推进到终点时取图，opacity 停在 0~0.2。SKILL.md Step 2 第 2 条「静态帧导出时动效终点态作为静态画面保证可读」只有文字要求、没有确定性门禁，也没有模板/导帧脚本兜底。受影响仅 3 处 `.anim-pop`（第 3 / 7 / 14 页大数字），其余页面正常。
+- **修复（本轮已落地）**：PPT CSS 末尾追加静态导出覆写 `.anim-pop,.anim-fade-up{opacity:1;animation:none}`，用 `export_frames.py` 重导 14 帧；三项画面门禁复跑全 PASS；重跑 `compose_motion.py`（静态帧 + xfade）与 `burn_subtitles.py`（fast）重合成成片，`verify_burn` / `check_sync` 复跑 PASS，抽帧目检大数字为深酒红、清晰可读。
+- **防复发点**：**凡 PPT 使用 `.anim-*` 类，静态帧导出必须先把动效终点态常显**（CSS 覆写或导帧脚本注入/等待动画结束），否则「数字聚焦」这类关键视觉会整段发虚。建议蒸馏为 `export_frames.py` 导出前自动注入 override 或模板层兜底 —— 按第 43 条⑤ **不自动改技能脚本/模板，待作者拍板**。
+- **状态**：fixed / verified（本轮已修并复检）；脚本/模板固化待作者确认。
+
+### L037 [流程缺口] `jobctl.py resume` 打印的 Step 3 命令与 `gen_sync_subs.py` 实际参数形态不符 → **open**
+
+- **现象**：本轮续跑包给出的下一步命令为 `python3 scripts/gen_sync_subs.py --script build/script_tts.txt --out-dir build --voice zh-CN-YunxiNeural`；而当前脚本 `--help` 显示只接受 4 个**位置参数** `segments_txt out_dir voice [cover_min]`，照抄会直接 argparse 报错、无法开工。
+- **根因**：续跑包里的命令文案未随脚本参数形态同步（疑似沿用旧版选项式写法），`resume` 不校验命令可执行性。
+- **修复（本轮本地规避）**：按 `--help` 改回位置参数 `gen_sync_subs.py <script_tts.txt> <build> zh-CN-YunxiNeural`，14 段 TTS 一次成功（配音 339.31s / 115 cues / 14 页真实时长）。
+- **防复发点**：`jobctl.py resume` 的 Step 3 命令应改为位置参数，或从目标脚本 `--help` 动态生成；**待作者确认是否改脚本**（作者保守偏好：改脚本前先问）。
+- **状态**：open（本轮按 `--help` 规避；脚本文案待修）。
+
+### L038 [门禁失效] REST API 推送 + `git update-ref` 掩盖历史分叉 → 下轮 `client_preflight.py gate` BLOCK → **fixed / verified**
+
+- **现象**：本轮开工 gate 报「本地落后 origin/main 28 个提交，先 git pull origin main」；`git fetch` 显示 `+ 11ff653...c0316c8 main -> origin/main (forced update)`，`rev-list --left-right --count HEAD...origin/main` = `6 28`，但 `git diff --quiet HEAD origin/main` 为空（**两棵树内容完全相同**）。
+- **根因**：第 41 条推送走 GitHub REST API（远端生成自己的提交链），本地另做 `git commit` + `git update-ref refs/remotes/origin/main HEAD`，把 tracking ref 指到本地提交以「保持一致」，只是掩盖而非消除历史分叉；下一次真正 `git fetch` 时暴露。gate 判定条件是 `HEAD == origin/main`（hash 相等），merge 也无法满足，只能对齐到远端。
+- **修复（本轮已落地）**：先确认 `git diff --quiet HEAD origin/main`（树相同、零内容损失）且 `git status` 干净，再 `git reset --hard origin/main`；HEAD 变为 `c0316c8` 与远端一致，gate 复跑 `exit 0`（核心依赖齐 + WorkBuddy 已注册额度可用 + 台账已建立 + 技能版本最新）。
+- **防复发点**：**推送收尾不要只做 `git update-ref`**；改为「REST API 推送 → `git fetch origin main` → `git reset --hard origin/main`」，让本地 HEAD 真正等于远端，下轮 gate 不再分叉。涉及第 41 条⑤ 流程文案，**待作者确认是否改 SKILL.md / 推送脚本**。
+- **状态**：fixed / verified（本轮已对齐）；流程文案待作者拍板。
+
+### 本轮其他（无需改规则，记备查）
+- **防复发清单命中情况**：brief 列出 L005/L019/L024/L031/L034 未闭环 + L032 待验证。本轮 ① 未用 `.card-grid` 与 `.diagram-row` 宽 nodebox → L005/L019 未复发；② 多音字 scan 需代理 6 处、restore 实还原 7 处且代理字零残留 → **L031 的 count 门控 bug 未触发**；③ 标题不含 ASCII 半角冒号 → L032 未复发，烧录仍按流程先落 `build/` 临时名再 `mv`；④ 后台文档措辞按 L034 口径收敛（不逐字列举红线词），全量合规复检 0 BLOCK / 0 WARN；⑤ L024 同类误报未复发。
+- **提议 P001 状态**：本轮封面生成器沿用 L035 的 bbox 实测行高累加 + 两条硬断言，三张封面目检无重叠、无裁切；**提议仍为 `pending_author`，未 `approve`、未自动写入任何技能规则**，也未调用 `verify`（只适用于已批准提议）。
+- **档位自主裁定**：主题池 AIX-07 建议 M 档、`content_depth_check` 按字数映射显示 L 档口径，按讲透优先与期号 37 先例自主裁定 **M 档**；成片 339.30s ≈ 5 分 39 秒。
+- **返工计数**：本轮 1 次返工（L036 大数字发虚 → 改 PPT 覆写 → 重导帧 → 重合成 → 重烧录），门禁 FAIL 1 次（开工 gate 版本分叉 L038），作者打回 0 次。
+
 
