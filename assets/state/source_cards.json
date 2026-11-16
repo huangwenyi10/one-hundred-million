@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 4,
+  "next_id": 7,
   "cards": [
     {
       "id": "SC001",
@@ -44,6 +44,51 @@
       "status": "valid",
       "used_in": [
         "期号37"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC004",
+      "claim": "OpenAI Evals 官方 README：如果你在用大模型做东西，做一套高质量评测是件影响很大的事；没有评测，想搞清不同模型版本对你的场景有什么影响会非常困难、非常费时间",
+      "source": "https://raw.githubusercontent.com/openai/evals/main/README.md",
+      "level": "L1",
+      "version": "main 分支 · 2026-11-16 抓取核实",
+      "conditions": "OpenAI 官方英文仓库 README 原文；定性表述，非性能数字",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号38"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC005",
+      "claim": "OpenAI Evals build-eval 文档：最小评测形态为 JSONL（每行一个 JSON 对象、一个样本），必须有 input 提问与 ideal 标准答案；基础判定模板为 Match / Includes / FuzzyMatch",
+      "source": "https://raw.githubusercontent.com/openai/evals/main/docs/build-eval.md",
+      "level": "L1",
+      "version": "main 分支 · 2026-11-16 抓取核实",
+      "conditions": "OpenAI 官方英文仓库 docs/build-eval.md「Building an eval」节",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号38"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC006",
+      "claim": "OpenAI Evals build-eval 文档：同一个评测名跑同一个模型应给出接近结果以便复现，因此改动评测时应升版本号",
+      "source": "https://raw.githubusercontent.com/openai/evals/main/docs/build-eval.md",
+      "level": "L1",
+      "version": "main 分支 · 2026-11-16 抓取核实",
+      "conditions": "OpenAI 官方英文仓库 docs/build-eval.md 版本管理段",
+      "verified_at": "2026-11-16",
+      "review_due": "2027-05-15",
+      "status": "valid",
+      "used_in": [
+        "期号38"
       ],
       "review_history": []
     }
