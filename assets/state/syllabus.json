@@ -26,11 +26,12 @@
     },
     "AI 训练营": {
       "expertGoal": "",
-      "lastTopic": "Agent 为什么会死循环",
+      "lastTopic": "评测集比模型更重要",
       "covered": [
         "RAG 与知识库",
         "推理工程化与部署",
-        "Agent 与工具调用"
+        "Agent 与工具调用",
+        "AI 应用产品化"
       ]
     },
     "产品经理训练营": {
