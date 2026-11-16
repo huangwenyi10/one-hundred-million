@@ -64,6 +64,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：官方 L1 原文+本机可复算实跑支撑结论，24条全量翻转有说服力；坑：CSS 动画静态导出停在初始态致大数字发虚(L036)、jobctl resume 命令参数过期(L037)、gate 历史分叉(L038)；下次改：导帧前把动效终点态常显做成确定性兜底"
+    },
+    {
+      "episode": "39",
+      "date": "2026-11-16",
+      "title": "访谈聚类完，需求反而错了",
+      "camp": "产品经理训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 9.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 9.0
+      },
+      "evidence": {
+        "content": "content_depth PASS（1943字M档·讲透闭环是什么/为什么/怎么做/数据案例/坑边界五项齐·量化点密度达标·实战形态命中具名案例+可复算推演+踩坑复盘）；首版机制句 WARN 与合规 BLOCK 已重写修复",
+        "visual": "bg_theme PASS（HTML+16帧全营白底·accent #8B2BFF/hilite #B47CFF）｜visual_presence PASS（15/16载体页94%·纯文字1页6%·plan15=落实15）｜subtitle_band 16/16 PASS｜三张发布封面实测行高累加+断言，目检无重叠无裁切",
+        "audio": "gen_sync_subs 16段真实时间轴·401.98s·zh-CN-YunxiNeural·135 cues；第8段 NoAudioReceived 自动 retry 成功；多音字 apply2/restore2 零残留",
+        "subtitle": "check_sync PASS（字幕去标点==口播稿·cue单调无重叠·总时长偏差≤1.0s·分页时长偏差≤0.3s）；video_tool sub_clean 条末标点0；verify_burn PASS（3处边界避让采样）",
+        "delivery": "成片401.97s/14.6MB/1920×1080 h264+aac/30fps；抽帧目检 t=1/150/250/395 四点全过；发布就绪包5份文档+3张封面齐；合规全量复检0BLOCK/0WARN；待作者Step7审核未发布"
+      },
+      "rework_count": 3,
+      "author_rejections": 0,
+      "gate_failures": 2,
+      "learning_ids": [
+        "L039",
+        "L040",
+        "L041"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "首版稿双门禁 FAIL 暴露写稿阶段门禁滞后；纯 card-grid 不计视觉载体需写进 visual_plan 口径；P001 仍 pending_author 未自动改技能规则"
     }
   ]
 }
