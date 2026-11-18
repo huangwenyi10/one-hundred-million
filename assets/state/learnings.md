@@ -455,3 +455,29 @@
 - **audit_recorded 遗留**：exit 3，1 条历史争议「迈向AGI时代」非本轮产物，留人工确认。
 - **提议 P001 状态**：封面生成器沿用 L035 的 bbox 实测行高累加 + 双断言，三张封面目检无重叠/裁切。**提议仍 `pending_author`，未 approve、未自动改技能规则**。
 - **返工计数**：3 次返工（代码行切片 / 表格绝对定位 / 适配器 return 行）+ 1 次首版深度 WARN 修正，门禁 FAIL 0 次，作者打回 0 次。
+
+---
+
+## 2026-11-18 · 测试训练营 · 期号 41《AI生成的用例漏在哪》
+
+### L045 [脚本bug] 自建 make_ppt.py 把自定义 CSS 追加在 `</style>` 之后 → 全部覆写不生效 → fixed / verified
+
+- **现象**：导帧后字幕带门禁 8 帧 FAIL；以为是 `bottom` 覆写没生效，加 `!important` 后仍 FAIL，且整 14 帧全部变成同一数值——维基式把整段 CSS 当正文渲染。
+- **根因**：脚本先切出含 `</style>` 的整段注入 `style` 变量，再 `style += 自定义CSS`，导致新增 CSS 落在 style 标签**外**、被浏览器当文本渲染进画面；此时 `:root` 变量与容器样式全失效。改 `!important` 无效正是"覆写不在 style 标签内"的特征信号。
+- **修复**：改为切 `<style>` 与 `</style>` 之间的 body（不含闭合标签），在 `</style>` 前插入自定义 CSS，再在 HTML 拼接处补回 `<style>` 开标签。复导帧后 14/14 帧 PASS。
+- **防复发点**：套模板生成 PPT 时，注入自定义 CSS 必须验证①`<style>`/`</style>` 各恰好一个；②**首帧目视确认没有 CSS 源码当正文出现**——"全帧同一 FAIL 数值"是 CSS 落标签外的强信号。
+- **状态**：fixed / verified（重导帧 + 全门禁复跑 PASS）。
+
+### L046 [排版规则] 模板 `.card-grid/.diagram-stage/.code-wrap` 默认 `bottom:150px` 底边压入字幕带 → fixed / verified
+
+- **现象**：本轮表格页/代码页/图示页共 8 帧字幕带门禁 FAIL（非白像素 3000~134000）。
+- **根因**：模板三个内容容器默认 `bottom:150px`（底边 y=930）与 `code-page` 覆写 `bottom:158px`（y=922）均进入字幕带 y∈[918,1001]；表格/卡片面板底色本身即被判为非白侵入。此与期号 12 的 `.card-grid bottom:150px` 踩坑（L 类同源）一致，属第二次复发。
+- **修复**：交付覆写统一 `bottom:210px!important`（底边 y≈870），覆盖 card-grid/diagram-stage/code-wrap/code-page.code-wrap 四类容器。
+- **防复发点**：按第 40 条④同类 2 次应蒸馏——**在 `slide-template.html` 的 `.card-grid/.diagram-stage/.code-wrap` 默认 bottom 改为 ≥196px**（待作者确认后改模板，本轮仅交付层覆写）。
+- **状态**：fixed / verified（14 帧字幕带全净）。
+
+### 本轮其他（无需改规则，记备查）
+- **防复发清单命中**：brief L005/L019/L024/L031/L034/L037 + L032 待验证。本轮 ①未用宽 nodebox→L005/L019 未复发；②多音字 apply 4 处（为→未·因为 / 空→控×2 / 差→插）、restore 4 处零残留→L031 未触发；③标题无 ASCII 冒号→L032 未复发；④合规发布内容未逐字列红线词→L034 未复发；⑤`gen_sync_subs.py` 按位置参数调用（L037）未复发。
+- **档位自主裁定**：口播稿约 1280 字，content_depth 判 M 档，成片 266.70s≈4分27秒（M 档偏上限·讲透优先）。
+- **返工计数**：2 次返工（CSS 标签位置 / 容器字幕带侵入），门禁 FAIL 2 轮，作者打回 0。
+- **提议 P001 状态**：沿用前例自绘封面，提议仍 `pending_author`，未 approve、未自动改技能规则。
