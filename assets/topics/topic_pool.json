@@ -1168,7 +1168,8 @@
         "aiAngle": "本题即 AI 主线",
         "handsOn": true,
         "risk": "须真实评测，忌编造准确率",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-18T23:32:34"
       },
       {
         "id": "TST-10",
