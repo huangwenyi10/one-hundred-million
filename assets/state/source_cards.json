@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 12,
+  "next_id": 14,
   "cards": [
     {
       "id": "SC001",
@@ -164,6 +164,36 @@
       "status": "valid",
       "used_in": [
         "一个下拉框，为什么要写三遍"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC012",
+      "claim": "LLM生成的EBT与PBT在16道HumanEval边缘题上单独检出率均68.75%(11/16)，组合81.25%(13/16)，McNemar p=1.00无显著差异，收益来自互补覆盖",
+      "source": "arXiv:2510.25297 Tanaka et al. AIware 2025",
+      "level": "L1",
+      "version": "arXiv:2510.25297v1 2025-10-29",
+      "conditions": "Claude-4-sonnet生成/16道HumanEval边缘题/15s超时判定",
+      "verified_at": "2026-11-18",
+      "review_due": "2027-05-17",
+      "status": "valid",
+      "used_in": [
+        "41"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC013",
+      "claim": "Hypothesis属性式测试=写对所有输入成立的性质并让工具随机挑输入，含没想到的边界；是Python的PBT库",
+      "source": "Hypothesis官方文档",
+      "level": "L1",
+      "version": "6.170.15 抓取2026-11-18",
+      "conditions": "",
+      "verified_at": "2026-11-18",
+      "review_due": "2027-05-17",
+      "status": "valid",
+      "used_in": [
+        "41"
       ],
       "review_history": []
     }
