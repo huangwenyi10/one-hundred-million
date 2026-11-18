@@ -96,6 +96,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "首版稿双门禁 FAIL 暴露写稿阶段门禁滞后；纯 card-grid 不计视觉载体需写进 visual_plan 口径；P001 仍 pending_author 未自动改技能规则"
+    },
+    {
+      "episode": "40",
+      "date": "2026-11-18",
+      "title": "一个下拉框，为什么要写三遍",
+      "camp": "前端训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth PASS（1722字·量化5.68/千字·讲透闭环五项齐·实战形态命中代码+具名案例+原书图表引用）·双源L1 W3C APG+Ark UI README",
+        "visual": "bg_theme PASS（HTML+16帧全白）·visual_presence PASS（15/16载体页94%）·subtitle_band 16/16 PASS；3处排版返工（代码行切片/表头定位/适配器行）已修",
+        "audio": "check_sync PASS（16段321.05s·118cues·偏差0.06s）·固定音色YunxiNeural·多音字apply1/restore零残留",
+        "subtitle": "check_sync PASS（字幕==口播稿逐字）·verify_burn PASS（3处边界避让采样）·字幕末尾去标点·单行不遮挡",
+        "delivery": "抖音合规全量exit0（0BLOCK/0WARN）·成片321.03s/11.5MB/1920×1080·发布就绪包7件·抽帧目检5点全过；成片待作者审核未发布"
+      },
+      "rework_count": 3,
+      "author_rejections": 0,
+      "gate_failures": 0,
+      "learning_ids": [
+        "L042",
+        "L043",
+        "L044"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "跨客户端续跑11-17断稿任务；好：真代码+真实输出上屏讲透状态机，56→18有实跑数据支撑；坑：take取样重叠/正常流块被绝对定位标题带盖住；下次改：新增PPT内容块一律显式绝对定位，代码页上屏前核对行长度与取样区间不重叠"
     }
   ]
 }
