@@ -128,6 +128,37 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "跨客户端续跑11-17断稿任务；好：真代码+真实输出上屏讲透状态机，56→18有实跑数据支撑；坑：take取样重叠/正常流块被绝对定位标题带盖住；下次改：新增PPT内容块一律显式绝对定位，代码页上屏前核对行长度与取样区间不重叠"
+    },
+    {
+      "episode": "41",
+      "date": "2026-11-18",
+      "title": "AI生成的用例漏在哪",
+      "camp": "测试训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth PASS(M档·讲透闭环齐·量化5.5/千字·实战形态命中真实踩坑复盘)｜双源L1 arXiv:2510.25297+Hypothesis官方文档6.170.15｜本机实跑真实输出",
+        "visual": "bg_theme HTML+14帧层PASS｜visual_presence 12/14载体页86% plan12=落实12｜subtitle_band 14帧全净｜L045/L046两处返工已修",
+        "audio": "edge-tts zh-CN-YunxiNeural 14段266.69s｜多音字apply4/restore4零残留｜check_sync PASS偏差0.02s",
+        "subtitle": "check_sync PASS字幕==口播稿89cues｜verify_burn三处采样水印+字幕全OK｜sub_clean去尾标点",
+        "delivery": "成片266.70s/8.7MB/1920x1080｜抖音合规0BLOCK0WARN｜抽帧t=1/45/160/260目检过｜发布就绪包交付"
+      },
+      "rework_count": 2,
+      "author_rejections": 0,
+      "gate_failures": 2,
+      "learning_ids": [
+        "L045",
+        "L046"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": ""
     }
   ]
 }
