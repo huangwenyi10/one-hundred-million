@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 14,
+  "next_id": 16,
   "cards": [
     {
       "id": "SC001",
@@ -194,6 +194,36 @@
       "status": "valid",
       "used_in": [
         "41"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC014",
+      "claim": "METR 2025 RCT：资深开发者在熟悉老代码库用AI慢19%，事前预期快24%、事后自认快20%",
+      "source": "metr.org 2025-07-10 / arXiv:2507.09089",
+      "level": "L1",
+      "version": "2025-07 / 2026-02更新声明结果过时",
+      "conditions": "16人/246真实任务/大型开源库/2025上半年模型",
+      "verified_at": "2026-11-19",
+      "review_due": "2027-05-18",
+      "status": "valid",
+      "used_in": [
+        "42"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC015",
+      "claim": "Peng et al. 2023：从零写HTTP服务实验组用Copilot快55.8%",
+      "source": "arXiv:2302.06590",
+      "level": "L1",
+      "version": "2023-02",
+      "conditions": "从零新任务/JavaScript HTTP server/受试开发者",
+      "verified_at": "2026-11-19",
+      "review_due": "2027-05-18",
+      "status": "valid",
+      "used_in": [
+        "42"
       ],
       "review_history": []
     }
