@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 16,
+  "next_id": 20,
   "cards": [
     {
       "id": "SC001",
@@ -224,6 +224,66 @@
       "status": "valid",
       "used_in": [
         "42"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC016",
+      "claim": "Miller 1956 原始论文提出工作记忆容量约 7±2 个信息块；Cowan 2001 复查后指出当不允许复述和分组时真实容量更接近 3-4 个 chunk",
+      "source": "Miller 1956 (Psychological Review) + Cowan 2001 (Behavioral and Brain Sciences)；交叉：ScienceDirect S1067991X17300093、Exprea 综述",
+      "level": "L1",
+      "version": "1956/2001 原文 + 2026-11-20 双源核验",
+      "conditions": "chunk 为单位，非信息量；Cowan 结论附加「不允许复述/分组」条件",
+      "verified_at": "2026-11-20",
+      "review_due": "2027-05-19",
+      "status": "valid",
+      "used_in": [
+        "期号43"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC017",
+      "claim": "Sweller 1988 认知负荷理论把脑力消耗分内在/外在/关联三类；Mayer 多媒体学习研究显示屏幕文字与旁白重复会降低理解（冗余效应）",
+      "source": "Sweller 1988 CLT + Mayer 多媒体学习；交叉：ScienceDirect S1076633216001240、Exprea 综述",
+      "level": "L1",
+      "version": "1988 + 2026-11-20 双源核验",
+      "conditions": "冗余效应在「屏幕文字重复旁白」条件下成立",
+      "verified_at": "2026-11-20",
+      "review_due": "2027-05-19",
+      "status": "valid",
+      "used_in": [
+        "期号43"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC018",
+      "claim": "Duarte《Resonate》：打动人的演讲在 what is 与 what could be 之间摆动制造落差；提出 S.T.A.R. 时刻（听众一周后仍记得的东西，可为一句话/一张图/一个数字）",
+      "source": "Nancy Duarte 官方 duarte.com 博客 + Wiley 2010 原著 + LibreTexts 转引",
+      "level": "L1",
+      "version": "Wiley 2010 + 2026-11-20 核验",
+      "conditions": "基于 Duarte 团队对数千场演讲的研究",
+      "verified_at": "2026-11-20",
+      "review_due": "2027-05-19",
+      "status": "valid",
+      "used_in": [
+        "期号43"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC019",
+      "claim": "Steve Jobs 2007 Macworld 发布 iPhone：先说要发布三个革命性产品（宽屏iPod/手机/上网设备），最后揭示是同一台设备——3 个块收成 1 个",
+      "source": "2007 Macworld 发布会公开发表；多来源交叉（PitchAvatar 分析等）",
+      "level": "L2",
+      "version": "2007-01 + 2026-11-20 核验",
+      "conditions": "案例事实广泛可核；非同行评审一手录像逐字稿",
+      "verified_at": "2026-11-20",
+      "review_due": "2027-05-19",
+      "status": "valid",
+      "used_in": [
+        "期号43"
       ],
       "review_history": []
     }
