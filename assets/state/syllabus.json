@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -66,11 +66,12 @@
     },
     "管理训练营": {
       "expertGoal": "",
-      "lastTopic": "1:1复盘表：事实和判断分开",
+      "lastTopic": "AI 提效的 ROI 怎么算",
       "covered": [
         "技术管理",
         "目标与计划",
-        "一对一与沟通"
+        "一对一与沟通",
+        "AI 视角与 AI 时代能力"
       ]
     },
     "软技能训练营": {
