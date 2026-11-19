@@ -1517,7 +1517,8 @@
         "aiAngle": "AI 辅助生成讲稿与演示材料",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-20T00:24:28"
       },
       {
         "id": "SFT-06",
