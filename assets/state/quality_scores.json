@@ -192,6 +192,42 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "讲透一个概念(ROI算不平的口径)M档到位;坑:PPT画面文字绝对化与字幕带脚注易漏,下次Step7加画面文字扫描;好:双源实验张力+本机可复算模型是本轮亮点"
+    },
+    {
+      "episode": "43",
+      "date": "2026-11-20",
+      "title": "技术分享：讲得越全，记得越少",
+      "camp": "软技能训练营",
+      "tier": "M",
+      "scores": {
+        "content": 8.0,
+        "visual": 9.0,
+        "audio": 9.0,
+        "subtitle": 8.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth_check 补2处机制句后PASS；7条双源核验结论写sources.md；软技能营非动手型·实战形态靠iPhone发布具名案例+认知负荷可复述结构命中",
+        "visual": "bg_theme PASS(全营白底·书墨棕accent #6D4C41)；visual_presence PASS(12/14载体页:stat/cmp/diagram-grid/bars/flow)；subtitle_band 14帧PASS；无画面绝对化标识",
+        "audio": "gen_sync_subs 14段220.82s固定YunxiNeural；第11段503自动retry成功；check_sync PASS 79cues偏差0.06s；burn audio无扩展名规避后成片220.83s",
+        "subtitle": "check_sync PASS字幕==口播稿逐字一致；sub_clean吞《Resonate》返工1次(L051)改句式后PASS；t=120单字三转场帧目检放行(L054)",
+        "delivery": "发布包8项齐全(成片/PPT/口播稿/封面4x3+3x4/三平台文案/标题标签/抖音发布设置)；合规复检改写元描述行后exit0；返工4次作者打回0；待Step7作者审核"
+      },
+      "rework_count": 4,
+      "author_rejections": 0,
+      "gate_failures": 3,
+      "learning_ids": [
+        "L051",
+        "L052",
+        "L053",
+        "L054",
+        "L055"
+      ],
+      "no_issues": false,
+      "regression_dims": [
+        "subtitle"
+      ],
+      "notes": "好：三步结构+权威认知科学双源扎实·分块案例具名；坑：sub_clean吞英文书名/burn audio扩展名/合规元描述行复发；下次改：写后台文档不逐字列红线词·英文书名不用《》·content_depth机制句前置"
     }
   ]
 }
