@@ -159,6 +159,39 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": ""
+    },
+    {
+      "episode": "42",
+      "date": "2026-11-19",
+      "title": "AI提效的账，为什么算不平",
+      "camp": "管理训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 9.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth PASS 量化11.21/千字·讲透闭环齐·双源L1 METR+Peng·本机实跑4口径ROI模型",
+        "visual": "12/15强载体80%·白底黄带·返工2次(来源行字幕带侵入L047+封面绝对化L049)·bg_theme/subtitle_band PASS",
+        "audio": "edge-tts YunxiNeural 15段311.62s·第12段NoAudioReceived自动retry成功·check_sync偏差0.05s",
+        "subtitle": "113 cues·字幕==口播稿·代理3处restore零残留·verify_burn长字幕bbox误报2处抽帧放行L048",
+        "delivery": "成片311.6s/10.65MB·发布就绪包7件+可复现实验·合规全量0BLOCK/0WARN·成片待作者审核"
+      },
+      "rework_count": 3,
+      "author_rejections": 0,
+      "gate_failures": 3,
+      "learning_ids": [
+        "L047",
+        "L048",
+        "L049",
+        "L050"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "讲透一个概念(ROI算不平的口径)M档到位;坑:PPT画面文字绝对化与字幕带脚注易漏,下次Step7加画面文字扫描;好:双源实验张力+本机可复算模型是本轮亮点"
     }
   ]
 }
