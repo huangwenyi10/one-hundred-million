@@ -1395,7 +1395,8 @@
         "aiAngle": "本题即 AI 主线",
         "handsOn": true,
         "risk": "数字须实测或标注估算口径",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-19T12:03:54"
       },
       {
         "id": "MGT-12",
