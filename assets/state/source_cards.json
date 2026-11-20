@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 20,
+  "next_id": 22,
   "cards": [
     {
       "id": "SC001",
@@ -284,6 +284,36 @@
       "status": "valid",
       "used_in": [
         "期号43"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC020",
+      "claim": "SAKE架构知识基准:2154题/8类/11模型,QA零样本98.2%/创建型模式97.1%/架构方案89.5%;上下文悖论:回忆题题干越长越准(总体>90%),架构方案题题干>266词降到87.8%(干扰项密度)",
+      "source": "arXiv:2606.29520 Santilli et al. SAKE 2026-06-28 University of Southern Denmark",
+      "level": "L1",
+      "version": "arXiv v1 2026-06-28",
+      "conditions": "零样本;四选一;2154专家题;paperity PDF交叉核对",
+      "verified_at": "2026-11-20",
+      "review_due": "2027-05-19",
+      "status": "valid",
+      "used_in": [
+        "44"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC021",
+      "claim": "ADR架构决策违规检测:109仓库/980ADR/1317accepted决策/305人工核验;领先模型准确率0.911/0.904,Fleiss κ=0.724;代码不足回答(CIA)类F1仅0.792;92错误案例部署42.39%/意图26.09%,语义误读44.57%/隐式上下文28.26%",
+      "source": "arXiv:2602.07609 Su et al. ICSA 2026 University of Oulu + SDU",
+      "level": "L1",
+      "version": "ICSA 2026 2026-02-07",
+      "conditions": "explicit/code-inferable决策;Table IV/VI/VII/VIII/IX核对",
+      "verified_at": "2026-11-20",
+      "review_due": "2027-05-19",
+      "status": "valid",
+      "used_in": [
+        "44"
       ],
       "review_history": []
     }
