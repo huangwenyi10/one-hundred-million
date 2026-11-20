@@ -228,6 +228,38 @@
         "subtitle"
       ],
       "notes": "好：三步结构+权威认知科学双源扎实·分块案例具名；坑：sub_clean吞英文书名/burn audio扩展名/合规元描述行复发；下次改：写后台文档不逐字列红线词·英文书名不用《》·content_depth机制句前置"
+    },
+    {
+      "episode": "44",
+      "date": "2026-11-20",
+      "title": "AI懂架构，但拍板还得人",
+      "camp": "架构师训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 9.0,
+        "audio": 9.0,
+        "subtitle": 9.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth PASS 1540字M档/31量化点20.13每千字/讲透闭环五项齐/双L1论文SAKE+ADR一手核验/本机可复算boundary_model判定器6场景实跑",
+        "visual": "15/16载体页(stat/bars/cmp/flow/code-page)/bg_theme全营白底架构师绿PASS/subtitle_band 16/16/画面绝对化扫描无命中",
+        "audio": "固定音色zh-CN-YunxiNeural/多音字apply1处restore零残留/check_sync PASS 113cues偏差合格",
+        "subtitle": "上轮退步8.0本轮回升9/check_sync字幕==口播稿/verify_burn PASS/抽帧t=1/240/319单行不遮挡",
+        "delivery": "发布包10项齐全(成片/PPT/口播稿/封面4x3+3x4/三平台文案/标题标签/抖音设置/可复现实验)/抖音合规exit0/但4次返工+元描述行第3次复发扣1分"
+      },
+      "rework_count": 4,
+      "author_rejections": 0,
+      "gate_failures": 4,
+      "learning_ids": [
+        "L056",
+        "L057",
+        "L058"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "讲透优先M档321s。好:双L1论文数字逐项核对+本机可复算判定器使'怎么做'落地;坑:合规元描述行第3次复发需脚本白名单(P003已提请)、visual_presence自定义class不被识别、代码页code-wrap默认bottom侵字幕带;下次改:后台文档元描述只写已通过自检、Step2直接用白名单class、代码页通用bottom覆写。字幕维度按上轮退步重点改进已回升。"
     }
   ]
 }
