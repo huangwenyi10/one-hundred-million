@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 22,
+  "next_id": 24,
   "cards": [
     {
       "id": "SC001",
@@ -314,6 +314,36 @@
       "status": "valid",
       "used_in": [
         "44"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC022",
+      "claim": "dbt 的 ref() 会在被引用模型与当前模型之间建立依赖，并据引用关系自动构建依赖图，使 dbt run 按正确顺序执行",
+      "source": "dbt Developer Hub《About ref function》 https://docs.getdbt.com/reference/dbt-jinja-functions/ref",
+      "level": "L1",
+      "version": "version=2 / v1.12+ 跨项目 ref",
+      "conditions": "官方文档原文·抓取 2026-11-21",
+      "verified_at": "2026-11-21",
+      "review_due": "2027-05-20",
+      "status": "valid",
+      "used_in": [
+        "45"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC023",
+      "claim": "OpenLineage 对象模型含 Job/Dataset/Run 三类，run state 有 START/RUNNING/COMPLETE/ABORT/FAIL/OTHER 六种（COMPLETE/ABORT/FAIL 为终态）；schema facet 的 fields 记录字段名、类型、描述；血缘图由跨多个平台 Job 的观测编织而成",
+      "source": "OpenLineage 官方 spec https://openlineage.io/docs/1.54.0/spec/object-model",
+      "level": "L1",
+      "version": "Object Model 1.54.0 / Run Cycle 1.53.0 / Facets 1.47.0",
+      "conditions": "官方规范原文·抓取 2026-11-21",
+      "verified_at": "2026-11-21",
+      "review_due": "2027-05-20",
+      "status": "valid",
+      "used_in": [
+        "45"
       ],
       "review_history": []
     }
