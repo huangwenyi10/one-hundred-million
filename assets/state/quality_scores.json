@@ -260,6 +260,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "讲透优先M档321s。好:双L1论文数字逐项核对+本机可复算判定器使'怎么做'落地;坑:合规元描述行第3次复发需脚本白名单(P003已提请)、visual_presence自定义class不被识别、代码页code-wrap默认bottom侵字幕带;下次改:后台文档元描述只写已通过自检、Step2直接用白名单class、代码页通用bottom覆写。字幕维度按上轮退步重点改进已回升。"
+    },
+    {
+      "episode": "45",
+      "date": "2026-11-21",
+      "title": "一个报表数错了，怎么追到源头那张表",
+      "camp": "大数据训练营",
+      "tier": "L",
+      "scores": {
+        "content": 8.0,
+        "visual": 9.0,
+        "audio": 9.0,
+        "subtitle": 9.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth WARN量化密度0.5每千字(概念解析型取舍L060·实跑数字集中在画面);本机实跑字段级血缘3模型10边4层反查3下游列;双源L1 dbt ref官方+OpenLineage spec1.54.0;事实卡片SC022/SC023入库",
+        "visual": "27页全营白底+大数据蓝accent #0A5CFF;bg_theme HTML+27帧PASS;visual_presence 26/27载体96%;subtitle_band 27帧全净;抽帧t=1/150/250/400确认画面页序与字幕对齐(L059返工修复)",
+        "audio": "固定音色YunxiNeural;分段TTS27段403.49s;多音字代理3处restore零残留;verify_burn三点PASS",
+        "subtitle": "check_sync PASS 132cues偏差0.04s字幕==口播稿;verify_burn三点PASS;抽帧4点单行不遮挡",
+        "delivery": "成片403.5s/14.7MB/1920x1080;抖音合规全量改稿1处后0BLOCK/0WARN;发布就绪包10项(成片/PPT/口播稿/封面4x3+3x4/三平台文案/标题标签/抖音发布设置/可复现实验)已交付;目录#34+covered+TOP-01 done+metrics+rotation已写回;audit_recorded漏登0(1条历史争议条目非本期);成片待作者Step7审核"
+      },
+      "rework_count": 3,
+      "author_rejections": 0,
+      "gate_failures": 3,
+      "learning_ids": [
+        "L059",
+        "L060",
+        "L061"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": ""
     }
   ]
 }
