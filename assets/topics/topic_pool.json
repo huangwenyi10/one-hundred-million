@@ -136,7 +136,8 @@
         "aiAngle": "本题即AI 主线",
         "handsOn": true,
         "risk": "需真实实测记录，忌凭想象描述模型表现",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-20T12:53:37"
       },
       {
         "id": "ARC-10",
