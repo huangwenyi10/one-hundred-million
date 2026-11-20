@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 3,
+  "next_id": 4,
   "proposals": [
     {
       "id": "P001",
@@ -27,6 +27,23 @@
       "summary": "合规元描述行误报第2次复发（L034→L053）→ 蒸馏为脚本白名单或条款",
       "detail": "同根因第 2 次出现（固定规范第 40 条④）。建议固化为 douyin_compliance_check.py 增加后台文档元描述行跳过/白名单，或 SKILL.md 固定规范第30条补「扫描范围限定为发布内容、后台文档元描述只写结论不逐字列举红线词」；能脚本化的优先脚本化。",
       "evidence": "期号36 L034 后台文档元描述8项BLOCK；期号43 L053 同根因6项BLOCK，三份发布文案零命中；两次均靠改写措辞放行，发布内容未动",
+      "status": "pending_author",
+      "approved_at": null,
+      "approved_note": null,
+      "verification": {
+        "result": null,
+        "evidence": null,
+        "at": null
+      }
+    },
+    {
+      "id": "P003",
+      "type": "distill",
+      "created_at": "2026-11-20",
+      "episode": "44",
+      "summary": "合规元描述行 BLOCK 第3次复发（L034→L053→L056）：后台设置/标题标签文档逐字列举红线词被正则误报；建议脚本对 抖音发布设置.md/标题标签.md 的元描述行或已声明'已通过自检'语境跳过",
+      "detail": "同根因第 2 次出现（固定规范第 40 条④）。建议固化为 scripts/douyin_compliance_check.py 后台文件元描述行白名单；能脚本化的优先脚本化。",
+      "evidence": "期号44 全量合规复检 5 BLOCK 全在两份后台文档元描述行，发布内容零命中；改写措辞后 PASS 0BLOCK/0WARN",
       "status": "pending_author",
       "approved_at": null,
       "approved_note": null,
