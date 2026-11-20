@@ -563,3 +563,33 @@
 - **防复发清单命中**：brief 列出 7 个 open 项 + 4 个待验证 + P001。本轮 ①L050 非 ASCII 减号未复发（封面无减号）；②L034 元描述行**复发**（L053，已蒸馏）；③L049 画面绝对化扫描本轮画面干净；④L048 verify_burn 误报未复发。
 - **返工计数**：4 次返工（sub_clean 吞 Resonate 重配第 11 段 / content_depth 补机制句 / 合规元描述行 6 项改写 / burn audio 无扩展名规避），门禁 FAIL 3 轮，作者打回 0。
 - **提议 P001 状态**：仍 `pending_author`，未 approve、未自动改技能规则。
+
+---
+
+## 2026-11-20 · 架构师训练营 · 期号 44《AI懂架构，但拍板还得人》
+
+### L056 [门禁失效] 合规元描述行 BLOCK 第 3 次复发（L034→L053→本轮）→ 改写措辞放行 · 已蒸馏（open）
+- **现象**：发布包全量合规复检 FAIL 5 BLOCK，全部落在两份后台文档（`抖音发布设置.md` / `标题标签.md`）的元描述行——字面写了「绝对化」「站外链接」「网盘」等红线词；三份真正发布文案 + 口播稿零命中。
+- **根因**：照抄历史期号模板，模板元描述行本身逐字列举红线词。L034（首次）、L053（第2次·已蒸馏生成提议）之后本轮第 3 次照抄复发——防复发点「后台文档不逐字列举红线词」连续两轮未落实，说明仅靠文字约定不够，需脚本侧文件类型白名单。
+- **修复**：元描述行改为「文字符合平台规范」「不提供任何联系方式」「归档交付物」等具体描述，发布内容一字未动；复跑全量扫描 PASS（0 BLOCK / 0 WARN）。
+- **防复发点**：后台设置/标题标签文件不逐字列举红线词，只写「已通过自检」；已按第 40 条④第 2 次复发规则蒸馏为 `douyin_compliance_check.py` 的元描述行跳过/后台文件白名单提议（第 43 条⑤须作者确认，本轮只生成提议 pending_author 不自动改脚本）。
+- **状态**：open（同根因第 3 次 → 蒸馏提议 pending_author；本期改写放行）。
+
+### L057 [排版规则] visual_presence 不识别自定义 class（statx/bars2/hbar）→ 改用脚本白名单 class 后 PASS（fixed）
+- **现象**：首版 PPT `visual_presence_check.py` 只识别 9/16 载体页、7 页纯文字 FAIL（>40%）；plan 声明 16 段有载体但 PPT 只落实 9 段。
+- **根因**：画面用了自定义 class `.statx`/`.bars2`/`.hbar`，脚本只认模板白名单 class（`metric`/`bar-chart`/`cmp`/`stat`/`code-block`/`flow` 等），自定义 class 一律当纯文字。
+- **修复**：数字元素加 `metric`、柱状组加 `bar-chart`，visual_plan 第 16 段 CTA 载体改 `-`（纯文字 CTA 合规）；15/16 载体页 PASS。
+- **防复发点**：Step 2 排版数字/柱状时直接用模板白名单 class，不自造 class；写 visual_plan 时 CTA 段载体记 `-`。
+- **状态**：fixed（本期验证 PASS）。
+
+### L058 [排版规则] 代码页 code-wrap 侵入字幕带（page12）→ 通用 bottom 覆写后 16/16 PASS（fixed）
+- **现象**：`subtitle_band_check.py` page_12 FAIL，字幕带非白像素 1120；定位为绿色 `.code-note` 行 y≈900–925 侵入字幕带 y[918,1001]。
+- **根因**：模板 `.code-wrap` 默认 `bottom:150px`，代码页内容块底边过高；首次改 `.slide.code-page .code-wrap` 无效——section 根本没有 `code-page` class。
+- **修复**：改为通用覆写 `.code-wrap{bottom:268px!important}` + `.code-src{bottom:250px!important}`，重导帧 16/16 PASS。
+- **防复发点**：代码页覆写不要用假设的 section class 前缀，直接用通用 `.code-wrap`/`.code-src`；导帧后必跑 `subtitle_band_check.py`（与 L046 测试营代码页字幕带侵入同根因第 2 次，但锚点不同，暂不蒸馏、续观察）。
+- **状态**：fixed（本期验证 16/16 PASS）。
+
+### 本轮其他（无需改规则，记备查）
+- **返工计数**：4 次（中文数字改阿拉伯数字满足量化识别 / 合规 BLOCK+WARN 重配音 / visual_presence 自定义 class 改白名单 / 画面绝对化「第一/100%」+page12 字幕带侵入重导帧），门禁 FAIL 4 轮，作者打回 0。
+- **字幕维度改进**：上轮 43 字幕维度退步（8.0 vs 近10期均值 9.57），本轮 check_sync PASS（113 cues / 321.24s / 字幕==口播稿 / restore 零残留）、verify_burn PASS、抽帧 t=1/240/319 单行不遮挡，字幕评分回升至 9。
+- **提议状态**：P001（元描述行脚本白名单）、P002 仍 `pending_author`，未 approve、未自动改技能规则。
