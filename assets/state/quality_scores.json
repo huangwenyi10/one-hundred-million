@@ -292,6 +292,39 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": ""
+    },
+    {
+      "episode": "46",
+      "date": "2026-11-21",
+      "title": "温度调到零，模型就更准了吗",
+      "camp": "AI 训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth PASS·量化7.05/千字·双源L1(HF/OpenAI/Google)·本机实跑采样实验",
+        "visual": "bg_theme PASS·visual_presence 11/15载体73%·subtitle_band 15帧全净·柱状图返工后清晰",
+        "audio": "edge-tts YunxiNeural·330.91s·check_sync偏差0.06s",
+        "subtitle": "check_sync PASS·107cues字幕==口播稿·verify_burn三点全PASS·代理字零残留",
+        "delivery": "发布就绪包10项·抖音合规0BLOCK/0WARN·成片待作者审核"
+      },
+      "rework_count": 3,
+      "author_rejections": 0,
+      "gate_failures": 3,
+      "learning_ids": [
+        "L062",
+        "L063",
+        "L064",
+        "L065"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：反钩子清晰·实验数据自洽·本机实跑可复现；坑：CSS注释跨行删误吃root/visual_plan声明数/柱状压字幕带三处返工；下次改：bars柱高模板级上限变量(待拍板)·删注释不跨行"
     }
   ]
 }
