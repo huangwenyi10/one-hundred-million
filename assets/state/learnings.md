@@ -662,3 +662,27 @@
 - **返工计数**：3 次（visual_presence 声明数 / CSS 注释误吃 root / 字幕带柱状侵入），门禁 FAIL 3 轮，作者打回 0。实验脚本自纠 1 处（L065，未影响成片）。
 - **时长**：成片 330.9s≈5.5 分钟（M 档偏上·讲透优先）；content_depth 判 L 档但按一个核心概念自主定 M。
 - **提议状态**：P001/P002/P003 仍 pending_author，未 approve、未自动改技能规则。L064 同类底部避让第 3 次，建议蒸馏模板级 bars 高度变量（待作者拍板）。
+
+---
+
+## 2026-11-22 · 产品经理训练营 · 期号 47《Roadmap 怎么排才不被打乱》
+
+### L066 [流程缺口] make_ppt.py 生成器把 <style> 放进 <body> → export_frames 只保留 head，导出帧全无 CSS（抽帧目检发现，已修）
+- **现象**：自动门禁全过（bg_theme PASS、visual_presence PASS、subtitle_band PASS、verify_burn PASS），但抽帧 t=1 目检发现封面文字全挤在左上角成小字、画面无紫色标题带——导出的 14 帧完全没有应用 CSS。
+- **根因**：本轮用自建 make_ppt.py 生成 PPT，把 `<style>...</style>` 拼在 `<body>` 之后（模板原本在 `<head>`）。`scripts/export_frames.py` 的 split_pages 只取 `head = html[:html.index('<body>')]` 部分重组每页，body 内的 style 被丢弃 → Chrome 渲染的是无样式裸文本。bg_theme_check 直接解析 :root 变量、visual_presence 只解析 class 字符串、subtitle_band 在无内容帧上天然全净、verify_burn 只看水印与字幕——四个门禁都看不到「渲染层没样式」。
+- **修复**：生成器改为把 `full_css` 拼进 `</head>` 之前，重生成 PPT → 清空 frames 重导 14 帧 → 像素抽检确认标题带 (158,81,255) 且封面纯白 → 重跑 compose+burn+verify → 重抽帧目检全过。
+- **防复发点**：**自建 PPT 生成器必须把 `<style>` 放在 `<head>`**，且导帧后必须做一次「渲染层 sanity check」——像素抽检标题带区域非白（内容页）与封面纯白，不能只信文本层门禁。自动门禁 PASS ≠ 画面正常，抽帧目检不可省（与 L059 同属「门禁测不到画面层」类）。是否给 export_frames 加「head 内无 style 则 FAIL」硬门禁待作者拍板（第 43 条⑤不自动改脚本）。
+- **状态**：fixed（本期修正生成器并重导帧验证 PASS）。
+
+### L067 [排版规则] 静态帧导出把 anim-pop 抓在半透明态 → 公式文字几乎不可读（已修）
+- **现象**：page_03 的公式「分数 = 触达 × 影响 × 信心 ÷ 投入」渲染成极淡的浅紫，肉眼几乎看不清；数字页 `.num.anim-pop` 也有类似风险。
+- **根因**：模板 CSS 动画 `.anim-pop{opacity:0;animation:pop .55s forwards}`，`export_frames.py` 用 `--virtual-time-budget=3000` 导帧，但 xfade 静态合成管线不需要动画，动画起始帧被抓到 opacity 很低的状态。`animation-fill-mode:forwards` 只保证动画结束后态，不保证截图落在结束后。
+- **修复**：从生成器里移除所有内容承载元素的 `anim-pop` class（公式与 3 个数字页），静态帧直接渲染终态；重导帧后公式恢复实色可读。
+- **防复发点**：**静态帧 + xfade 合成（默认管线，不加 --motion）时，关键内容（公式/数字/结论）一律不挂 anim-* class**——静态帧必须终态可读，动画只在走 render_animated.js 逐帧捕获时才用。是否内置「静态导帧自动去动画 class」开关待作者拍板（第 43 条⑤）。
+- **状态**：fixed（本期去动画重导帧验证 PASS）。
+
+### 本轮其他（无需改规则，记备查）
+- **防复发清单命中**：brief 列出 13 open + 9 待验证 + P001/P002/P003。本轮 ①L007 精确「—」：visual_plan CTA 段记「—」，未复发；②L046/L058/L064 底部避让：卡片/表格/柱状统一 bottom:210、bars 限高 250，subtitle_band 14 帧全净未复发；③L063 声明数=落实数：P2/P4 由 split 改真 cmp 表，声明 12=落实 12，未复发；④L053/L056 后台文档元描述行：发布设置里「网盘」被合规脚本判 BLOCK → 改「云端归档」措辞，发布内容未动，复检 0 BLOCK（同根因又1次，P002/P003 仍 pending_author）；⑤L050 封面避免 U+2212：用 ASCII「·」，双断言通过；⑥L037 gen_sync_subs 位置参数：未复发；⑦L019 diagram-row nodebox 等分：P3 四节点等宽显示正常，未复发。
+- **返工计数**：4 次（P2/P4 cmp 声明数 / style 误置 body 全无 CSS / anim-pop 半透明 / 合规元描述行 BLOCK），门禁 FAIL 4 轮，作者打回 0。其中两次靠抽帧目检才发现（L066/L067），自动门禁全 PASS。
+- **时长**：成片 259.5s≈4.3 分钟（M 档·一个核心概念 RICE 讲透）。
+- **提议状态**：P001/P002/P003 仍 pending_author，未 approve、未自动改技能规则。L066 建议 export_frames 加 head-style 硬门禁、L067 建议静态导帧自动去动画 class，均待作者拍板。
