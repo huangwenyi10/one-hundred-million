@@ -325,6 +325,37 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：反钩子清晰·实验数据自洽·本机实跑可复现；坑：CSS注释跨行删误吃root/visual_plan声明数/柱状压字幕带三处返工；下次改：bars柱高模板级上限变量(待拍板)·删注释不跨行"
+    },
+    {
+      "episode": "47",
+      "date": "2026-11-22",
+      "title": "Roadmap 怎么排才不被打乱",
+      "camp": "产品经理训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS 量化7.1/千字·讲透闭环齐·L1官方原文+本机实跑",
+        "visual": "bg_theme PASS·visual_presence 12/14载体86%·subtitle_band 14帧全净·但两次返工因无CSS/动画半透明",
+        "audio": "check_sync PASS 偏差0.07s·固定音色Yunxi·259.51s",
+        "subtitle": "check_sync PASS 95cues字幕==口播稿·verify_burn三点PASS·restore零残留",
+        "delivery": "发布就绪包10项·合规全量0BLOCK/0WARN·抽帧5点过·待作者审核"
+      },
+      "rework_count": 4,
+      "author_rejections": 0,
+      "gate_failures": 4,
+      "learning_ids": [
+        "L066",
+        "L067"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：RICE官方算例本机复算一致·四数摆桌挡插队的钩子清晰；坑：自建生成器两次渲染层问题自动门禁全PASS靠抽帧目检发现；下次改：PPT生成器style必须入head·静态帧不挂anim-class"
     }
   ]
 }
