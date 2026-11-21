@@ -662,6 +662,20 @@
         "handsOn": false,
         "risk": "",
         "status": "unused"
+      },
+      {
+        "id": "AI-01",
+        "title": "温度调到零，模型就更准了吗",
+        "dimension": "大模型原理",
+        "angle": "采样参数只改分布形状不改变排序，低温只是更稳定地错",
+        "tier": "M",
+        "reach": "中",
+        "hook": "反直觉",
+        "aiAngle": "",
+        "handsOn": true,
+        "risk": "",
+        "status": "done",
+        "updatedAt": "2026-11-21T13:45:07"
       }
     ],
     "产品经理训练营": [
