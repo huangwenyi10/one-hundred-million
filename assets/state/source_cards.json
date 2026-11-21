@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 24,
+  "next_id": 25,
   "cards": [
     {
       "id": "SC001",
@@ -344,6 +344,21 @@
       "status": "valid",
       "used_in": [
         "45"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC024",
+      "claim": "temperature 通过 softmax(z_i/T) 缩放 logits：T 越低分布越尖、T=0 等价贪心取 argmax；除以同一正数不改变排序，故低温只稳定不改变正确性；top_p 为核采样按累计概率取最小集合",
+      "source": "Hugging Face 官方 decoding-strategies 博客 + OpenAI API Reference + Google Vertex AI 官方文档",
+      "level": "L1",
+      "version": "2026-11-21 抓取",
+      "conditions": "logits=[1.5,-1.8,0.9,-3.2]：T=1 A=62.70%/T=0.1 A=99.75%/T=2.0 A=49.30%；top_p=0.5 候选仅A、0.9 候选A+C=97.12%",
+      "verified_at": "2026-11-21",
+      "review_due": "2027-05-20",
+      "status": "valid",
+      "used_in": [
+        "温度调到零，模型就更准了吗"
       ],
       "review_history": []
     }
