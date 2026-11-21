@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 25,
+  "next_id": 26,
   "cards": [
     {
       "id": "SC001",
@@ -359,6 +359,21 @@
       "status": "valid",
       "used_in": [
         "温度调到零，模型就更准了吗"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC025",
+      "claim": "RICE 打分法：分数=(Reach×Impact×Confidence)/Effort；Intercom 官方档位 Impact=3/2/1/0.5/0.25，Confidence=1/0.8/0.5，Effort=人月",
+      "source": "Intercom 官方博客 rice-simple-prioritization-for-product-managers",
+      "level": "L1",
+      "version": "Sean McBride 2018-01-05；抓取 2026-11-22",
+      "conditions": "Reach 按季度人数；官方三算例分数 675/400/800 本机复算一致",
+      "verified_at": "2026-11-22",
+      "review_due": "2027-05-21",
+      "status": "valid",
+      "used_in": [
+        "期号47 Roadmap 怎么排才不被打乱"
       ],
       "review_history": []
     }
