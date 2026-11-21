@@ -1,6 +1,6 @@
 {
   "schema": "ohl-syllabus-state/1",
-  "updated": "2026-11-21",
+  "updated": "2026-11-22",
   "camps": {
     "架构师训练营": {
       "expertGoal": "",
@@ -39,12 +39,13 @@
     },
     "产品经理训练营": {
       "expertGoal": "",
-      "lastTopic": "访谈聚类完，需求反而错了",
+      "lastTopic": "Roadmap 怎么排才不被打乱",
       "covered": [
         "数据驱动与增长",
         "用户洞察与需求",
         "商业化设计·免费转付费转化",
-        "AI 视角与 AI 时代能力"
+        "AI 视角与 AI 时代能力",
+        "产品规划与路线图"
       ]
     },
     "前端训练营": {
