@@ -356,6 +356,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：RICE官方算例本机复算一致·四数摆桌挡插队的钩子清晰；坑：自建生成器两次渲染层问题自动门禁全PASS靠抽帧目检发现；下次改：PPT生成器style必须入head·静态帧不挂anim-class"
+    },
+    {
+      "episode": "48",
+      "date": "2026-11-22",
+      "title": "框架自动转义了为什么还有XSS",
+      "camp": "前端训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 7.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS 量化2.19/千字·闭环齐·双源L1 MDN+OWASP·本机实跑xss_defense_experiment真实TypeError",
+        "visual": "visual_presence PASS 14/16载体页88%·bg_theme HTML+16帧PASS；但两次渲染层返工（HTML注释残留全页下推/src-note浮顶）靠抽帧才看出，visual 7分",
+        "audio": "check_sync PASS 315.82s/113 cues偏差0.06s·YunxiNeural固定音色·TTS一次成功",
+        "subtitle": "check_sync PASS 字幕==口播稿·代理字restore零残留·verify_burn PASS三点采样·抽帧单行不遮挡",
+        "delivery": "315.8s/10MB/1920x1080 h264+aac·发布就绪包10项含封面双断言+可复现实跑·合规全量0BLOCK0WARN"
+      },
+      "rework_count": 3,
+      "author_rejections": 0,
+      "gate_failures": 3,
+      "learning_ids": [
+        "L068",
+        "L069",
+        "L070"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：三层防线用一次真实浏览器实测串起，Trusted Types 2026新能力有权威源；坑：两次渲染层问题自动门禁全PASS靠抽帧发现、合规元描述行第4次复发；下次改：导出帧后加渲染层像素抽检门禁、批准P002/P003脚本白名单"
     }
   ]
 }
