@@ -972,7 +972,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "涉安全，演示须在自有环境且避免可滥用细节",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-22T14:47:48"
       },
       {
         "id": "FED-08",
