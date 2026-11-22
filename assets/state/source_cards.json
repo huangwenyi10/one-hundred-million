@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 26,
+  "next_id": 28,
   "cards": [
     {
       "id": "SC001",
@@ -374,6 +374,36 @@
       "status": "valid",
       "used_in": [
         "期号47 Roadmap 怎么排才不被打乱"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC026",
+      "claim": "Trusted Types 自 2026 年 2 月起成为 Baseline 2026 新可用特性；require-trusted-types-for 'script' 下向 innerHTML 传字符串抛 TypeError；Trusted Types 自身不净化",
+      "source": "MDN Trusted Types API / require-trusted-types-for",
+      "level": "L1",
+      "version": "Baseline 2026 (2026-02)",
+      "conditions": "",
+      "verified_at": "2026-11-22",
+      "review_due": "2027-05-21",
+      "status": "valid",
+      "used_in": [
+        "框架自动转义了为什么还有XSS"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC027",
+      "claim": "XSS 无单一解法；推荐框架保护+按上下文输出编码+HTML净化(DOMPurify)；输入验证不能替代输出编码；textContent 为安全 sink",
+      "source": "OWASP Cross Site Scripting Prevention Cheat Sheet",
+      "level": "L1",
+      "version": "2026-11-22 抓取",
+      "conditions": "",
+      "verified_at": "2026-11-22",
+      "review_due": "2027-05-21",
+      "status": "valid",
+      "used_in": [
+        "框架自动转义了为什么还有XSS"
       ],
       "review_history": []
     }
