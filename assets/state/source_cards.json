@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 28,
+  "next_id": 30,
   "cards": [
     {
       "id": "SC001",
@@ -404,6 +404,36 @@
       "status": "valid",
       "used_in": [
         "框架自动转义了为什么还有XSS"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC028",
+      "claim": "open model 用 arrival-rate 执行器、closed model 因 coordinated omission 会美化尾部延迟；拐点是吞吐线性结束点而非最大吞吐",
+      "source": "Grafana k6 官方文档 Open and closed models",
+      "level": "L1",
+      "version": "k6 docs 抓取2026-11-23",
+      "conditions": "压测找容量拐点·开放模型 vs 封闭模型",
+      "verified_at": "2026-11-23",
+      "review_due": "2027-05-22",
+      "status": "valid",
+      "used_in": [
+        "压测拐点：响应时间从哪刻开始崩"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC029",
+      "claim": "M/M/1 稳态平均响应时间 W=S/(1-ρ)，ρ→1 时 W→∞；本机离散事件模拟实测 ρ=0.9 时 540ms、ρ=0.95 时 1184ms 与公式 500ms/1000ms 吻合",
+      "source": "排队论标准公式 + 本机实跑 knee_experiment.py",
+      "level": "L1",
+      "version": "2026-11-23 固定种子",
+      "conditions": "单服务台 S=50ms 容量20req/s·open-loop 固定到达率",
+      "verified_at": "2026-11-23",
+      "review_due": "2027-05-22",
+      "status": "valid",
+      "used_in": [
+        "压测拐点：响应时间从哪刻开始崩"
       ],
       "review_history": []
     }
