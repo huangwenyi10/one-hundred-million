@@ -388,6 +388,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：三层防线用一次真实浏览器实测串起，Trusted Types 2026新能力有权威源；坑：两次渲染层问题自动门禁全PASS靠抽帧发现、合规元描述行第4次复发；下次改：导出帧后加渲染层像素抽检门禁、批准P002/P003脚本白名单"
+    },
+    {
+      "episode": "49",
+      "date": "2026-11-23",
+      "title": "压测拐点：响应时间从哪刻开始崩",
+      "camp": "测试训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 7.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS 量化18.59/千字·最长无量化区间263字·讲透闭环齐·本机实跑拐点数据锚点",
+        "visual": "封面缺cover class+代码页来源行被遮两次渲染层返工·重导帧后13/14载体页93%·bg_theme14帧全净",
+        "audio": "固定音色YunxiNeural·14段240.89s·check_sync偏差0.09s",
+        "subtitle": "80cues逐字一致·verify_burn三点PASS·字幕单行不压内容",
+        "delivery": "4次返工均复检PASS·全门禁过·发布就绪包10项齐·待作者Step7审核"
+      },
+      "rework_count": 4,
+      "author_rejections": 0,
+      "gate_failures": 4,
+      "learning_ids": [
+        "L071",
+        "L072",
+        "L073"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：本机实跑拐点模型与M/M/1公式吻合、数据讲透；坑：自建PPT生成器封面漏cover class+代码页来源行重叠两处渲染层问题自动门禁测不到、靠抽帧目检发现；下次改：导帧后必抽帧目检封面+代码页(第3次印证·建议蒸馏像素门禁待拍板)；合规天花板改峰值数字重配音"
     }
   ]
 }
