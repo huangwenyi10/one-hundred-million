@@ -717,3 +717,30 @@
 - **返工计数**：3 次（HTML 注释残留字幕带 FAIL / src-note 浮顶 / 合规元描述行 BLOCK），门禁 FAIL 3 轮，作者打回 0。
 - **时长**：成片 315.8s≈5.3 分钟（M 档·一个核心概念三层防线讲透）。
 - **提议状态**：P001/P002/P003 仍 pending_author，未 approve、未自动改技能规则。L068/L069 的「导帧后渲染层 sanity check」与 L066 同属「门禁测不到画面层」，第 3 次出现，建议蒸馏为导帧后像素抽检硬门禁（待作者拍板）。
+
+### L071 [排版规则] 自建 make_ppt.py 封面页漏加 `cover` class → 顶部出现青色标题带、封面白字强调压同色带不可读（fixed）
+- **现象**：抽帧封面 t1 见顶部青色渐变标题带（本应纯白封面），且"拐点"二字用 accent 青色压在青带上几乎看不清；自动门禁 bg_theme/visual_presence/subtitle_band 全 PASS（它们不检查 cover class 是否存在）。
+- **根因**：self-built `slide()` 生成器对所有页统一输出 `<section class="slide">`，第一页未加 `cover active`，导致 `.slide.cover{background:#FFFFFF}` 与 `.slide.cover::before{display:none}` 两条封面规则均未生效。
+- **修复**：`slide()` 加 `cover` 参数，第一页输出 `<section class="slide cover active">`；重导帧目检确认封面纯白、深字标题+青色强调清晰。
+- **防复发点**：自建 PPT 生成器必须给封面页显式 `cover active` class；导帧后抽帧目检第 1 页（自动门禁测不到 class 缺失导致的封面错误）。与 L066/L067/L068 同属"渲染层抽帧目检不可省"。
+- **状态**：fixed（本期重导帧验证 PASS）。
+
+### L072 [排版规则] 代码页独立 `.src-note` 与 `.code-wrap` 底边几乎重叠 → 来源行被代码块遮住、起始文字被裁切（fixed）
+- **现象**：抽帧 P6 见左下角来源行"本机实跑 knee_experiment.py…"起始文字被代码块盖住裁切；单独把它下移 44px 后又与 code-note 挤在同一行重叠。
+- **根因**：`.src-note{bottom:216px}` 与 code-wrap 底边（代码页模板 bottom:158px）间距不足，且 code-block 层叠在上；简单下调 bottom 会与 code-note（在 code-wrap 内）冲突。
+- **修复**：代码页取消独立 src-note，把来源并入 `.code-note` 文本末尾（"｜来源：…"），代码块内安全区一行显示；重导帧 P6/P13 确认来源单行完整不重叠。
+- **防复发点**：代码页来源标注一律并入 code-note，不另起独立 src-note；非代码页 src-note 保持 bottom:216px。
+- **状态**：fixed（本期重导帧验证 PASS）。
+
+### L073 [门禁失效] 口播正文"吞吐量天花板"中"天花板"命中抖音绝对化 BLOCK（fixed）
+- **现象**：抖音合规全量自检 2 BLOCK，落在口播稿第 3 段与公众号文案第 5 行的"吞吐量天花板"——"天花板"被正则判绝对化用语。
+- **根因**：口播正文真实使用了绝对化表述（非 L070 那种元描述行误报），脚本正确命中。
+- **修复**：口播稿与公众号文案同步改为"吞吐量的峰值数字"；因口播稿改动重跑 apply→分段 TTS（删 seg_01 缓存强制重渲）→restore→sub_clean→check_sync→重合成 body→重烧；合规复检 0 BLOCK / 0 WARN。
+- **防复发点**：写稿避免"天花板/顶级/最好"等绝对化比喻词；合规门禁前于写稿阶段自查。口播稿一旦改动必须整条 TTS 链重跑（四方同频硬规则）。
+- **状态**：fixed（本期重配音重烧验证 PASS）。
+
+### 本轮其他（无需改规则，记备查）
+- **防复发清单命中**：brief 列 14 open + 17 待验证 + P001/P002/P003；本轮 ①L066 `<style>` 在 head：本期生成器遵循未复发；②L067 静态帧无半透明动画：内容页无 anim-class，终态清晰未复发；③L047/L058/L064 底部避让：所有内容块 bottom:210px、subtitle_band 14 帧全净未复发；④L063 声明数=落实数：visual_plan 首版声明 14>落实 12（P1封面/P2split 未识别）→ P2 改 cmp 表+plan 声明 13 → PASS；⑤L037 位置参数遵循；⑥多音字 apply 2（因为→因未）restore 零残留。
+- **返工计数**：4 次（封面 cover class / 代码页来源行 / 载体声明数 / 合规天花板重配音），门禁 FAIL 4 轮，作者打回 0。
+- **时长**：成片 240.9s≈4 分钟（M 档·拐点一个核心概念讲透闭环）。
+- **提议状态**：P001/P002/P003 仍 pending_author，未 approve、未自动改技能规则。L071/L072 再次印证"导帧后渲染层抽帧目检不可省"（与 L066/L068 同根因第 3 次），建议蒸馏为导帧后像素抽检硬门禁（待作者拍板）。
