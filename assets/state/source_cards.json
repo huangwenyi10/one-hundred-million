@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 31,
+  "next_id": 32,
   "cards": [
     {
       "id": "SC001",
@@ -450,6 +450,19 @@
       "used_in": [
         "改流程之前，先量这三个数"
       ],
+      "review_history": []
+    },
+    {
+      "id": "SC031",
+      "claim": "检索练习优于重复阅读：Roediger & Karpicke 2006 一周后连读4遍剩40%、读1遍+回忆3遍剩61%；信心与成绩反向(4.8vs4.0)；Dunlosky 2013 仅练习自测+间隔为高效用",
+      "source": "Roediger & Karpicke 2006 Psych Science PMID16507066；Dunlosky 2013 PMID26173288；McDaniel 2009 PMID19320858；3R读合查",
+      "level": "L1",
+      "version": "2006/2013/2009 · 核验2026-11-24",
+      "conditions": "",
+      "verified_at": "2026-11-24",
+      "review_due": "2027-05-23",
+      "status": "valid",
+      "used_in": [],
       "review_history": []
     }
   ]
