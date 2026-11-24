@@ -420,6 +420,37 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：本机实跑拐点模型与M/M/1公式吻合、数据讲透；坑：自建PPT生成器封面漏cover class+代码页来源行重叠两处渲染层问题自动门禁测不到、靠抽帧目检发现；下次改：导帧后必抽帧目检封面+代码页(第3次印证·建议蒸馏像素门禁待拍板)；合规天花板改峰值数字重配音"
+    },
+    {
+      "episode": "50",
+      "date": "2026-11-24",
+      "title": "改流程之前，先量这三个数",
+      "camp": "管理训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 9.0
+      },
+      "evidence": {
+        "content": "content_depth PASS量化28.15/千字闭环齐·双源L1 DORA+Microsoft Learn·本机实跑flow_experiment三组数据",
+        "visual": "14页白底黄带·13/14载体93%·subtitle_band全净·返工2处已修",
+        "audio": "14段375.82s固定音色YunxiNeural·check_sync偏差0.09s",
+        "subtitle": "122cues逐字一致·verify_burn三点PASS·单行不遮挡",
+        "delivery": "发布就绪包10项·封面双断言·全量合规0/0·待作者审核"
+      },
+      "rework_count": 2,
+      "author_rejections": 0,
+      "gate_failures": 2,
+      "learning_ids": [
+        "L074",
+        "L075"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": ""
     }
   ]
 }
