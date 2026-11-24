@@ -1404,7 +1404,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-24T10:27:44"
       },
       {
         "id": "MGT-10",
