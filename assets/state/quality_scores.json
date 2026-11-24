@@ -451,6 +451,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": ""
+    },
+    {
+      "episode": "51",
+      "date": "2026-11-24",
+      "title": "收藏了那么多，为什么都没学会",
+      "camp": "软技能训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS 量化8.18/千字·讲透闭环五段齐·实战形态命中·L1四论文核验",
+        "visual": "12页10载体83%·P2/P9两次渲染层返工后目检通过·封面cover active纯白",
+        "audio": "edge-tts 7.3.1 12段272.78s·check_sync偏差0.06s·固定音色",
+        "subtitle": "verify_burn 3点PASS·字幕==口播稿·单行94条·末尾无标点",
+        "delivery": "成片8.4MB/1920x1080·全门禁PASS·发布就绪包7件·3次返工已修"
+      },
+      "rework_count": 3,
+      "author_rejections": 0,
+      "gate_failures": 3,
+      "learning_ids": [
+        "L076",
+        "L077",
+        "L078"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "M档一个核心概念讲透·L1数据40%vs61%扎心反转·返工3处均渲染层/元描述误报·P001/P002/P003仍pending_author"
     }
   ]
 }
