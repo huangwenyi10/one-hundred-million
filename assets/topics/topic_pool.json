@@ -1593,7 +1593,8 @@
         "aiAngle": "个人知识库 RAG 实战",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-24T22:51:51"
       },
       {
         "id": "SFT-09",
