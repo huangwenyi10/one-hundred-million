@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 30,
+  "next_id": 31,
   "cards": [
     {
       "id": "SC001",
@@ -434,6 +434,21 @@
       "status": "valid",
       "used_in": [
         "压测拐点：响应时间从哪刻开始崩"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC030",
+      "claim": "WIP从3→12吞吐恒定0.910件/天，平均前置2.99→11.98天，流动效率66.8%→16.7%",
+      "source": "本机实跑 flow_experiment.py",
+      "level": "L1",
+      "version": "种子20261124",
+      "conditions": "评审0.5天→开发1天(瓶颈)→测试0.5天；±20%抖动",
+      "verified_at": "2026-11-24",
+      "review_due": "2027-05-23",
+      "status": "valid",
+      "used_in": [
+        "改流程之前，先量这三个数"
       ],
       "review_history": []
     }
