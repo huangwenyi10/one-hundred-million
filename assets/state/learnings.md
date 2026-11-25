@@ -794,6 +794,24 @@
 - **防复发点**：P002/P003 提议已第 5 次复发，强烈建议交互式会话批准作者拍板后改脚本白名单（第 43 条⑤不自动改）。后台文档禁止逐字列举任何红线词。
 - **状态**：fixed（同根因第 5 次 → 提议 pending_author 已升级；本期改写放行）。
 
+---
+
+## 2026-11-25 · 架构师训练营 · 期号52《服务拆得越细，为什么越容易崩》
+
+### L079 [排版规则] 来源行 bottom:232px 与 diagram-stage bottom:240px 几乎同位 → 来源行压在底层节点上（fixed）
+- **现象**：P10 抽帧见来源行「来源：AWS Well-Architected…」横穿「照片 / 评论」两个底层节点；自动门禁 bg_theme / subtitle_band / visual_presence 全 PASS，目检才发现。
+- **根因**：`.src-note{bottom:232px}` 与 `.diagram-stage{bottom:240px}` 底边几乎重合，来源行落在图示容器下沿内部而非下方。
+- **修复**：来源行统一改 `bottom:196px`；重导 14 帧并复跑 subtitle_band 全净，P10 目检来源行移至节点下方且不入字幕带。
+- **防复发点**：来源行 bottom 数值须比内容容器 bottom 至少低 40px（图示/表格/卡片页同理）；导帧后必须抽帧目检来源行位置，自动门禁测不到此类重叠。
+- **状态**：fixed（本期重导帧验证 PASS）。
+
+### L080 [排版规则] diagram-stage 内 `.legend{margin-top:auto}` 在容器高度不足时被 overflow:hidden 裁成半行（fixed）
+- **现象**：P10 第一次修正后，图示容器下沿的「结论：区分必选与可选…」只露出上半截，被容器边界切掉。
+- **根因**：`.diagram-stage{overflow:hidden}` + 三层 diagram-row + 两条 link-band 已占满容器，legend 再 `margin-top:auto` 只能挤在下沿被裁切。
+- **修复**：删除该页 legend，信息已由两条 link-band 标签（必选调用 / 可选调用·失败即省略）承载；重导帧确认无残留半行文字。
+- **防复发点**：图示页若已有带标签连线，不再追加 legend；确需 legend 时为容器预留 ≥40px 余量，导帧后抽帧确认完整。
+- **状态**：fixed（本期重导帧验证 PASS）。
+
 ### 本轮其他（无需改规则，记备查）
 - **防复发清单命中**：brief 列 14 open + 22 待验证 + P001/P002/P003；①L066 style 在 head：遵循未复发；②L067 静态帧无 anim-class：内容页无 anim，终态清晰；③L046/L047/L064 底部避让：除 P2 图例溢出（L076）外全净；④L074 visual_plan 声明数：10 声明 = 10 落实，封面/CTA 精确「—」，未复发；⑤L075 CSS 注释整块删：遵循未复发；⑥L071 封面 cover active：遵循未复发；⑦L037 位置参数：sub_clean 用 --input/--out 未复发；⑧多音字 apply 3（因为→未 / 间隔→见×2）restore 零残留；「卡壳」改「想提取却提不出的费劲过程」规避读音风险。
 - **返工计数**：3 次（P2 字幕带 / P9 来源行浮顶 / 合规元描述行），门禁 FAIL 3 轮，作者打回 0。
