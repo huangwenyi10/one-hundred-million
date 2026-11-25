@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 34,
+  "next_id": 37,
   "cards": [
     {
       "id": "SC001",
@@ -492,6 +492,51 @@
       "status": "valid",
       "used_in": [
         "服务拆得越细，为什么越容易崩"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC034",
+      "claim": "BIRD 基准 12751 对 / 95 库 / 33.4GB，ChatGPT EX 40.08%，人类 92.96%",
+      "source": "arXiv:2305.03111 v3",
+      "level": "L1",
+      "version": "v3 2023-11-15",
+      "conditions": "BIRD test set EX=结果集一致",
+      "verified_at": "2026-11-25",
+      "review_due": "2027-05-24",
+      "status": "valid",
+      "used_in": [
+        "大模型写的SQL，错在哪"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC035",
+      "claim": "Spider 2.0 632 个企业任务；o1-preview code agent 成功率 21.3%，Spider 1.0 为 91.2%，BIRD 为 73.0%",
+      "source": "arXiv:2411.07763 v2",
+      "level": "L1",
+      "version": "v2 2025-03-17",
+      "conditions": "ICLR 2025 Oral 论文摘要口径",
+      "verified_at": "2026-11-25",
+      "review_due": "2027-05-24",
+      "status": "valid",
+      "used_in": [
+        "大模型写的SQL，错在哪"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC036",
+      "claim": "本机 sqlite3 实跑：中文状态字面量返回 None；UPPER(TRIM) 后 490；COUNT 明细 6 vs DISTINCT 订单 5；BETWEEN 闭区间 430 vs 半开区间 490",
+      "source": "本机实跑 build/text2sql_experiment.py",
+      "level": "L1",
+      "version": "2026-11-25 Python3 sqlite3",
+      "conditions": "7 订单/6 明细/3 用户",
+      "verified_at": "2026-11-25",
+      "review_due": "2027-05-24",
+      "status": "valid",
+      "used_in": [
+        "大模型写的SQL，错在哪"
       ],
       "review_history": []
     }
