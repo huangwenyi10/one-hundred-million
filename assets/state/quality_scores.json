@@ -514,6 +514,36 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：本机实跑把硬软依赖差异落到真实状态码；坑：来源行与图示容器底边重合、legend被裁切均为自动门禁盲区；下次改：来源行bottom比容器低40px、图示页不再追加legend"
+    },
+    {
+      "episode": "53",
+      "date": "2026-11-25",
+      "title": "大模型写的SQL，错在哪",
+      "camp": "大数据训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 9.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 9.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS 量化14.96/千字·讲透闭环5/5·实战形态命中",
+        "visual": "15页·载体13页87%·bg_theme HTML+15帧全白·subtitle_band 15/15全净",
+        "audio": "edge-tts YunxiNeural 15段264.82s·check_sync偏差0.05s",
+        "subtitle": "103 cues·sub_clean·check_sync PASS·verify_burn PASS 3点",
+        "delivery": "成片264.80s/8.8MB·发布包9项·合规0BLOCK/0WARN"
+      },
+      "rework_count": 1,
+      "author_rejections": 0,
+      "gate_failures": 0,
+      "learning_ids": [
+        "L081"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：本机实跑三组对照撑住全片。坑：实验案例初版两组输出相同（L081）。下次改：先跑实验确认差异再写稿。"
     }
   ]
 }
