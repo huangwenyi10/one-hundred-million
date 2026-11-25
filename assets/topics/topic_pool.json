@@ -311,7 +311,9 @@
         "aiAngle": "本题即 AI 主线",
         "handsOn": true,
         "risk": "准确率须真实评测，忌编数字",
-        "status": "unused"
+        "status": "done",
+        "reason": "出片《大模型写的SQL，错在哪》2026-11-25 期号53",
+        "updatedAt": "2026-11-25T23:35:57"
       },
       {
         "id": "BIG-06",
