@@ -483,6 +483,37 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "M档一个核心概念讲透·L1数据40%vs61%扎心反转·返工3处均渲染层/元描述误报·P001/P002/P003仍pending_author"
+    },
+    {
+      "episode": "52",
+      "date": "2026-11-25",
+      "title": "服务拆得越细，为什么越容易崩",
+      "camp": "架构师训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 9.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS·量化19.71/千字·AWS+Azure双L1源·本机实跑真实输出",
+        "visual": "14页PPT·12页真载体86%·bg_theme与subtitle_band全过·P10两处渲染层返工已修(L079/L080)",
+        "audio": "edge-tts YunxiNeural·14段真实时间轴270.31s·多音字代理12处restore零残留",
+        "subtitle": "85 cues·check_sync PASS偏差0.07s·verify_burn三点全过·单行末无标点",
+        "delivery": "成片270.30s/9.5MB·发布就绪包10项·metrics/rotation/catalog/learnings全部写回·全量合规0BLOCK0WARN"
+      },
+      "rework_count": 2,
+      "author_rejections": 0,
+      "gate_failures": 0,
+      "learning_ids": [
+        "L079",
+        "L080"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：本机实跑把硬软依赖差异落到真实状态码；坑：来源行与图示容器底边重合、legend被裁切均为自动门禁盲区；下次改：来源行bottom比容器低40px、图示页不再追加legend"
     }
   ]
 }
