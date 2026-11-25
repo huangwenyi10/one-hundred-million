@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 32,
+  "next_id": 34,
   "cards": [
     {
       "id": "SC001",
@@ -463,6 +463,36 @@
       "review_due": "2027-05-23",
       "status": "valid",
       "used_in": [],
+      "review_history": []
+    },
+    {
+      "id": "SC032",
+      "claim": "硬依赖串联时调用方可用性等于各依赖可用性乘积：3个99.99%串联为99.97%；两个99.9%独立冗余为99.9999%",
+      "source": "AWS Well-Architected Reliability Pillar · Availability",
+      "level": "L1",
+      "version": "历史参考版·核验2026-11-25",
+      "conditions": "独立性假设与硬依赖定义；公式见官方文档",
+      "verified_at": "2026-11-25",
+      "review_due": "2027-05-24",
+      "status": "valid",
+      "used_in": [
+        "服务拆得越细，为什么越容易崩"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC033",
+      "claim": "微服务依赖链变长会累积额外延迟；一起变化的功能应打包部署",
+      "source": "Microsoft Azure Architecture Center · Microservices architecture style",
+      "level": "L1",
+      "version": "核验2026-11-25",
+      "conditions": "官方架构风格指南·非性能基准",
+      "verified_at": "2026-11-25",
+      "review_due": "2027-05-24",
+      "status": "valid",
+      "used_in": [
+        "服务拆得越细，为什么越容易崩"
+      ],
       "review_history": []
     }
   ]
