@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 39,
+  "next_id": 41,
   "cards": [
     {
       "id": "SC001",
@@ -567,6 +567,36 @@
       "status": "valid",
       "used_in": [
         "榜单第一的模型，为什么不好用"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC039",
+      "claim": "DSDM MoSCoW 工作量配比：Must 一般不超过总工作量 60%，Could 缓冲约 20%，计算某一时间盒工作量时 Won't Have this time 不计入",
+      "source": "https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html",
+      "level": "L1",
+      "version": "Agile Business Consortium / DSDM 官方 MoSCoW 页面 · 抓取 2026-11-27",
+      "conditions": "页面 Balancing the Priorities 与 Summary 节；超过 60% 属风险除非估算准/技术熟/团队稳定/外部风险低",
+      "verified_at": "2026-11-27",
+      "review_due": "2027-05-26",
+      "status": "valid",
+      "used_in": [
+        "研发说做不了，需求这样改"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC040",
+      "claim": "DSDM MoSCoW 的 Must 判定用取消测试：若不做就要取消项目/上线才有意义；只要存在人工但痛苦的绕过方案，就降为 Should 或 Could，而不是 Must",
+      "source": "https://www.agilebusiness.org/dsdm-project-framework/moscow-prioritisation.html",
+      "level": "L1",
+      "version": "Agile Business Consortium / DSDM 官方 MoSCoW 页面 · 抓取 2026-11-27",
+      "conditions": "页面 The MoSCoW Rules 与 Tips for Assigning Priorities 节；Should/Could 区分按业务价值或受影响人数衡量痛点；Could 是首选应急池",
+      "verified_at": "2026-11-27",
+      "review_due": "2027-05-26",
+      "status": "valid",
+      "used_in": [
+        "研发说做不了，需求这样改"
       ],
       "review_history": []
     }
