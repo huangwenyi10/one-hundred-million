@@ -626,7 +626,8 @@
         "aiAngle": "",
         "handsOn": true,
         "risk": "须真实评测，忌只搬榜单",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-26T11:57:35"
       },
       {
         "id": "AIX-12",
