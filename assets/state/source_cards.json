@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 37,
+  "next_id": 39,
   "cards": [
     {
       "id": "SC001",
@@ -537,6 +537,36 @@
       "status": "valid",
       "used_in": [
         "大模型写的SQL，错在哪"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC037",
+      "claim": "综合榜单排名与具体任务排名可显著错位：本机 Bradley-Terry 拟合 4 模型 5 领域，综合榜 A +0.287 第一，只看代码任务 B +0.890 第一、A 跌至第三 -0.457，两榜 Kendall tau=+0.333",
+      "source": "本机实跑 leaderboard_experiment.py（种子20261126·每对每领域400场）",
+      "level": "L1",
+      "version": "2026-11-26",
+      "conditions": "纯标准库·Bradley-Terry MLE·4模型5领域",
+      "verified_at": "2026-11-26",
+      "review_due": "2027-05-25",
+      "status": "valid",
+      "used_in": [
+        "榜单第一的模型，为什么不好用"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC038",
+      "claim": "The Leaderboard Illusion：Chatbot Arena 存在未公开私有测试与选择性披露，Meta 在 Llama-4 发布前测试 27 个私有变体；少量榜单数据训练可在 ArenaHard 获得最高约 112% 相对提升，属对榜单过拟合",
+      "source": "arXiv:2504.20879v2（Singh et al. Cohere Labs 等）",
+      "level": "L1",
+      "version": "2025",
+      "conditions": "论文原文·Cohere/Princeton/Stanford",
+      "verified_at": "2026-11-26",
+      "review_due": "2027-05-25",
+      "status": "valid",
+      "used_in": [
+        "榜单第一的模型，为什么不好用"
       ],
       "review_history": []
     }
