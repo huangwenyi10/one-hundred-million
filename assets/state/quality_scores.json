@@ -577,6 +577,40 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": ""
+    },
+    {
+      "episode": "55",
+      "date": "2026-11-27",
+      "title": "研发说做不了，需求这样改",
+      "camp": "产品经理训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth PASS(M档1446字·量化4.63/千字·三步可操作)·双源L1 DSDM官方MoSCoW+本机实跑两轮61.5%→46.2%",
+        "visual": "14页PPT·bg_theme PASS·visual_presence 13/14载体93%·subtitle_band 14帧全净·目检5点全过",
+        "audio": "edge-tts 7.3.1 YunxiNeural·14段271.80s·check_sync偏差0.07s",
+        "subtitle": "102 cues·字幕==口播稿·verify_burn PASS·代理2处restore零残留",
+        "delivery": "发布包8项·全量合规0 BLOCK0 WARN·成片271.80s/9.4MB/1920x1080"
+      },
+      "rework_count": 1,
+      "author_rejections": 0,
+      "gate_failures": 1,
+      "learning_ids": [
+        "L086",
+        "L087",
+        "L088",
+        "L089",
+        "L090"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": ""
     }
   ]
 }
