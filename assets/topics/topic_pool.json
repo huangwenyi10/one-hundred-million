@@ -886,7 +886,7 @@
       },
       {
         "id": "PRD-15",
-        "title": "和研发排期怎么谈",
+        "title": "研发说做不了，需求这样改",
         "dimension": "项目协作与交付",
         "angle": "研发说做不了的时候，需求该怎么改才能被接住",
         "tier": "S",
@@ -895,7 +895,8 @@
         "aiAngle": "",
         "handsOn": false,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-27T00:27:36"
       }
     ],
     "前端训练营": [
