@@ -544,6 +544,39 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：本机实跑三组对照撑住全片。坑：实验案例初版两组输出相同（L081）。下次改：先跑实验确认差异再写稿。"
+    },
+    {
+      "episode": "54",
+      "date": "2026-11-26",
+      "title": "榜单第一的模型，为什么不好用",
+      "camp": "AI 训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 7.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth PASS 量化3.68/千字·闭环齐·双源L1论文+本机BT实跑真实数字",
+        "visual": "visual_presence PASS 10/16载体62%·bg_theme+subtitle_band全过·但L082切页方向/L083 plan声明/L084大字色3处渲染层返工靠目检发现",
+        "audio": "fixed音色YunxiNeural·16段217.82s·check_sync偏差0.07s",
+        "subtitle": "67cues字幕==口播稿·verify_burn PASS·全量合规0BLOCK0WARN",
+        "delivery": "发布就绪包8项·封面双断言·B站时间轴按真实起点"
+      },
+      "rework_count": 4,
+      "author_rejections": 0,
+      "gate_failures": 2,
+      "learning_ids": [
+        "L082",
+        "L083",
+        "L084",
+        "L085"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": ""
     }
   ]
 }
