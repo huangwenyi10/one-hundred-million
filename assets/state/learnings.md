@@ -834,3 +834,41 @@
 - **返工计数**：1 次（实验案例初版无差异，改稿重跑，未返工重配音）；门禁 FAIL 0 轮；作者打回 0。
 - **时长**：成片 264.80s≈4.4 分钟（M 档·一个核心概念「先用数据画像约束生成，比结果集」讲透闭环）。
 - **提议状态**：P001/P002/P003 仍 pending_author，未 approve、未自动改技能规则。SC034/SC035/SC036 事实卡片入库。
+
+---
+
+## 2026-11-26 · AI训练营 · 期号54《榜单第一的模型，为什么不好用》
+
+### L082 [脚本bug] 自建 make_ppt.py 切页方向写反，模板示例 slides 残留致 20+ 页（fixed）
+- **现象**：首版生成 PPT 后 visual_presence_check 报「幻灯片总数 22（应 16）」，且声明/落实载体数严重失配。
+- **根因**：用 `html[:script_i] + 占位 + html[script_i:]` 替换，保留了 `<body>` 开标签到 `<script>` 之间的模板示例 slides，把新增 16 页加在了模板 4 页示例之后。
+- **修复**：改为按 `<body>` 开标签定位——`html[:body_tag_i+len('<body>')] + 占位 + html[script_i:]`，丢掉 body 内模板示例、保留 script；重生成后 section=16。
+- **防复发点**：自建 PPT 生成器若有「删模板示例」步骤，必须用 `<body>` 开标签定位保留前缀，不可用 `<script>` 位置反推；生成后立刻 `grep -c '<section class="slide'` 核对页数==计划页数。
+- **状态**：fixed（本期重导帧验证 PASS）。
+
+### L083 [排版规则] visual_plan 把 split/card-grid/hero 声明为载体，声明 16 > 落实 10 BLOCK（fixed）
+- **现象**：visual_presence_check BLOCK「声明 16 段载体，PPT 只落实 10 页」。
+- **根因**：脚本 CARRIER_RES 只认 code/diagram/bars/cmp/stat/flow/svg，不认 split/card-grid/hero；我在 plan 里把这些也填了载体描述。
+- **修复**：按实际 PPT 载体页回填 plan，非识别类一律填精确「—」，声明 10 = 落实 10 → PASS（WARN 非阻塞）。
+- **防复发点**：写 visual_plan 时，载体列只填脚本可识别的 class 名（diagram/flow/bars/cmp/stat/code/svg），split/card/hero/纯文字一律「—」；L007 同类口径第 2 次。
+- **状态**：fixed（本期复跑 PASS）。
+
+### L084 [排版规则] stat 大数字用模板 .num 渐变填充，中文串在白底变浅粉不可读（fixed）
+- **现象**：抽帧 t=200 发现「自己的任务数据」大字是浅粉色，白底上几乎看不清；t=1/t=10 的 0.6%/<1% 同样偏浅。
+- **根因**：模板 `.stat .num` 带 `-webkit-text-fill-color:transparent` + 渐变填充（为数字大字号设计），中文串渐变落在浅端，且自动门禁（bg_theme/visual_presence/subtitle_band/verify_burn）全 PASS，属渲染层目检盲区。
+- **修复**：三处 num span 显式加 `color:var(--accent);-webkit-text-fill-color:var(--accent)` 覆盖渐变；重导 8/10/15 帧 → 重合成 → 重烧 → 目检深红可读。
+- **防复发点**：stat 页若放非数字大字（中文/百分号），必须显式覆盖 text-fill-color；抽帧目检不可省——自动门禁测不到「渐变色在白底不可读」。此为本期第 2 次印证「渲染层目检盲区」（L082 亦靠目检发现）。
+- **状态**：fixed（本期重导帧复检 PASS）。
+
+### L085 [门禁失效] 抖音合规 BLOCK「成绩最好的那个」绝对化用语（fixed）
+- **现象**：合规自检 BLOCK 1 项——「只公布成绩最好的那个」命中绝对化用语「最好」。
+- **根因**：转述论文 "selective disclosure of best score" 时直译成「最好」，触犯第 30 条。
+- **修复**：改「只挑成绩靠前的那个」，四方同频（口播稿/segments/PPT/script_tts/make_ppt/sources 六处）改写 → 删 seg_10 缓存重配音 → restore/clean → check_sync PASS → 重导 11 页 → 重合成重烧 → 全量合规 0 BLOCK/0 WARN。
+- **防复发点**：转述论文/外文中含 best/top 的表述时避免直译「最好/第一」，用「成绩靠前/排名靠前」等可核验比较口径；改稿必须删对应 seg 缓存重配音（否则字幕与稿不一致，check_sync 会 FAIL）。
+- **状态**：fixed（本期复检 PASS）。
+
+### 本轮其他（无需改规则，记备查）
+- **防复发清单命中**：brief 列 14 open + 28 待验证 + P001/P002/P003；①L066 style 在 head：模板完整未另写 style；②L068 head 注释整段删：非贪婪正则删 HTML 注释块 + 逐行删 CSS 含营名注释，禁句扫描 CLEAN；③L071 cover active class：封面显式 cover active；④L046/L047/L079 底部避让：card-grid/split/code-wrap bottom:196、src-note bottom:210，subtitle_band 16/16 全净；⑤L074 visual_plan 声明数：见 L083；⑥L078 合规元描述行：发布设置用「已过规范自检」，全量 0 BLOCK/0 WARN；⑦多音字 apply 3 处 restore 零残留；⑧L081「对照实验先跑出差异」：实验首版 0.6% 未翻转榜首，如实呈现为「分差 0.078→0.004 未易主」未编造，与论文结论分开陈述。
+- **返工计数**：4 次（切页方向 / plan 声明 / 大字色 / 合规改写），门禁 FAIL 2 轮（visual_presence BLOCK + 合规 BLOCK），作者打回 0。
+- **时长**：成片 217.83s≈3.6 分钟（M 档·一个核心概念「榜单分≠场景分」讲透闭环）。
+- **提议状态**：P001/P002/P003 仍 pending_author，未 approve、未自动改技能规则。事实卡片本轮新增（见 evolution source add）。
