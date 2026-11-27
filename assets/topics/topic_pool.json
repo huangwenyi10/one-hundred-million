@@ -1210,7 +1210,9 @@
         "aiAngle": "本题即 AI 主线",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "reason": "2026-11-28 测试训练营期号57成片《大模型应用怎么测，对错怎么判》",
+        "updatedAt": "2026-11-28T00:51:06"
       },
       {
         "id": "TST-09",
