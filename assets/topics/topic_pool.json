@@ -1022,7 +1022,7 @@
       },
       {
         "id": "FED-10",
-        "title": "TypeScript 类型的真实收益",
+        "title": "AI写的代码，靠类型兜底",
         "dimension": "TypeScript 与工程化",
         "angle": "类型不是写给自己看的，哪些写法真的挡住过线上问题",
         "tier": "M",
@@ -1031,7 +1031,8 @@
         "aiAngle": "AI 辅助代码评审与类型补全",
         "handsOn": true,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-27T12:34:04"
       },
       {
         "id": "FED-11",
