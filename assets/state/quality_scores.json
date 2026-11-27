@@ -643,6 +643,39 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "好：对照实验先跑出三种方向不同结果再写稿；坑：合规脚本误喂PNG产生二进制乱码BLOCK、元描述行第7次复发；下次改：合规只喂文本、封面走目检、元描述行一律写已过规范自检"
+    },
+    {
+      "episode": "57",
+      "date": "2026-11-28",
+      "title": "大模型应用怎么测，对错怎么判",
+      "camp": "测试训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "content_depth_check PASS 量化17.44/千字 最长无量化253字 闭环齐 本机实跑83.2到99.8真实数字",
+        "visual": "15页PPT 14页强载体93% bg_theme PASS subtitle_band 15/15全净 4处渲染层返工L094-L097",
+        "audio": "edge-tts 15段285.43s check_sync偏差0.06s 固定音色YunxiNeural",
+        "subtitle": "112条cue verify_burn PASS 3点边界避让 字幕等口播稿 代理字零残留",
+        "delivery": "发布就绪包10项 全量合规0BLOCK0WARN 封面bbox双断言 B站真实时刻 成片待审核"
+      },
+      "rework_count": 4,
+      "author_rejections": 0,
+      "gate_failures": 4,
+      "learning_ids": [
+        "L094",
+        "L095",
+        "L096",
+        "L097"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "测试营专项测试维度首条 本机可复现模拟实验讲清自洽性机制 4处渲染层返工均重导帧复检PASS"
     }
   ]
 }
