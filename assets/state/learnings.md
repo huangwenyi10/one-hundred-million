@@ -949,3 +949,41 @@
 - **抽帧目检**：t=1/30/70/150/190/258 六点全过（白底橙带·代码与终端深底浅字清晰·对照表与流程图节点可读·水印左上不压字·单行字幕不遮挡·无营标识期号·CTA 站内收敛）。
 - **时长**：成片 261.07s≈4.35 分钟（M 档·一个核心概念「可辨识联合 + never 穷尽检查把漏分支挡在编译期」讲透闭环）。
 - **提议状态**：P001/P002/P003 仍 pending_author，未 approve、未自动改技能规则。事实卡片 SC041 入库（TS 官方 Handbook L1 + 本机实跑）。
+
+---
+
+## 期号57（2026-11-28）测试训练营《大模型应用怎么测，对错怎么判》
+
+### L094 [排版规则] visual_plan 表格缺行首竖线导致 read_plan 声明 0 段 BLOCK（fixed）
+- **现象**：visual_presence_check 报「visual_plan.md 里没有任何一段声明了画面载体」，实测 15 段载体全写在无前导 `|` 的表格里。
+- **根因**：`read_plan()` 只认 `line.startswith("|")` 的行；表头/数据行无行首竖线时整表被跳过。与 L007 同源（该次是「—（说明）」后缀）。
+- **修复**：表格每行改为 `| ... |` 标准写法，声明 15 段。
+- **防复发点**：写 visual_plan 一律带行首 `|`；封面/非强载体页精确写「—」前缀。
+- **状态**：fixed（本期复跑 PASS，声明 14 = 落实 14）。
+
+### L095 [排版规则] diagram-stage 灰底铺满字幕带，5 帧 FAIL（fixed）
+- **现象**：page_03/06/09/10/13 字幕带非白像素 139440（=1680×83，整条带宽），改 CSS bottom/height 多次无效。
+- **根因**：模板 `.diagram-stage{position:absolute;top:250;bottom:170;background:var(--panel)}` 相对 slide 定位，灰底块一直铺到画面底部；export_frames 的 head 截取与层叠让自定义覆盖未生效。
+- **修复**：在 make_ppt.py 里给 diagram-stage inline `style="background:transparent!important;border:none!important;height:600px!important;..."`（inline!important 优先级最高），灰底消除。
+- **防复发点**：图示页灰底块若 FAIL，优先 inline!important 去掉背景，而非反复调 bottom 百分比；导帧后必跑 subtitle_band_check。
+- **状态**：fixed（本期 15/15 帧全净）。
+
+### L096 [排版规则] bars 柱底压字幕带（fixed）
+- **现象**：P9/P10 柱图底部青色像素侵入 y918~980（6784/10074 像素）。
+- **根因**：`.bars{height:100%}` + 柱子 `align-items:flex-end`，降柱高百分比无效，柱底仍落在字幕带起点。
+- **修复**：给 bars 容器 inline `padding-bottom:70px!important` 整体上移；重导帧后 subtitle_band 15/15 全净。
+- **防复发点**：柱状图页导帧后必跑字幕带门禁；柱底侵入优先加容器 padding-bottom，不动柱高比例。
+- **状态**：fixed（本期验证 PASS）。
+
+### L097 [脚本bug] 自定义 CSS 注释内字面量 `</style>` 导致 CSS 泄漏到画面（fixed）
+- **现象**：成片封面帧顶部出现整屏 CSS 源码文字，字幕仅显示「我是Map」，水印被压。
+- **根因**：make_ppt.py 用 `html.replace('</style>', extra_css+'</style>', 1)` 注入；extra_css 的注释里写了字面量 `</style>`，被浏览器当成第二个闭合标签，后续 CSS 全部作为 body 文本渲染。属 L045（style 误置 body）的变体。
+- **修复**：注释改为「注入在样式闭合标签前」，避免字面量；重生成后 `<style>` 开/闭各 1，封面帧目检干净。
+- **防复发点**：注入 CSS 时，任何注释/字符串都不得含字面量 `</style>`；生成后校验 `<style>` 与 `</style>` 计数均为 1。
+- **状态**：fixed（本期重烧成片目检 PASS）。
+
+### 本轮其他（备查）
+- **返工 4 处**（L094~L097），门禁 FAIL 4 轮，作者打回 0；合规元描述行误报第 8 次（改写放行，同根因 L093）。
+- **防复发清单命中**：L046/L079 底部避让（L095/L096 再现）；L068 head 注释（本期无残留）；L071 cover active（封面显式）；L083 visual_plan 声明口径（L094）。
+- **抽帧目检**：t=1/55/130/210/283 五点全过（封面纯白青带无 CSS 泄漏、终端步骤块深底浅字清晰、来源行归位、水印左上、单行字幕不遮挡、无营标识期号、CTA 站内收敛）。
+- **提议状态**：P001/P002/P003 仍 pending_author，未自动改技能规则。事实卡片 SC042/SC043 入库。
