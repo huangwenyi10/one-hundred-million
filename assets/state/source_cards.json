@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 42,
+  "next_id": 44,
   "cards": [
     {
       "id": "SC001",
@@ -612,6 +612,36 @@
       "status": "valid",
       "used_in": [
         "AI写的代码，靠类型兜底"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC042",
+      "claim": "OWASP 2025 把提示注入列为 LLM 应用头一条风险；RAG 场景用 RAG Triad 三问（上下文相关性/有据性/答案相关性）评估输出",
+      "source": "genai.owasp.org/llm-top-10 2025 + llm01-prompt-injection",
+      "level": "L1",
+      "version": "2025版",
+      "conditions": "",
+      "verified_at": "2026-11-28",
+      "review_due": "2027-05-27",
+      "status": "valid",
+      "used_in": [
+        "期号57 大模型应用怎么测，对错怎么判"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC043",
+      "claim": "自洽性幻觉检测：真懂则多次采样一致、幻觉则分歧；RASC 按推理路径质量提前停可省约80%采样量且准确率略升",
+      "source": "arXiv:2503.10881 + arXiv:2408.17017",
+      "level": "L2",
+      "version": "v1",
+      "conditions": "SC 多数投票；RASC 早停",
+      "verified_at": "2026-11-28",
+      "review_due": "2027-05-27",
+      "status": "valid",
+      "used_in": [
+        "期号57 大模型应用怎么测，对错怎么判"
       ],
       "review_history": []
     }
