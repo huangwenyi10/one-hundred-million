@@ -611,6 +611,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": ""
+    },
+    {
+      "episode": "56",
+      "date": "2026-11-27",
+      "title": "AI写的代码，靠类型兜底",
+      "camp": "前端训练营",
+      "tier": "M",
+      "scores": {
+        "content": 9.0,
+        "visual": 8.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 9.0
+      },
+      "evidence": {
+        "content": "content_depth PASS 量化6.57每千字 闭环5/5 双源L1 TS官方Handbook+本机tsc5.9.3三组实跑",
+        "visual": "bg_theme HTML+14帧PASS visual_presence 12/14载体86% subtitle_band 14帧全净 抽帧6点全过",
+        "audio": "edge-tts 7.3.1 YunxiNeural 14段261.07s check_sync偏差0.07s",
+        "subtitle": "check_sync 92cues无重叠 字幕==口播稿 verify_burn 3点PASS restore 3处零残留",
+        "delivery": "发布就绪包10项 全量合规0BLOCK0WARN 目录前端营#12 SC041事实卡片"
+      },
+      "rework_count": 1,
+      "author_rejections": 0,
+      "gate_failures": 2,
+      "learning_ids": [
+        "L091",
+        "L092",
+        "L093"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：对照实验先跑出三种方向不同结果再写稿；坑：合规脚本误喂PNG产生二进制乱码BLOCK、元描述行第7次复发；下次改：合规只喂文本、封面走目检、元描述行一律写已过规范自检"
     }
   ]
 }
