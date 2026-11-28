@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 44,
+  "next_id": 46,
   "cards": [
     {
       "id": "SC001",
@@ -642,6 +642,36 @@
       "status": "valid",
       "used_in": [
         "期号57 大模型应用怎么测，对错怎么判"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC044",
+      "claim": "结构化面试效度0.51、非结构化0.38、工作样本0.54、GMA0.51；年资0.18、笔迹0.02；结构化+GMA组合0.63高于非结构化+GMA的0.55（招聘场景选人方法排序）",
+      "source": "Schmidt & Hunter 1998, Psychological Bulletin 124(2):262-274",
+      "level": "L1",
+      "version": "1998原论文",
+      "conditions": "Sackett 2022 / Oh 2023 对效度普适性有时效性争议，引用须标年份与争议，禁说成永恒定论",
+      "verified_at": "2026-11-28",
+      "review_due": "2027-05-27",
+      "status": "valid",
+      "used_in": [
+        "期号58 招人标准怎么写才不招偏"
+      ],
+      "review_history": []
+    },
+    {
+      "id": "SC045",
+      "claim": "结构化锚点评分相对模糊标准可显著提升评分一致性（信度0.243→0.924）与贴合真实能力（效度0.492→0.878），前20%误录率22.5%→0；机制是维度拆解+行为锚点+固定权重+独立打分",
+      "source": "本机可复现 hiring_experiment.py（标准库 seed=20261128 N=400）",
+      "level": "L3",
+      "version": "seed=20261128",
+      "conditions": "纯标准库模拟实验，非真实招聘验收；三维度固定权重0.30/0.45/0.25；结论适用范围仅限模拟口径",
+      "verified_at": "2026-11-28",
+      "review_due": "2027-05-27",
+      "status": "valid",
+      "used_in": [
+        "期号58 招人标准怎么写才不招偏"
       ],
       "review_history": []
     }
