@@ -987,3 +987,31 @@
 - **防复发清单命中**：L046/L079 底部避让（L095/L096 再现）；L068 head 注释（本期无残留）；L071 cover active（封面显式）；L083 visual_plan 声明口径（L094）。
 - **抽帧目检**：t=1/55/130/210/283 五点全过（封面纯白青带无 CSS 泄漏、终端步骤块深底浅字清晰、来源行归位、水印左上、单行字幕不遮挡、无营标识期号、CTA 站内收敛）。
 - **提议状态**：P001/P002/P003 仍 pending_author，未自动改技能规则。事实卡片 SC042/SC043 入库。
+
+
+### L098 [排版规则] .note 与 .src 底部叠字，自动字幕带门禁未发现（fixed）
+- **现象**：成片抽帧 t=40/100/160/280 底部注释行与来源行叠在一起（P3/P4/P6/P11 等含 .note 页），肉眼不可读；但 subtitle_band_check 14/14 全 PASS，自动门禁未发现。
+- **根因**：make_ppt.py 中 `.note{bottom:170px}` 与 `.src{bottom:178px}` 仅差 8px，文字行高约 25px，必然重叠；自动字幕带门禁只查 y[918,1001] 净空，不检查底部两个文本行之间的互相重叠。
+- **修复**：`.note` 改为 `bottom:212px`，重新生成 PPT → 重导 14 帧 → 三门禁 PASS → 重合成 body → 重烧录成片 → verify_burn PASS → 抽帧目检确认两行分离（y≈455 vs y≈472）。
+- **防复发点**：底部有多个文本行时 bottom 间距须 ≥ 字高 + 8px；每轮成片抽帧目检必须逐项看「注释行/来源行/页码」三者互不重叠，不能只信自动门禁。
+- **状态**：verified（本期重烧成片抽帧 PASS）。
+
+### L099 [脚本bug] burn_subtitles.py 相对路径致 probe_duration 返回空、烧录中断（fixed）
+- **现象**：`python3 burn_subtitles.py --engine fast build/body.mp4 build/subtitles_clean.srt build/voiceover.mp4 成片.mp4` 报 `ValueError: could not convert string to float: ''`（line 229 audio_dur）；手动 ffprobe 同一文件正常返回 386.232。
+- **根因**：脚本 `probe_duration()` 对相对路径解析失败、stdout 为空（硬编码 `/usr/local/bin/ffprobe` 本身正常）；改用绝对路径传参即恢复。
+- **修复**：烧录命令 body/srt/audio/out 全部改绝对路径，重跑 `cues=122` PASS。
+- **防复发点**：burn_subtitles.py / verify_burn.py 等涉及 ffprobe 的脚本一律传绝对路径；遇 `probe_duration` 空输出先切绝对路径，再排查 ffprobe 本身。
+- **状态**：fixed（本期绝对路径重烧成片 PASS）。
+
+### L100 [流程缺口] visual_plan 声明载体 13 > PPT 实际 10，门禁 FAIL（fixed·同根因第 3 次）
+- **现象**：visual_presence_check.py FAIL：plan 声明载体 13 段，PPT 实际落实 10 页（cover/split/card-grid 被误计为强载体）。
+- **根因**：visual_plan 把非门禁识别载体（cover/split/card-grid）计入强载体数；与 L083/L094 同根因第 3 次复发。
+- **修复**：将 P1/P2/P13/P14 标为 `—（轻视觉）`，声明强载体 10 段，复检 PASS。
+- **防复发点**：visual_plan 只计 `diagram-stage/diagram-grid/flow/bars/cmp/stat` 等脚本识别载体，其余一律精确写「—」；生成后立即跑 visual_presence_check 双向核对。
+- **状态**：fixed（本期 PASS，已触发蒸馏提议待作者拍板）。
+
+### 本轮其他（备查·期号58）
+- **返工 2 处**（L098/L100），另脚本坑 1 处（L099），门禁 FAIL 1 轮（visual_presence），作者打回 0；合规 0 BLOCK / 0 WARN（元描述行误报未复发）。
+- **防复发清单命中**：L083/L094 载体声明口径（L100 第 3 次复发）；L068 head 注释（本期主动删除模板注释，无残留）；L097 CSS 注释泄漏（本期无）。
+- **抽帧目检**：t=40/100/160/280/384 五点全过（note/src 分离、字幕净空带不遮挡、水印左上、无营标识期号、CTA 站内收敛）。
+- **提议状态**：P001/P002/P003 仍 pending_author，未自动改技能规则。事实卡片本轮 source add 入库。
