@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "next_id": 4,
+  "next_id": 5,
   "proposals": [
     {
       "id": "P001",
@@ -44,6 +44,23 @@
       "summary": "合规元描述行 BLOCK 第3次复发（L034→L053→L056）：后台设置/标题标签文档逐字列举红线词被正则误报；建议脚本对 抖音发布设置.md/标题标签.md 的元描述行或已声明'已通过自检'语境跳过",
       "detail": "同根因第 2 次出现（固定规范第 40 条④）。建议固化为 scripts/douyin_compliance_check.py 后台文件元描述行白名单；能脚本化的优先脚本化。",
       "evidence": "期号44 全量合规复检 5 BLOCK 全在两份后台文档元描述行，发布内容零命中；改写措辞后 PASS 0BLOCK/0WARN",
+      "status": "pending_author",
+      "approved_at": null,
+      "approved_note": null,
+      "verification": {
+        "result": null,
+        "evidence": null,
+        "at": null
+      }
+    },
+    {
+      "id": "P004",
+      "type": "distill",
+      "created_at": "2026-11-28",
+      "episode": "58",
+      "summary": "visual_plan  declarations 反复把 cover/split/card-grid 等非识别载体计入强载体数，导致声明>落实、门禁 FAIL（第3次）。建议脚本增加双向核对硬门禁并在 visual_plan 模板中只列识别载体。",
+      "detail": "同根因第 2 次出现（固定规范第 40 条④）。建议固化为 Step 2 visual_plan 载体声明口径 / visual_presence_check.py；能脚本化的优先脚本化。",
+      "evidence": "L083/L094/L100 三次同类 FAIL；本期声明13>落实10，改标「—」后 PASS",
       "status": "pending_author",
       "approved_at": null,
       "approved_note": null,
