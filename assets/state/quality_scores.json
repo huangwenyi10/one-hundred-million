@@ -676,6 +676,38 @@
       "no_issues": false,
       "regression_dims": [],
       "notes": "测试营专项测试维度首条 本机可复现模拟实验讲清自洽性机制 4处渲染层返工均重导帧复检PASS"
+    },
+    {
+      "episode": "58",
+      "date": "2026-11-28",
+      "title": "招人标准怎么写才不招偏",
+      "camp": "管理训练营",
+      "tier": "L",
+      "scores": {
+        "content": 9.0,
+        "visual": 9.0,
+        "audio": 9.0,
+        "subtitle": 10.0,
+        "delivery": 8.0
+      },
+      "evidence": {
+        "content": "\"content_depth_check PASS（1978字L档·量化3.03/千字·机制句7·怎么做30·具名案例命中）；双源L1 Schmidt&Hunter1998效度表+ Sackett2022/Oh2023争议口径；本机hiring_experiment.py seed=20261128 N=400 信度0.243→0.924 效度0.492→0.878\"",
+        "visual": "\"bg_theme PASS（全营白底·HTML+14帧）；visual_presence PASS（10/14载体）；抽帧目检t=40/100/160/280/384 note/src分离无叠字、水印左上不压字\"",
+        "audio": "\"gen_sync_subs 14段386.23s/122cues；check_sync PASS偏差0.05s；voiceover.mp3 386.232s\"",
+        "subtitle": "\"subtitle_band 14帧全净；verify_burn PASS（3点边界避让t=30.89/193.09/355.28）；字幕落y926-973净空带不遮挡关键视觉\"",
+        "delivery": "\"成片386.23s/10.6MB/1920×1080 h264+aac；全量合规exit0（0BLOCK/0WARN）；发布就绪包8项含封面4x3/3x4；目录管理营#14；audit_recorded 0漏登；成片待作者Step7审核未发布\""
+      },
+      "rework_count": 2,
+      "author_rejections": 0,
+      "gate_failures": 1,
+      "learning_ids": [
+        "L098",
+        "L099",
+        "L100"
+      ],
+      "no_issues": false,
+      "regression_dims": [],
+      "notes": "好：双源权威核验+本机可复现实验撑起讲透，机制句与量化密度达标；坑：visual_plan声明口径第3次复发、note/src底部叠字仅靠人工目检发现、burn相对路径致probe中断；下次改：visual_plan只计识别载体，底部多行bottom间距≥字高+8px，ffprobe类脚本一律传绝对路径"
     }
   ]
 }
