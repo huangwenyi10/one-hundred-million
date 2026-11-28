@@ -1386,7 +1386,8 @@
         "aiAngle": "",
         "handsOn": false,
         "risk": "",
-        "status": "unused"
+        "status": "done",
+        "updatedAt": "2026-11-28T13:39:11"
       },
       {
         "id": "MGT-07",
